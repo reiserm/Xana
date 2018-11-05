@@ -1,0 +1,248 @@
+import sys
+import os
+import re
+import numpy as np
+import pickle
+import pandas as pd
+from matplotlib import pyplot as plt
+import matplotlib
+import copy
+
+from Decorators import Decorators
+from ProcData.Xdata import Xdata
+from misc.xsave import mksavdir, save_result, make_filename
+from misc.history import histsave, get_history_list
+
+from SaxsAna.defineqrois import defineqrois
+
+from XpcsAna import CorrFunc
+from SaxsAna import Saxs
+from XsvsAna import VisbFunc
+
+from XpcsAna.analyze import xpcs
+from SaxsAna.analyze import saxs
+from SaxsAna.find_center import find_center
+from XsvsAna.analyze import xsvs
+
+from Xplot.plotqrois import plotqrois
+
+
+class Xana:
+    """
+    XFEL data analysis class.
+    Usage is:    Xana(savdir, fmt, maskfile)
+    """
+    def __init__(self, sample='', setupfile=None):
+        self.savdir = None
+        self.sample = sample
+        self.db = None
+        self.dbfile = None
+        self.setup = None
+        self.setupfile = setupfile
+        self.load_setup()
+        self.xdata = None
+        if self.setup is not None:
+            self.init_analysis_methods()
+        
+    def __str__(self):
+        return ('Xana Instance\n' + 
+        "savdir: {}\n" +
+        "sample name: {}\n" +
+        "database file: {}\n" +
+        'setup file: {}\n').format( self.savdir, self.sample, self.dbfile, self.setupfile)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def init_analysis_methods(self):
+        if self.setup is not None:
+            self.sx = Saxs.Saxs(self)
+            if 'qroi' in self.setup:
+                self.g2 = CorrFunc.CorrFunc(self)
+                self.v2 = VisbFunc.VisbFunc(self)
+            else:
+                print('Only SAXS can be done: q-rois are not defined in setup dictionary.')
+        else:
+            raise KeyError('Setup is not defined.')
+    
+    def mksavdir(self, *args, **kwargs):
+        self.savdir = mksavdir(*args, **kwargs)
+        self.dbfile = self.savdir+'Analysis_db.pkl'
+        self.load_db(handle_existing='overwrite')
+
+    def load_setup(self, filename=None):
+        try:
+            if filename is None and self.setupfile is None:
+                print('No setup defined.')
+            else:
+                path, fname = make_filename(self, 'setupfile', filename)
+                self.setupfile = path + fname
+                self.setup = pickle.load(open(self.setupfile, 'rb'))
+                self.init_analysis_methods()
+                print('Loaded setupfile:\n\t{}.'.format(self.setupfile))
+        except FileNotFoundError:
+            print('No setup defined.')
+
+    def make_setup(self, **kwargs):
+        keys = ['ctr', 'distance', 'lambda', 'pix_size']
+        mesg = [('beam center x [pixel]', 'beam center y [pixel]'),
+                ('sample-detector distance [m]',),
+                ('wavelength [A]',),
+                ('pixel size x [um]', 'pixel size y [um]')
+        ]
+        setup = {}
+        for k,m in zip(keys,mesg):
+            if k in kwargs:
+                inp = kwargs[k]
+            else:
+                inp = []
+                for mi in m:
+                    inp.append(input(mi+'\t'))
+            if k == 'ctr':
+                inp = np.array(inp).astype('int32')
+            else:
+                inp = np.array(inp).astype('float32')
+            setup[k] = inp
+        self.setup = setup
+
+    def defineqrois(self, input_, **kwargs):
+        if type(input_) == int:
+            Isaxs = self.get_item(input_)['Isaxs']
+        elif type(input_) == np.ndarray:
+            Isaxs = input_
+        if Isaxs.ndim == 3:
+            Isaxs = self.xdata.arrange_tiles(Isaxs)
+        defineqrois(self.setup, Isaxs, self.xdata.mask, **kwargs)
+
+    def save_setup(self, filename=None, **kwargs):
+        if filename is None:
+            filename = input('Enter filename for setupfile.\t')
+        self.setupfile =  save_result(self.setup, 'setup', self.savdir, filename, **kwargs)
+
+    def connect_xdata(self, datdir, fmtstr, maskfile=""):
+        if isinstance(datdir, str):
+            self.xdata = Xdata(datdir, fmtstr, maskfile)
+        else:
+            self.xdata = Xdata(self.db.iloc[datdir]['datdir'], fmtstr, maskfile)
+
+    @Decorators.init_figure()
+    def plotqrois(self, Isaxs, mask=None, **kwargs):
+        """plot q rois defined by setup
+        """
+        if self.xdata is None and mask is None:
+            print('No mask or xdata defined.')
+            return None
+        elif mask is None:
+            mask = self.xdata.mask
+        else:
+            pass
+        
+        plotqrois(Isaxs, mask, self.setup, **kwargs)
+        return None
+
+    # XPCS
+    @Decorators.input2list
+    def xpcs(self, sid, *args, **kwargs):
+        xpcs(self, sid, *args, **kwargs)
+    
+    # SAXS
+    @Decorators.input2list
+    def saxs(self, sid, *args, **kwargs):
+        return saxs(self, sid, *args, **kwargs)
+
+    # XSVS
+    @Decorators.input2list
+    def xsvs(self, sid, *args, **kwargs):
+        xsvs(self, sid, *args, **kwargs)
+
+    # find_center
+    @staticmethod
+    def find_center(*args, **kwargs):
+        return find_center(*args, **kwargs)
+
+    # Data Base
+    def load_db(self, dbfile=None, init=False, **kwargs):
+        path, fname = make_filename(self, 'dbfile', dbfile)
+        dbfile = path + fname
+        print('Try loading database:\n\t{}'.format(dbfile))
+        try:
+            self.db = pickle.load(open(dbfile, 'rb'))
+            self.dbfile = dbfile
+            print('Successfully loaded database')
+        except OSError:
+            print('\t...loading database failed.')
+            if init:
+                self.dbfile = self.savdir + os.path.split(dbfile)[-1]
+                print('Analysis database not found.\nInitialize database...'.format(dbfile))
+                self.init_db(dbfile, **kwargs)
+
+    def init_db(self, dbfile=None, handle_existing='raise'):
+        if self.xdata.meta is not None:
+            meta_names = list(self.xdata.meta.columns)
+        else:
+            meta_names = []
+        names = ['use', 'sample', 'analysis', *meta_names,
+                 'mod', 'savname', 'savfile', 'setupfile', 'comment']
+        tmp_db = pd.DataFrame(columns=names)
+        self.db = tmp_db
+        path, fname = make_filename(self, 'dbfile', dbfile)
+        self.dbfile = path + fname
+        self.save_db(handle_existing=handle_existing)
+            
+    def add_db_entry(self, series_id, savfile):
+        self.db.reset_index(inplace=True, drop=True)
+        savname = savfile.split('/')[-1]
+        dbn = self.db.shape[0]
+        entry = [True, self.sample, savname.split('_')[0], *self.xdata.meta.loc[series_id],
+                     pd.datetime.today(), savname, savfile, self.setupfile, ""]
+        self.db.loc[dbn] = entry
+        self.save_db(handle_existing='overwrite')
+    
+    @Decorators.input2list
+    def discard_entry(self, db_id, save=True):
+        discard = []
+        for i in db_id:
+            datdir = self.db.loc[i, 'datdir']
+            series = self.db.loc[i, 'series']
+            sample = self.db.loc[i, 'sample']
+            discard.append(self.db[(self.db['datdir'].str.match(datdir))
+                                   &(self.db['series']==series)
+                                   &(self.db['sample'].str.match(sample))].index.values)
+        self.db.loc[np.unique(np.hstack(discard)),'use'] = False
+        if save:    
+            self.save_db(handle_existing='overwrite')
+
+    def save_db(self, filename=None, handle_existing='raise'):
+        savdir, dbfile = make_filename(self, 'dbfile', filename)
+        self.dbfile = save_result( self.db, 'Analysis', savdir, dbfile, handle_existing=handle_existing)
+
+    def append_db(self, dbfile, check_duplicates=True):
+        if type(dbfile) == str:
+            path, fname = make_filename(self, filename=dbfile)
+            dbfile = path + fname
+            db = pickle.load(open(dbfile, 'r+b'))
+        self.db = self.db.append(db, ignore_index=True)
+        
+        if len(self.db[self.db['use']==False]) and check_duplicates:
+            self.discard_entry(self.db[self.db['use']==False].index.values, save=False)
+            
+        self.db.drop_duplicates(inplace=True)
+        self.db.reset_index(drop=True, inplace=True)        
+
+    def get_item(self, item):
+        if type(item) == str:
+            return pickle.load(open(item, 'rb'))
+        else:
+            return pickle.load(open(self.db.loc[item]['savfile'], 'rb'))
+
+    @Decorators.input2list
+    def rm_db_entry(self, db_id, rmfile=False):
+        for i in db_id:
+            if rmfile:
+                try:
+                    os.remove(self.db.loc[i]['savfile'])
+                except FileNotFoundError:
+                    print('File not found.')
+            self.db = self.db.drop(i)
+        self.save_db()
+

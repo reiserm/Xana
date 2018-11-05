@@ -1,0 +1,19 @@
+import numpy as np
+
+def betaratio(kv, kb, prob, err=None):
+    beta = np.zeros((kb.size,prob.shape[-1]-1))
+    dbeta = beta.copy()
+    ind = np.where(kb)[0]
+    for i,ki in enumerate(kv[:-1]):
+        p1 = 1.*prob[ind,i]
+        p2 = 1.*prob[ind,i+1]
+        p1[p2==0] = 0
+        p2[p2==0] = 1
+        a = p1/p2
+        beta[ind,i] = (a-(ki*1.+1.)/kb[ind])/(1.+(1.-1.*a)*ki)
+    if err is not None:
+        dbeta = np.ones_like(beta)
+        dbeta[ind] = 1./kb[ind,None]*np.sqrt(2*(1+np.abs(beta[ind]))/(err[0]*err[1]))
+    else:
+        dbeta = np.ones((kb.size,1), dtype=np.float32)
+    return beta, dbeta

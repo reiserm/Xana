@@ -1,0 +1,142 @@
+import os
+import numpy as np
+from multiprocessing import Pool
+from tqdm import tqdm
+
+def rebin(arr, new_shape):
+    """Rebin 2D array arr to shape new_shape by averaging."""
+    shape = (new_shape[0], arr.shape[0] // new_shape[0],
+             new_shape[1], arr.shape[1] // new_shape[1])
+    return arr.reshape(shape).mean(-1).mean(1)
+
+
+def make_spacer(max_spacer, nspacer, sucs=0):
+    spacer_collection= np.unique(np.ceil(np.logspace(0,np.log10(max_spacer),nspacer)))
+    spacer_collection = np.append(0,spacer_collection)
+    if sucs:
+        nsp = np.zeros(spacer_collection.size*3)
+        for si,sp in enumerate(spacer_collection):
+            nsp[si*3:si*3+3] = np.arange(sp-2,sp+1)
+        spacer_collection = np.unique(nsp[nsp>1])
+    
+    return np.sort(spacer_collection).astype(np.uint16) 
+
+
+def xsvs_roi(imgr):
+    kb = np.round(np.mean(imgr))
+    ne = np.max([0,np.floor(np.log(np.max([kb,1])/nb2)/np.log(2))])
+    if (kb <= 0) or (ne == 0):
+        kbr = np.arange(nbins+1)-0.5
+        bc = kbr[:-1]+0.5
+    elif (kb > 0) and (ne > 0):
+        kbr = np.arange(0,(2**ne+1)*(nbins+1),2**ne+1)-0.5
+        bc = kbr[:-1]+2**(ne-1)+0.5
+        
+    gp, nt = np.shape(imgr)
+    sr = np.zeros((nt+1,nbins+1))
+    dsr = sr.copy()
+    sr[0,1:] = bc
+    dsr[0,1:] = bc
+    
+    for j in range(imgr.shape[-1]):
+        imgi = imgr[:,j]
+        tmp = np.append(np.sum(imgi), np.histogram(imgi, kbr)[0])
+        sr[j+1,:] = tmp / gp
+        dsr[j+1,:] = np.sqrt(tmp) / gp
+        
+    return sr, dsr
+
+
+def calc_xsvs(fname, nim , qroi, getDataFunc=getEDFimagedata):    
+    
+    if nim > max_frames:
+        last = max_frames-1
+    else:
+        last = int(nim)
+        
+    img = getDataFunc(fname, last=(last,), output=0)
+    roi = np.zeros((len(qroi), last+1, nbins+1), np.float32)
+    droi = np.zeros_like(roi)
+    for i in range(len(qroi)):
+        imgr = img[qroi[i]]
+        roi[i], droi[i] = xsvs_roi(imgr)
+    del img
+    return roi, droi
+    
+
+def calc_xsvs_pproc(fname, nim , qroi, getDataFunc=getEDFimagedata):    
+    
+    if nim > max_frames:
+        last = max_frames-1
+    else:
+        last = int(nim)
+        
+    img = getDataFunc(fname, last=(last,), output=0)
+    roi = np.zeros((len(qroi), last+1, nbins+1), np.float32)
+    droi = np.zeros_like(roi)
+    
+    workin = []
+    for qi in qroi:
+        workin.append(img[qi])
+    del img
+    
+    for i, res in enumerate(pool.map(worker, workin)):
+        roi[i] = res[0]
+        droi[i] = res[1]
+    return roi, droi
+
+
+def photonstats(data, qroi, gproi, max_spacer=1, nspacer=1, method='joerg', dt=(1.,1.), nbins=512):
+    spacer_collection = make_spacer(max_spacer, nspacer)
+    
+    nb2 = int(nbins/2)
+    
+    #make time vector
+    time = spacer_collection * dt[1] + (spacer_collection+1)*dt[0]
+    
+    #initialize output array
+    out = []
+    dout = []
+    with tqdm(total=len(spacer_collection)) as pbar:
+        for inds,spacer in enumerate(spacer_collection):
+            nt = data.shape[-1]-spacer
+            roi = np.zeros((len(qroi), nt+1, nbins+1), np.float32)
+            droi = np.zeros_like(roi)
+
+            # Sum images to calculate Pairs or Joerg function
+            sumdata = np.zeros((*data.shape[:-1],nt), dtype=np.float32)
+            for image_num in range(nt):
+                imi = image_num
+                imf = image_num + spacer + 1
+                if method == 'joerg':
+                    n = np.arange(imi, imf)
+                    S = np.sum(data[:,:,n], axis=-1)
+                elif method == 'pairs':
+                    S = data[:,:,imi] + data[:,:,imf]
+                sumdata[:,:,image_num] = S
+
+            # Calculate Photon Probabilities
+            for i in range(len(qroi)):
+                Sroi = sumdata[qroi[i]]
+                kb = np.round(np.sum(Sroi)/Sroi.size)
+                ne = np.max([0,np.floor(np.log(kb/nb2)/np.log(2))])
+                if (kb <= 0) or (ne == 0):
+                    kbr = np.arange(nbins+1)-0.5
+                    bc = kbr[:-1]+0.5
+                elif (kb > 0) and (ne > 0):
+                    kbr = np.arange(0,(2**ne+1)*(nbins+1),2**ne+1)-0.5
+                    bc = kbr[:-1]+2**(ne-1)+0.5
+                roi[i,0,1:] = bc
+                droi[i,0,1:] = bc
+                for j in range(Sroi.shape[-1]):
+                    imgi = Sroi[:,j]
+                    tmp = np.append(np.sum(imgi), np.histogram(imgi, kbr)[0])
+                    roi[i,j+1,:] = tmp / gproi[i]
+                    droi[i,j+1,:] = np.sqrt(tmp) / gproi[i]
+            del sumdata
+            out.append(roi)
+            dout.append(droi)
+            pbar.update()
+    pbar.close()
+    return out, dout, time, spacer_collection
+        

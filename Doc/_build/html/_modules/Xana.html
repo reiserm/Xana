@@ -1,0 +1,357 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Xana &#8212; Beckhoff 3.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Beckhoff 3.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Xana</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">Decorators</span> <span class="k">import</span> <span class="n">Decorators</span>
+<span class="kn">from</span> <span class="nn">ProcData.Xdata</span> <span class="k">import</span> <span class="n">Xdata</span>
+<span class="kn">from</span> <span class="nn">misc.xsave</span> <span class="k">import</span> <span class="n">mksavdir</span><span class="p">,</span> <span class="n">save_result</span>
+<span class="kn">from</span> <span class="nn">misc.history</span> <span class="k">import</span> <span class="n">histsave</span><span class="p">,</span> <span class="n">get_history_list</span>
+
+<span class="kn">from</span> <span class="nn">SaxsAna.defineqrois</span> <span class="k">import</span> <span class="n">defineqrois</span>
+<span class="kn">from</span> <span class="nn">SaxsAna.integrate</span> <span class="k">import</span> <span class="n">get_soq</span>
+
+<span class="kn">from</span> <span class="nn">XpcsAna.pyxpcs3</span> <span class="k">import</span> <span class="n">pyxpcs</span>
+
+
+<div class="viewcode-block" id="Xana"><a class="viewcode-back" href="../index.html#Xana.Xana">[docs]</a><span class="k">class</span> <span class="nc">Xana</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    XFEL data analysis class.</span>
+<span class="sd">    Usage is:    Xana(savdir, fmt, maskfile)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">,</span> <span class="n">setupfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Xdata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_setup</span><span class="p">(</span><span class="n">setupfile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span> <span class="o">=</span> <span class="n">Xdata</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;Xana Instance</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> 
+        <span class="s2">&quot;savdir: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;sample name: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;database file: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="s1">&#39;setup file: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="Xana.mksavdir"><a class="viewcode-back" href="../index.html#Xana.Xana.mksavdir">[docs]</a>    <span class="k">def</span> <span class="nf">mksavdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">=</span> <span class="n">mksavdir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="o">+</span><span class="s1">&#39;Analysis_db.pkl&#39;</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_db</span><span class="p">(</span><span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;overwrite&#39;</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Xana.load_setup"><a class="viewcode-back" href="../index.html#Xana.Xana.load_setup">[docs]</a>    <span class="k">def</span> <span class="nf">load_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="o">+</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded setupfile </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No setup defined.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.save_setup"><a class="viewcode-back" href="../index.html#Xana.Xana.save_setup">[docs]</a>    <span class="k">def</span> <span class="nf">save_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter filename for setupfile.</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span>  <span class="n">save_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.connect_xdata"><a class="viewcode-back" href="../index.html#Xana.Xana.connect_xdata">[docs]</a>    <span class="k">def</span> <span class="nf">connect_xdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datdir</span><span class="p">,</span> <span class="n">fmtstr</span><span class="p">,</span> <span class="n">maskfile</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">datdir</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span> <span class="o">=</span> <span class="n">Xdata</span><span class="p">(</span><span class="n">datdir</span><span class="p">,</span> <span class="n">fmtstr</span><span class="p">,</span> <span class="n">maskfile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span> <span class="o">=</span> <span class="n">Xdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">datdir</span><span class="p">][</span><span class="s1">&#39;datdir&#39;</span><span class="p">],</span> <span class="n">fmtstr</span><span class="p">,</span> <span class="n">maskfile</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.defineqrois"><a class="viewcode-back" href="../index.html#Xana.Xana.defineqrois">[docs]</a>    <span class="k">def</span> <span class="nf">defineqrois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="n">defineqrois</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># XPCS</span>
+<div class="viewcode-block" id="Xana.xpcs"><a class="viewcode-back" href="../index.html#Xana.Xana.xpcs">[docs]</a>    <span class="nd">@Decorators</span><span class="o">.</span><span class="n">input2list</span>
+    <span class="k">def</span> <span class="nf">xpcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_id</span><span class="p">,</span> <span class="n">saxs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">series_id</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">#### Starting XPCS Analysis ####</span><span class="se">\n</span><span class="s1">Series: </span><span class="si">{}</span><span class="s1"> in folder </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
+                <span class="n">inputd</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;files&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">serieslist</span><span class="p">[</span><span class="n">sid</span><span class="p">],</span><span class="s1">&#39;format&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">fmtstr</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+                <span class="n">sid</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="n">sid</span>
+                <span class="n">inputd</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;files&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">serieslist</span><span class="p">[</span><span class="n">sid</span><span class="p">],</span> <span class="s1">&#39;first&#39;</span><span class="p">:</span><span class="n">first</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span><span class="n">last</span><span class="p">,</span>
+                                 <span class="s1">&#39;format&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">fmtstr</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+            
+            <span class="n">Isaxs</span> <span class="o">=</span> <span class="n">saxs</span>
+            <span class="k">if</span> <span class="n">saxs</span> <span class="o">==</span> <span class="s1">&#39;get&#39;</span><span class="p">:</span>
+                <span class="n">Isaxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">saxs</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">,</span>
+                                      <span class="n">return_saxs</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Isaxs&#39;</span><span class="p">]</span>
+
+            <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s1">&#39;t_exposure&#39;</span><span class="p">]</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s1">&#39;t_readout&#39;</span><span class="p">]</span>
+            <span class="n">corfd</span> <span class="o">=</span> <span class="n">pyxpcs</span><span class="p">(</span><span class="n">inputd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;qroi&#39;</span><span class="p">],</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">qv</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;qv&#39;</span><span class="p">],</span> <span class="n">saxs</span><span class="o">=</span><span class="n">Isaxs</span><span class="p">,</span>
+                               <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">ctr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;ctr&#39;</span><span class="p">],</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_s</span><span class="si">{:02d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">+</span> <span class="n">filename</span>
+            <span class="n">savfile</span> <span class="o">=</span> <span class="n">save_result</span><span class="p">(</span><span class="n">corfd</span><span class="p">,</span> <span class="s1">&#39;xpcs&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_db_entry</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">savfile</span><span class="p">)</span>
+
+    <span class="c1"># SAXS</span>
+<div class="viewcode-block" id="Xana.saxs"><a class="viewcode-back" href="../index.html#Xana.Xana.saxs">[docs]</a>    <span class="nd">@Decorators</span><span class="o">.</span><span class="n">input2list</span>
+    <span class="k">def</span> <span class="nf">saxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="n">return_saxs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">nprocs</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">series_id</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">#### Starting SAXS Analysis ####</span><span class="se">\n</span><span class="s1">Series: </span><span class="si">{}</span><span class="s1"> in folder </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="p">))</span>
+            
+            <span class="n">Isaxs</span><span class="p">,</span> <span class="n">Vsaxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="n">nprocs</span><span class="p">)</span>
+            <span class="n">I</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">get_soq</span><span class="p">(</span><span class="n">Isaxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
+            <span class="n">soq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">q</span><span class="p">,</span><span class="n">I</span><span class="p">))</span>
+            <span class="n">saxsd</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Isaxs&#39;</span><span class="p">:</span><span class="n">Isaxs</span><span class="p">,</span> <span class="s1">&#39;Vsaxs&#39;</span><span class="p">:</span><span class="n">Vsaxs</span><span class="p">,</span> <span class="s1">&#39;soq&#39;</span><span class="p">:</span><span class="n">soq</span><span class="p">}</span>
+
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_s</span><span class="si">{:02d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">+</span> <span class="n">filename</span>
+            <span class="n">savfile</span> <span class="o">=</span> <span class="n">save_result</span><span class="p">(</span><span class="n">saxsd</span><span class="p">,</span> <span class="s1">&#39;saxs&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_db_entry</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">savfile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">return_saxs</span><span class="p">:</span></div>
+                <span class="k">return</span> <span class="n">saxsd</span><span class="p">,</span> <span class="n">savfile</span>
+    
+    <span class="c1"># XSVS</span>
+<div class="viewcode-block" id="Xana.xsvs"><a class="viewcode-back" href="../index.html#Xana.Xana.xsvs">[docs]</a>    <span class="nd">@Decorators</span><span class="o">.</span><span class="n">input2list</span>
+    <span class="k">def</span> <span class="nf">xsvs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_id</span><span class="p">,</span> <span class="n">saxs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">nprocs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        
+        <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">series_id</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">#### Starting XSVS Analysis ####</span><span class="se">\n</span><span class="s1">Series: </span><span class="si">{}</span><span class="s1"> in folder </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="p">))</span>
+
+            <span class="n">Isaxs</span> <span class="o">=</span> <span class="n">saxs</span>
+            <span class="k">if</span> <span class="n">saxs</span> <span class="o">==</span> <span class="s1">&#39;get&#39;</span><span class="p">:</span>
+                <span class="n">Isaxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">saxs</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">,</span>
+                                      <span class="n">return_saxs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Isaxs&#39;</span><span class="p">]</span>
+            <span class="n">xsvsd</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Isaxs&#39;</span><span class="p">:</span><span class="n">Isaxs</span><span class="p">}</span>
+
+            <span class="n">t_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s1">&#39;t_exposure&#39;</span><span class="p">]</span>
+            <span class="n">xsvsd</span><span class="p">[</span><span class="s1">&#39;t_exp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_exp</span>
+            <span class="n">xsvsd</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nbins</span><span class="p">)</span>
+            <span class="n">xsvsd</span><span class="p">[</span><span class="s1">&#39;qv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;qv&#39;</span><span class="p">]</span>
+            <span class="n">xsvsd</span><span class="p">[</span><span class="s1">&#39;qroi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;qroi&#39;</span><span class="p">]</span>
+            <span class="n">xsvsd</span><span class="p">[</span><span class="s1">&#39;xsvs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;probability&#39;</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span>
+                                              <span class="n">qroi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">[</span><span class="s1">&#39;qroi&#39;</span><span class="p">],</span> <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">)</span>
+            
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_s</span><span class="si">{:02d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="o">+</span> <span class="n">filename</span>
+            <span class="n">savfile</span> <span class="o">=</span> <span class="n">save_result</span><span class="p">(</span><span class="n">xsvsd</span><span class="p">,</span> <span class="s1">&#39;xsvs&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_db_entry</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">savfile</span><span class="p">)</span>
+
+    <span class="c1"># Data Base</span>
+<div class="viewcode-block" id="Xana.load_db"><a class="viewcode-back" href="../index.html#Xana.Xana.load_db">[docs]</a>    <span class="k">def</span> <span class="nf">load_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dbfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Try loading default database </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbfile</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">dbfile</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">+</span> <span class="n">dbfile</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Try loading database </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbfile</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">dbfile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="n">dbfile</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded analysis database from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbfile</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">dbfile</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Analysis database not found.</span><span class="se">\n</span><span class="s1">Initialize database...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dbfile</span><span class="p">))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_db</span><span class="p">(</span><span class="n">dbfile</span><span class="p">,</span> <span class="n">handle_existing</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Xana.init_db"><a class="viewcode-back" href="../index.html#Xana.Xana.init_db">[docs]</a>    <span class="k">def</span> <span class="nf">init_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;use&#39;</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;series&#39;</span><span class="p">,</span> <span class="s1">&#39;t_exposure&#39;</span><span class="p">,</span> <span class="s1">&#39;t_readout&#39;</span><span class="p">,</span> <span class="s1">&#39;t_latency&#39;</span><span class="p">,</span> <span class="s1">&#39;nframes&#39;</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;mod&#39;</span><span class="p">,</span> <span class="s1">&#39;savname&#39;</span><span class="p">,</span> <span class="s1">&#39;savfile&#39;</span><span class="p">,</span> <span class="s1">&#39;setupfile&#39;</span><span class="p">,</span> <span class="s1">&#39;datdir&#39;</span><span class="p">,</span> <span class="s1">&#39;comment&#39;</span><span class="p">]</span>
+        <span class="n">tmp_db</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dbfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span>
+        <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">dbfile</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">+</span> <span class="n">dbfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">tmp_db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">dbfile</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_db</span><span class="p">(</span><span class="n">handle_existing</span><span class="p">)</span>
+            
+<div class="viewcode-block" id="Xana.add_db_entry"><a class="viewcode-back" href="../index.html#Xana.Xana.add_db_entry">[docs]</a>    <span class="k">def</span> <span class="nf">add_db_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_id</span><span class="p">,</span> <span class="n">savfile</span><span class="p">):</span>
+        <span class="n">savname</span> <span class="o">=</span> <span class="n">savfile</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dbn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">entry</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">,</span> <span class="n">savname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">series_id</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">series_id</span><span class="p">],</span>
+                     <span class="n">pd</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span> <span class="n">savname</span><span class="p">,</span> <span class="n">savfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdata</span><span class="o">.</span><span class="n">datdir</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dbn</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_db</span><span class="p">(</span><span class="s1">&#39;overwrite&#39;</span><span class="p">)</span>
+
+    
+<div class="viewcode-block" id="Xana.discard_entry"><a class="viewcode-back" href="../index.html#Xana.Xana.discard_entry">[docs]</a>    <span class="nd">@Decorators</span><span class="o">.</span><span class="n">input2list</span>
+    <span class="k">def</span> <span class="nf">discard_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_id</span><span class="p">):</span>
+        <span class="n">discard</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db_id</span><span class="p">:</span>
+            <span class="n">datdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;datdir&#39;</span><span class="p">]</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;series&#39;</span><span class="p">]</span>
+            <span class="n">discard</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="s1">&#39;datdir&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">datdir</span><span class="p">))</span><span class="o">&amp;</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="s1">&#39;series&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">series</span><span class="p">)]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">discard</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;use&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_db</span><span class="p">(</span><span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;overwrite&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.save_db"><a class="viewcode-back" href="../index.html#Xana.Xana.save_db">[docs]</a>    <span class="k">def</span> <span class="nf">save_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span></div>
+        <span class="n">save_result</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;Analysis&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">handle_existing</span><span class="o">=</span><span class="n">handle_existing</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.append_db"><a class="viewcode-back" href="../index.html#Xana.Xana.append_db">[docs]</a>    <span class="k">def</span> <span class="nf">append_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">db</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">+</span> <span class="n">db</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.get_item"><a class="viewcode-back" href="../index.html#Xana.Xana.get_item">[docs]</a>    <span class="k">def</span> <span class="nf">get_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span></div>
+            <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item</span><span class="p">][</span><span class="s1">&#39;savfile&#39;</span><span class="p">],</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Xana.rm_db_entry"><a class="viewcode-back" href="../index.html#Xana.Xana.rm_db_entry">[docs]</a>    <span class="nd">@Decorators</span><span class="o">.</span><span class="n">input2list</span>
+    <span class="k">def</span> <span class="nf">rm_db_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_id</span><span class="p">,</span> <span class="n">rmfile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db_id</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rmfile</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;savfile&#39;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;File not found.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_db</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="AnaList"><a class="viewcode-back" href="../index.html#Xana.AnaList">[docs]</a><span class="k">class</span> <span class="nc">AnaList</span><span class="p">:</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Xana</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">cmap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_colors</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,]</span>
+        
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Corr Func class for g2 displaying.&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AnaList.update_colors"><a class="viewcode-back" href="../index.html#Xana.AnaList.update_colors">[docs]</a>    <span class="k">def</span> <span class="nf">update_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">,):</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">cmap</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">ci</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">factor</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">factor</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cm</span><span class="p">(</span><span class="n">ci</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">,</span> <span class="p">(</span><span class="n">repeat</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<div class="viewcode-block" id="AnaList.update_markers"><a class="viewcode-back" href="../index.html#Xana.AnaList.update_markers">[docs]</a>    <span class="k">def</span> <span class="nf">update_markers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nmarkers</span><span class="p">,</span> <span class="n">change_marker</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,]</span>
+        <span class="k">if</span> <span class="n">change_marker</span><span class="p">:</span>
+            <span class="n">mlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">markers</span><span class="o">.</span><span class="n">MarkerStyle</span><span class="o">.</span><span class="n">markers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">mlist</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">mlist</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">mlist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,]</span><span class="o">*</span><span class="n">nmarkers</span>
+    
+
+    
+   
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Beckhoff 3.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, A. Beckmann and A. Parenti.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

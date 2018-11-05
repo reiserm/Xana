@@ -1,0 +1,32 @@
+.. Xana documentation master file, created by
+   sphinx-quickstart on Wed May  9 11:46:37 2018.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to Xana's documentation!
+================================
+
+.. toctree::
+   :caption: Contents:
+
+   xfmt.rst
+   xpcs.rst
+   xsvs.rst
+
+Main Analysis Class
+===================
+
+Bli bla blub
+
+.. automodule:: Xana
+   :members:
+   :undoc-members:
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
