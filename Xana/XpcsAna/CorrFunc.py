@@ -114,7 +114,6 @@ class CorrFunc(AnaList):
 
     @staticmethod
     def init_pars(names):
-        # names = [names[i//2] if (i+1)%2 else '+/-' for i in range(len(names)*2)]
         names = [names[i//2] if (i+1)%2 else 'd'+names[i//2] for i in range(len(names)*2)]
         names.insert(0, 'q')
         names.extend(['chisqr', 'redchi', 'bic', 'aic'])
@@ -210,9 +209,9 @@ class CorrFunc(AnaList):
                     t = d['corf'][1:,0]
                     tmp_cf = np.zeros((cnti,t.size,qv.size))
                     tmp_dcf = np.zeros_like(tmp_cf)
-                tmp = d['corf'][1:,1:]
-                tmp_cf[j,:tmp.shape[0]] = tmp
-                tmp_dcf[j,:tmp.shape[0]] = d['dcorf'][1:,1:]
+                tmp = d['corf'][1:,1:qv.size+1]
+                tmp_cf[j,:,:qv.size] = tmp
+                tmp_dcf[j,:,:qv.size] = d['dcorf'][1:,1:qv.size+1]
                 
             tmp_dcf[tmp_dcf>0] = 1/tmp_dcf[tmp_dcf>0]**2
 

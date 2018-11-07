@@ -88,8 +88,8 @@ def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
         del cor
         del x
 
-    shp = cfmt[0].shape
-    corf = np.empty((shp[0]+1,shp[1]+1))
+    shp = cfmt[0].shape[0]
+    corf = np.empty((shp+1,len(qv)+1))
     corf[1:,0] = cfmt[0][:,0]
     corf[0,1:] = qv
     dcorf = corf.copy()

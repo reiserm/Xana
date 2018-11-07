@@ -12,7 +12,7 @@ class Decorators:
     def input2list(func):
         @wraps(func)
         def wrapper(a, x, *args, **kwargs):
-            if type(x) == int or type(x)==np.int64:
+            if np.issubdtype(type(x), np.integer):
                 if x == -1:
                     x = a.meta.index.values
                 else:
