@@ -204,14 +204,18 @@ class CorrFunc(AnaList):
                 ind = np.where(uq_inv==i)[0][j]
                 counter[i] += nframes[ind]
                 item = in_list[ind]
-                d = self.Xana.get_item(item)
-                if j==0:
-                    t = d['corf'][1:,0]
-                    tmp_cf = np.zeros((cnti,t.size,qv.size))
-                    tmp_dcf = np.zeros_like(tmp_cf)
-                tmp = d['corf'][1:,1:qv.size+1]
-                tmp_cf[j,:,:qv.size] = tmp
-                tmp_dcf[j,:,:qv.size] = d['dcorf'][1:,1:qv.size+1]
+                try:
+                    d = self.Xana.get_item(item)
+                    if j==0:
+                        t = d['corf'][1:,0]
+                        tmp_cf = np.zeros((cnti,t.size,qv.size))
+                        tmp_dcf = np.zeros_like(tmp_cf)
+                    tmp = d['corf'][1:,1:qv.size+1]
+                    tmp_cf[j,:,:qv.size] = tmp
+                    tmp_dcf[j,:,:qv.size] = d['dcorf'][1:,1:qv.size+1]
+                except ValueError as v:
+                    print('Tried loading database entry: ', item)
+                    raise ValueError(v)
                 
             tmp_dcf[tmp_dcf>0] = 1/tmp_dcf[tmp_dcf>0]**2
 
