@@ -1,6 +1,6 @@
 from ProcData.ReadData import read_data
 from ProcData.getmeta import getfiles, files2series, get_attrs_from_dict, get_attrs_h5, get_header_h5
-
+from ProcData.H5Methods import common_mode_from_hist
 
 class Xfmt:
     """Class that defines all methods and attributes to handle
@@ -158,7 +158,7 @@ class Xfmt:
                       'data': '/Configure:0000/Run:0000/CalibCycle:0000/CsPad::ElementV2/XcsEndstation.0:Cspad.0/data',
                       'ExternalLinks': False,
                       'chunk_size': 256,
-                      'commonmode': h5m.common_mode_from_hist,
+                      'commonmode': common_mode_from_hist,
                       'arrange_tiles': arrange_cspad_tiles,
                       'dropletize': dropletizedata
                       },

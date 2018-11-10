@@ -8,7 +8,7 @@ from SaxsAna.integrate import get_soq
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def shadeqrois(ax, qv, dqv, alpha=0.3, cmap='inferno', coords='data'):
+def shadeqrois(ax, qv, dqv, alpha=0.6, cmap='inferno', coords='data'):
     boxes = []
     
     # Loop over data points; create box from errors at each point
@@ -33,7 +33,7 @@ def shadeqrois(ax, qv, dqv, alpha=0.3, cmap='inferno', coords='data'):
     # Add collection to axes
     ax.add_collection(pc)
     
-def shade_wedges(ax, setup, alpha=0.3, cmap='inferno', qsec=(0,0), mirror=False):
+def shade_wedges(ax, setup, alpha=0.6, cmap='inferno', qsec=(0,0), mirror=False):
     yl = ax.get_ylim()
     wedges = []
     r = setup['r']
@@ -98,7 +98,7 @@ def plotqrois(Isaxs, mask, setup, method='S(Q)', d=0, shade=False, color='r', ax
         saxs_sec = (Isaxs*mask)[y1:y2,x1:x2]
         im = ax.imshow(saxs_sec, cmap=plt.get_cmap('jet'), norm=LogNorm())
         
-        shade_wedges(ax, setup, alpha=0.3, cmap='inferno', qsec=(y1,x1), mirror=mirror)
+        shade_wedges(ax, setup, alpha=0.6, cmap='inferno', qsec=(y1,x1), mirror=mirror)
 
         # create an axes on the right side of ax. The width of cax will be 5%
         # of ax and the padding between cax and ax will be fixed at 0.05 inch.

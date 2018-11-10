@@ -33,7 +33,7 @@ class Analysis(Xdata):
 
     @Decorators.input2list
     def analyze(self, series_id, method, first=0, last=None, handle_existing='next',
-                nprocs=4, nread_procs=4, chunk_size=100, verbose=True, dark=None,
+                nread_procs=4, chunk_size=100, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
 
         for sid in series_id:
@@ -108,7 +108,7 @@ class Analysis(Xdata):
             if method == 'xpcs':
                 saxs = kwargs.pop('saxs', 'compute')
                 Isaxs = self.get_xpcs_args(sid, saxs, saxs_dict)
-                dt = self.get_deley_time(sid)
+                dt = self.get_delay_time(sid)
                 savd = Xpcs.pyxpcs(proc_dat, self.setup['qroi'], dt=dt, qv=self.setup['qv'],
                                    saxs=Isaxs, mask=self.mask, ctr=self.setup['ctr'],
                                    qsec=self.setup['qsec'][0], **kwargs)

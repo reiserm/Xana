@@ -6,6 +6,7 @@ import pandas as pd
 from ProcData.Xfmt import Xfmt
 from ProcData.EdfMethods import loadedf
 from ProcData.to_h5 import to_h5
+from misc.makemask import masker
 
 class Xdata(Xfmt):
 
@@ -68,7 +69,8 @@ class Xdata(Xfmt):
         return self.load_data_func(self.serieslist[series_id], xdata=self, **kwargs)
 
     def get_image(self, imgn, series_id=0, **kwargs):
-        return self.load_data_func(self.serieslist[series_id], first=(imgn,), last=(imgn+1,), **kwargs)[0]
+        return self.load_data_func(self.serieslist[series_id], first=(imgn,),
+                                   last=(imgn+1,), **kwargs)[0]
 
     def get_mask(self):
         self.maskfile = os.path.abspath(self.maskfile)
@@ -80,6 +82,10 @@ class Xdata(Xfmt):
             print('Mask file not found. Continuing without mask.')
             mask = None
         return mask
+
+    def masker(self, Isaxs, **kwargs):
+        mask = kwargs.get('mask', self.mask)
+        masker(Isaxs, mask)
 
     def to_h5(self, series_id, filename, **kwargs):
         to_h5(self, series_id, filename, **kwargs)

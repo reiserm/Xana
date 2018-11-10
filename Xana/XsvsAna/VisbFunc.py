@@ -14,9 +14,8 @@ from XsvsAna.PhotonStats import prob2beta, average_beta, beta_from_likelihood, p
 
 class VisbFunc(AnaList):
 
-    def __init__(self, Xana, cmap='jet'):
-        super().__init__(Xana, cmap)
-        self.Xana = Xana
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ratesl = None
         self.fit_result = None
         self.pars = None
@@ -25,7 +24,7 @@ class VisbFunc(AnaList):
         self.t_exposure = None
         self.contrast = None
         self.v2plotl = None
-        self.nq = np.arange(len(Xana.setup['qroi']))
+        self.nq = np.arange(len(self.Xana.setup['qroi']))
         self.db_id = None
 
     def __str__(self):

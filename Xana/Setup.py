@@ -5,7 +5,7 @@ import numpy as np
 
 class Setup:
 
-    def __init__(self, setupfile, savdir='./', **kwargs):
+    def __init__(self, setupfile='', savdir='./', **kwargs):
 
         self.savdir = self.__dict__.get('savdir', savdir)
         self.setupfile = setupfile

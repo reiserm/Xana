@@ -14,9 +14,8 @@ class Soq(AnaList):
     Saxs class: Display and analyze Small Angle X-Ray scattering singals.
     """
     
-    def __init__(self, Xana, cmap='jet'):
-        super().__init__(Xana, cmap)
-        self.Xana = Xana
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
     def __str__(self):
         return 'Saxs class for displaying saxs signal.'

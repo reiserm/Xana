@@ -97,7 +97,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
         else:
             pass
 
-        color = cmap(int(ii+len(modes)*ci))
+        color = cmap(ci[ii])
         ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o', label=labstr, color=color)
         
         nf = np.where(dy<=0)[0]

@@ -10,11 +10,19 @@ from helper import *
 
 class Xana(Xdb, Setup, Analysis):
 
-    def __init__(self, **kwargs):
+    def __init__(self, sample='', savdir='./', **kwargs):
+
+        self.savdir = savdir
+        self.sample = sample
         
-        setupfile = kwargs.pop('setupfile', '')
-        sample = kwargs.pop('sample', '')
-        Xdb.__init__(self, sample, setupfile)
-        Setup.__init__(self, setupfile, **kwargs)
+        Xdb.__init__(self, **kwargs)
+        Setup.__init__(self, **kwargs)
         Analysis.__init__(self, **kwargs)
 
+    def mksavdir(self, *args, **kwargs):
+        self.savdir = mksavdir(*args, **kwargs)
+        self.dbfile = self.savdir+'Analysis_db.pkl'
+        self.load_db(handle_existing='overwrite')
+
+
+        
