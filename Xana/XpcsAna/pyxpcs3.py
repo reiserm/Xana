@@ -433,7 +433,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
              'qroi':qroi,
              'Isaxs':saxs,
              'mask':mask,
-             'twotime_corf':ttcf,
+             'twotime_corf':{twotime_par:ttcf},
              'twotime_par':twotime_par,
              'twotime_xy':tt_vec,
              'chi4':chi4

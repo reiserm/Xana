@@ -16,9 +16,8 @@ from XpcsAna.StaticContrast import staticcontrast
 
 class CorrFunc(AnaList):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.ratesl = None
+    def __init__(self, Xana, **kwargs):
+        super().__init__(Xana, **kwargs)
         self.fit_result = None
         self.pars = None
         self.corrFunc = None
@@ -33,15 +32,27 @@ class CorrFunc(AnaList):
         return 'Corr Func class for g2 displaying.'
 
     def __repr__(self):
-        return self.__repr__()
+        return 
+
+    def __add__(self, cf2):
+        cf3 = CorrFunc(self.Xana)
+        cf3.fit_result = copy.deepcopy(self.fit_result)
+        cf3.fit_result.extend(cf2.fit_result)
+        cf3.pars = copy.deepcopy(self.pars)
+        cf3.pars.extend(cf2.pars)
+        cf3.corrFunc = copy.deepcopy(self.corrFunc)
+        cf3.corrFunc.extend(cf2.corrFunc)
+        cf3.corrFuncRescaled = copy.deepcopy(self.corrFuncRescaled)
+        cf3.corrFuncRescaled.extend(cf2.corrFuncRescaled)
+        cf3.db_id = np.append(self.db_id, cf2.db_id)
+        return cf3
 
     @Decorators.input2list
     def get_g2(self, db_id, merge='append'):
         self.db_id = db_id
         self.corrFunc = []
-        self.coffFuncRescaled = None
         if merge == 'merge':
-            self.corrFunc = self.merge_g2(db_id)
+            self.merge_g2(db_id)
         elif merge == 'append':
             for sid in db_id:
                 try:
@@ -94,10 +105,10 @@ class CorrFunc(AnaList):
                     cf_id = self.db_id[j]
                 else:
                     cf_id = None
-                res = fitg2(ti, cfi[1:, qi+1], err=dcfi[1:, qi+1], qv=self.Xana.setup['qv'][qi],
+                res = fitg2(ti, cfi[1:, qi+1], err=dcfi[1:, qi+1],
+                            qv=cfi[0,1+qi],
                             ax=ax, color=self.colors[ci],
-                            marker=self.markers[j %
-                                                len(self.markers)], cf_id=cf_id,
+                            marker=self.markers[j % len(self.markers)], cf_id=cf_id,
                             modes=nmodes, dofit=dofit, **kwargs)
                 self.fit_result[j][i] = res[2:4]
                 self.g2plotl[j].append(
@@ -123,52 +134,59 @@ class CorrFunc(AnaList):
     def reset_rescaled(self):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
-    def rescale_g2(self, method='fit', norm='baseline', nq=None, contrast=1., interval=(0, -1), weighted=None):
-
-        if self.pars is None:
-            self.pars = [None] * len(self.corrFunc)
-        if nq is None:
-            nq = self.nq
+    def rescale(self, index=None, normby='average', norm_baseline=True,
+                   norm_contrast=False, nq=None, baseline=1., contrast=None,
+                   interval=(1, -1), weighted=True):
 
         def rescale(y, mn, mx, rng=(0, 1)):
             p = (rng[1]-rng[0])/(mx-mn)
             return p * (y - mn) + rng[0], p
 
         def normFunc(corrFunc, pars):
-            norm_baseline = np.min(corrFunc[0][1:, nq+1], axis=0)
-            norm_contrast = np.max(corrFunc[0][1:, nq+1], axis=0)
-            if method == 'fit':
+            norm_b = np.min(corrFunc[0][1:, nq+1], axis=0)
+            norm_c = np.max(corrFunc[0][1:, nq+1], axis=0)
+            if normby == 'fit':
                 for iq in range(nq.size):
-                    norm_baseline[iq] = pars.loc[iq, 'a']
-                    if 'contrast' in norm:
-                        norm_contrast[iq] = pars.loc[iq, 'beta']
-            elif method == 'average':
+                    norm_b[iq] = pars.loc[iq, 'a']
+                    if norm_contrast:
+                        norm_c[iq] = pars.loc[iq, 'beta'] + pars.loc[iq, 'a']
+            elif normby == 'average':
                 for iq in range(nq.size):
-                    if weighted is not None:
+                    if weighted:
                         weights = 1/corrFunc[1][interval[1]:, nq[iq]+1]**2
                     else:
                         weights = None
-                    norm_baseline[iq] = np.ma.average(corrFunc[0][interval[1]:, nq[iq]+1],
-                                                      weights=weights)
-                    if 'contrast' in norm:
-                        if weighted is not None:
+                    norm_b[iq] = np.ma.average(
+                        corrFunc[0][interval[1]:, nq[iq]+1], weights=weights)
+                    if norm_contrast:
+                        if weighted:
                             weights = 1 / \
-                                corrFunc[1][1:interval[0]+1, nq[iq]+1]**2
+                                corrFunc[1][1:max([interval[0],1])+1, nq[iq]+1]**2
                         else:
                             weights = None
-                        norm_contrast[iq] = np.ma.average(corrFunc[0][1:interval[0]+1, nq[iq]+1],
-                                                          weights=weights)
+                        norm_c[iq] = np.ma.average(
+                            corrFunc[0][1:max([interval[0],1])+1, nq[iq]+1],
+                            weights=weights)
 
-            # corrFunc[0][1:,nq+1] -= norm_baseline
-            # corrFunc[0][1:,nq+1] /= norm_contrast / (contrast)
-            # corrFunc[0][1:,nq+1] += 1.
-            # corrFunc[1][1:,nq+1] /= norm_contrast / (contrast)
-
-            corrFunc[0][1:, nq+1], p = rescale(corrFunc[0][1:, nq+1], norm_baseline, norm_contrast,
-                                               (1, contrast+1))
+            if contrast is None:
+                initial_contrast = norm_c - norm_b
+            else:
+                initial_contrast = contrast
+            corrFunc[0][1:, nq+1], p = rescale(
+                corrFunc[0][1:, nq+1], norm_b, norm_c,
+                (baseline, initial_contrast + baseline))
             corrFunc[1][1:, nq+1] *= p
 
-        for corrFunc, pars in zip(self.corrFuncRescaled, self.pars):
+        if self.pars is None:
+            self.pars = [None] * len(self.corrFunc)
+        if nq is None:
+            nq = self.nq
+        if index is None:
+            index = slice(len(self.corrFuncRescaled))
+        else:
+            index = slice(index, index+1, 1)
+
+        for corrFunc, pars in zip(self.corrFuncRescaled[index], self.pars[index]):
             normFunc(corrFunc, pars)
 
     def rescale_user(self, offset=0., nq=None):
@@ -198,48 +216,39 @@ class CorrFunc(AnaList):
  #           raise AssertionError('Cannot merge correlation functions.')
 
         qv = self.Xana.setup['qv']
-        cf = []
-        exc_list = []
         counter = np.zeros(uq_et.size, dtype=np.int32)
         for i, cnti in enumerate(uq_cnt):
+            indall = np.where(uq_inv == i)[0]
             for j in range(cnti):
-                ind = np.where(uq_inv == i)[0][j]
+                ind = indall[j]
                 counter[i] += nframes[ind]
                 item = in_list[ind]
                 try:
                     d = self.Xana.get_item(item)
                     if j == 0:
                         t = d['corf'][1:, 0]
-                        tmp_cf = np.zeros((cnti, t.size, qv.size))
-                        tmp_dcf = np.zeros_like(tmp_cf)
-                    tmp = d['corf'][1:, 1:qv.size+1]
-                    tmp_cf[j, :, :qv.size] = tmp
-                    tmp_dcf[j, :, :qv.size] = d['dcorf'][1:, 1:qv.size+1]
+                        cf = np.zeros((cnti, t.size, qv.size))
+                        dcf = np.zeros_like(cf)
+                    cf[j, :, :qv.size] = d['corf'][1:, 1:qv.size+1]
+                    dcf[j, :, :qv.size] = d['dcorf'][1:, 1:qv.size+1]
                 except ValueError as v:
                     print('Tried loading database entry: ', item)
                     raise ValueError(v)
 
-            tmp_dcf[tmp_dcf > 0] = 1/tmp_dcf[tmp_dcf > 0]**2
-
-            tmp_cf = np.ma.masked_array(tmp_cf, mask=(
-                tmp_cf < limit) | np.isnan(tmp_cf))
-            tmp_dcf = np.ma.masked_array(tmp_dcf, mask=tmp_cf.mask)
-
-            tmp_cf, tmp_dcf = np.ma.average(
-                tmp_cf, weights=tmp_dcf, returned=1, axis=0)
-            tmp_cf = np.hstack((t[:, None], tmp_cf.filled(np.nan)))
-            tmp_dcf[tmp_dcf > 0] = np.sqrt(1/tmp_dcf[tmp_dcf > 0])
-            tmp_dcf = np.hstack((t[:, None], tmp_dcf.filled(np.nan)))
-            cf.append((np.vstack((np.append(0, qv), tmp_cf)),
-                       np.vstack((np.append(0, qv), tmp_dcf))))
+            cf = np.ma.masked_array(cf, mask=((cf < limit) | np.isnan(cf) | (dcf <= 0)))
+            dcf = np.ma.masked_array(dcf, mask=cf.mask)
+            dcf = 1/(dcf**2)# + np.ma.var(cf))
+            cf, dcf = np.ma.average(cf, weights=dcf, returned=1, axis=0)
+            cf = np.hstack((t[:, None], cf.filled(np.nan)))
+            dcf[dcf > 0] = np.sqrt(1/dcf[dcf > 0])
+            dcf = np.hstack((t[:, None], dcf.filled(np.nan)))
+            self.corrFunc.append((np.vstack((np.append(0, qv), cf)),
+                                  np.vstack((np.append(0, qv), dcf))))
 
         tmp = "Merged g2 functions: "
         print('{:<22}{} (exposure times)'.format(tmp, np.round(uq_et, 6)))
         print('{:<22}{} (number of correlation functions)'.format('', uq_cnt))
         print('{:<22}{} (total number of images)'.format('', counter))
-        if len(exc_list):
-            print('Failed to load {} due to ValueError.'.format(exc_list))
-        return cf
 
     def merge_g2list(self, resample=False, cutoff=-1, **kwargs):
         for ii, cf_master in enumerate([self.corrFunc, self.corrFuncRescaled]):
@@ -284,11 +293,12 @@ class CorrFunc(AnaList):
         else:
             ax = [ax,]
 
-        mm = max([len(x) for x in kwargs.get('modes',[[1]])])    
+        mm = max([len(x) if isinstance(x, (list,tuple)) else 1    
+                  for x in kwargs.get('modes',[1])])
             
         if change_axes:
             ax_idx = np.arange(len(ax))
-            c_idx = np.repeat(np.arange(npars), mm)
+            c_idx = np.repeat(np.arange(mm*npars), npl)
         else:
             ax_idx = np.zeros(npl, dtype=np.int16)
             c_idx = np.arange(npl*npars)
@@ -303,13 +313,15 @@ class CorrFunc(AnaList):
         return ax
 
     @Decorators.input2list
-    def get_twotime(self, db_id):
+    def get_twotime(self, db_id, twotime_par=None):
         """Receive two-time correlation functions from database
         """
         self.twotime = 0.
         for i, sid in enumerate(db_id):
             d = self.Xana.get_item(sid)
-            self.twotime += d['twotime_corf']
+            if twotime_par is None:
+                twotime_par = d['twotime_par']
+            self.twotime += d['twotime_corf'][twotime_par]
         self.twotime /= i + 1
 
     @Decorators.init_figure()

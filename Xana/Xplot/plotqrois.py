@@ -41,7 +41,7 @@ def shade_wedges(ax, setup, alpha=0.6, cmap='inferno', qsec=(0,0), mirror=False)
     nr = len(r)
     nph = len(phiv)
         
-    center = setup['ctr'] - qsec[::-1]
+    center = np.array(setup['ctr']) - np.array(qsec[::-1])
     
     # Loop over data points; create box from errors at each point
     cmap = plt.get_cmap(cmap)

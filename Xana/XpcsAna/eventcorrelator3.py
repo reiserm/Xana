@@ -41,7 +41,7 @@ def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
             # s = np.asarray(s)
 
         if roii == 0:
-            ttcf = []
+            ttcf = {}
             cfmt = []
             trace = []
             cc = np.zeros((ntimes,lqv+1), np.float32)
@@ -82,7 +82,7 @@ def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
             cc[1:,0] = x[:,0]
             z[1:,0] = x[:,0]
         
-        ttcf.append(cor)
+        ttcf[roii] = cor.copy()
         cfmt.append(cftomt(cc[1:,[0,roii+1]],err2=z[1:,roii+1]))
         trace.append(s)
         del cor
@@ -104,7 +104,7 @@ def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
              'trace':trace,
              'qv':qv,
              'qroi':qroi,
-             'twotime':ttcf,
+             'twotime_corf':ttcf,
              'twotime_xy':tt
     }
     return corfd

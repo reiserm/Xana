@@ -1,4 +1,7 @@
-import os, re, glob, pickle
+import os
+import re
+import glob
+import pickle
 
 
 def make_filename(obj, attr=None, filename=None):
@@ -10,7 +13,8 @@ def make_filename(obj, attr=None, filename=None):
         return path, fname
 
     if attr is None and filename is None:
-        raise ValueError('Both attribute name and filename are None. Cannot create filename.')
+        raise ValueError(
+            'Both attribute name and filename are None. Cannot create filename.')
 
     savdir = obj.savdir
     if attr is not None:
@@ -23,6 +27,7 @@ def make_filename(obj, attr=None, filename=None):
             savdir, filename = splitpath(filename)
     return savdir, filename
 
+
 def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
     """
     Create a directory for saving results.\n
@@ -34,12 +39,12 @@ def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
     savhome = os.path.abspath(savhome) + '/'
     if sample_name is None:
         sample_name = input(('Chose a sample name for saving in {}\n'
-                                 + 'or enter full path.').format(savhome))
+                             + 'or enter full path.').format(savhome))
     if '/' in sample_name:
         savdir = os.path.abspath(sample_name.rstrip('/')) + '/'
     else:
         savdir = savhome.rstrip('/') + '/' + sample_name.rstrip('/') + '/'
-        
+
     try:
         os.makedirs(savdir)
     except FileExistsError:
@@ -48,9 +53,9 @@ def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
         elif handle_existing == 'next':
             searchstr = '_\d{2}$'
             savsplit = savdir.split('/')
-            reg = re.search( searchstr, savsplit[-2])
+            reg = re.search(searchstr, savsplit[-2])
             folderlist = glob.glob(savdir[:-1]+'_*')
-            if reg is None and len(folderlist)==0:
+            if reg is None and len(folderlist) == 0:
                 savsplit[-2] += '_02'
             else:
                 counter = max(list(map(lambda x: int(re.search(searchstr, x).group().lstrip('_')),
@@ -64,6 +69,7 @@ def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
     print('Changing savdir to:\n\t{}'.format(savdir))
     return savdir
 
+
 def save_result(savobj, restype, savdir, filename="", handle_existing='raise', prompt=True):
     savdir = os.path.abspath(savdir)
     filename = re.sub(r'^((' + restype + ')_*)', '', filename)
@@ -73,7 +79,8 @@ def save_result(savobj, restype, savdir, filename="", handle_existing='raise', p
     if handle_existing == 'next':
         savname = savname.rstrip('.pkl')
         searchstr = '\d{4}$'
-        reg = lambda x: re.search( searchstr, x.rstrip('.pkl') )
+
+        def reg(x): return re.search(searchstr, x.rstrip('.pkl'))
         filelist = glob.glob(savname+'*')
         counter = [int(reg(x).group()) for x in filelist if reg(x) is not None]
         counter.append(-1)
@@ -83,15 +90,15 @@ def save_result(savobj, restype, savdir, filename="", handle_existing='raise', p
         pass
     elif handle_existing == 'raise':
         if os.path.isfile(savname) and not prompt:
-            raise OSError(('File {} already exists. Change overwrite to ' + 
-                               'True or choose different name.').format(savname))
+            raise OSError(('File {} already exists. Change overwrite to ' +
+                           'True or choose different name.').format(savname))
         elif os.path.isfile(savname) and prompt:
             user_input = input('File exists. Save anyway? (No/Yes)\t')
             if user_input == 'yes' or user_input == 'Yes':
                 pass
             else:
-                raise OSError(('File {} already exists. Change overwrite to ' + 
-                                   'True or choose different name.').format(savname))               
+                raise OSError(('File {} already exists. Change overwrite to ' +
+                               'True or choose different name.').format(savname))
     else:
         raise ValueError('{} is not a valid option'.format(handle_existing))
 

@@ -33,7 +33,7 @@ class Analysis(Xdata):
 
     @Decorators.input2list
     def analyze(self, series_id, method, first=0, last=None, handle_existing='next',
-                nread_procs=4, chunk_size=100, verbose=True, dark=None,
+                nread_procs=4, chunk_size=200, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
 
         for sid in series_id:

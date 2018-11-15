@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 from setuptools import setup
@@ -19,8 +19,16 @@ setup(
 #    license = "BSD",
     keywords = "analysis, XPCS, XSVS, XFEL",
     url = "",
-    packages=[],
+    packages=[
+        'Xana',
+    ],
     long_description=read('README'),
+    install_requires=[
+        'pandas',
+        'lmfit',
+        'numpy',
+        'pyfai'
+      ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Data Analysis",

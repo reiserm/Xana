@@ -5,73 +5,10 @@ import matplotlib
 from matplotlib import pyplot as plt
 from Xplot.niceplot import niceplot
 
-def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix=None, dofit=1,
+def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix={}, dofit=False,
            doplot=False, marker='o', qv=None, h_plot=None, ax=None, xl=None, yl=None,
-           color=None, alpha=1., markersize=3., cf_id=None, data_label=None):
+           color=None, alpha=1., markersize=3., cf_id=None, data_label=None, errthr=1e-4):
 
-    #make initial guess for parameters
-    for i in range(modes):
-        for s in 'tgb':
-            vn = s+'{}'.format(i)
-            if vn not in init.keys():
-                if s == 't':
-                    t0 = np.logspace(np.log10(t.min()), np.log10(t.max()), modes+2)[i+1]
-                    init[vn] = (t0, t0/100, t0*100)
-                elif s == 'g':
-                    init[vn] = (1, .2, 1.8)
-                elif s == 'b':
-                    init[vn] = (.1, 0, 1)
-    if 'a' not in init.keys():
-        init['a'] = (1, 0.8, 1.2)
-    if 'beta' not in init.keys():
-        init['beta'] = (0.2, 0, 1)
-
-    #initialize parameters
-    pars = lmfit.Parameters()
-    for i in range(modes):
-        for s in 'tgb':
-            vn = s+'{}'.format(i)
-            pars.add(vn, value=init[vn][0], min=init[vn][1], max=init[vn][2], vary=1)
-    pars.add('a', value=init['a'][0], min=init['a'][1], max=init['a'][2], vary=1)
-    pars.add('beta', value=init['beta'][0], min=init['beta'][1], max=init['beta'][2], vary=1)
-
-    if modes > 1:
-        beta_constraint = 'a-1+beta-'+'-'.join(['b{}'.format(x) for x in range(1,modes)])
-        pars['b0'].set(expr=beta_constraint)
-    else:
-        pars['b0'].set(expr='beta')        
-
-    ind = np.where(~np.isnan(cf))
-    t = t[ind]
-    cf = cf[ind]
-    
-    if fix is not None:
-        for vn in fix.keys():
-            pars[vn].set(value=fix[vn], vary=0)
-
-    if err is not None:
-        err = err[ind]
-        err = np.abs(err)
-        wgt = err.copy()
-        wgt[wgt>0] = 1./wgt[wgt>0]**2
-    elif err == 't':
-        wgt = 1./t
-    else:
-        wgt = None
-        
-    if 'semilogx' in mode:
-        if err is not None:
-            wgt = err.copy()
-            wgt[wgt>0] = 1./np.log10(wgt[wgt>0])
-        elif err == 't':
-            wgt = 1./np.log10(t)
-        else:
-            wgt = None
-
-    if 'y' in mode:
-        if err is not None:
-            wgt = cf-1
-            
     # define residual function
     def res(pars, x, data=None, eps=None):
         """2D Residual function to minimize
@@ -90,8 +27,69 @@ def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix=None, dofit=1
             resid = np.abs(data - model)
         return resid
     
+    #make initial guess for parameters
+    for i in range(modes):
+        for s in 'tgb':
+            vn = s+'{}'.format(i)
+            if vn not in init.keys():
+                if s == 't':
+                    t0 = np.logspace(np.log10(t.min()), np.log10(t.max()), modes+2)[i+1]
+                    init[vn] = (t0, -np.inf, np.inf)
+                elif s == 'g':
+                    init[vn] = (1, .2, 1.8)
+                elif s == 'b':
+                    init[vn] = (.1, 0, 1)
+    if 'a' not in init.keys():
+        init['a'] = (np.mean(cf[-10:]), 0, 2)
+    if 'beta' not in init.keys():
+        init['beta'] = (0.2, 0, 1)
+
+    #initialize parameters
+    pars = lmfit.Parameters()
+    for i in range(modes):
+        for s in 'tgb':
+            vn = s + '{}'.format(i)
+            pars.add(vn, value=init[vn][0], min=init[vn][1], max=init[vn][2], vary=1)
+    pars.add('a', value=init['a'][0], min=init['a'][1], max=init['a'][2], vary=1)
+    pars.add('beta', value=init['beta'][0], min=init['beta'][1], max=init['beta'][2], vary=1)
+
+    if modes > 1:
+        beta_constraint = 'a+beta-'+'-'.join(['b{}'.format(x) for x in range(1,modes)])
+        pars['b0'].set(expr=beta_constraint)
+    else:
+        pars['b0'].set(expr='beta')        
+
+    ind = np.where(~np.isnan(cf[:-2]))
+    t = t[ind]
+    cf = cf[ind]
+    
+    for vn in fix.keys():
+        pars[vn].set(value=fix[vn], min=-np.inf, max=np.inf, vary=0)
+
+    if err is not None:
+        err = err[ind]
+        err = np.abs(err)
+        wgt = err.copy()
+        ind = np.where((wgt>0)&((wgt/cf)>=errthr))
+        wgt[ind] = 1./wgt[ind]
+    else:
+        wgt = None
+        
+    if 'semilogx' in mode:
+        if err is not None:
+            wgt = np.log10(wgt)
+        elif err == 't':
+            wgt = 1./np.log10(t)
+        else:
+            wgt = None
+
+    if 'y' in mode:
+        if err is not None:
+            wgt = cf-1
+            
     if dofit:
-        out = lmfit.minimize(res, pars, args=(t,), kws={'data':cf, 'eps':wgt}, nan_policy='omit')
+        out = lmfit.minimize(res, pars, args=(t,), kws={'data':cf, 'eps':wgt},
+                             nan_policy='omit')
 
     # do all the plotting
     pl = []
@@ -214,8 +212,7 @@ def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix=None, dofit=1
             pars_arr[i,0] = out.params[vn].value
             try:
                 pars_arr[i,1] = 1.*out.params[vn].stderr
-            except TypeError as e:
-                print(e)
+            except TypeError:
                 pars_arr[i,1] = 1
         gof = np.array([out.chisqr, out.redchi, out.bic, out.aic])
         return pars_arr, gof, out, lmfit.fit_report(out), pl

@@ -91,10 +91,16 @@ class Xdb:
             self.db, 'Analysis', savdir, dbfile, handle_existing=handle_existing)
 
     def append_db(self, dbfile, check_duplicates=True):
-        if type(dbfile) == str:
+        if isinstance(dbfile, str):
             path, fname = make_filename(self, filename=dbfile)
             dbfile = path + fname
-            db = pickle.load(open(dbfile, 'r+b'))
+            if os.path.isfile(dbfile):
+                db = pickle.load(open(dbfile, 'r+b'))
+            else:
+                print('File %s does not exist.' % dbfile)
+                return None
+        elif isinstance(dbfile, pd.DataFrame):
+            db = dbfile
         self.db = self.db.append(db, ignore_index=True)
 
         if len(self.db[self.db['use'] == False]) and check_duplicates:
