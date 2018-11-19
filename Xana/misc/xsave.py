@@ -76,6 +76,7 @@ def save_result(savobj, restype, savdir, filename="", handle_existing='raise', p
     filename = re.sub(r'(\.(pkl)*)$', '', filename)
     savname = savdir + '/' + restype + '_' + filename + '.pkl'
 
+    save = True
     if handle_existing == 'next':
         savname = savname.rstrip('.pkl')
         searchstr = '\d{4}$'
@@ -97,11 +98,13 @@ def save_result(savobj, restype, savdir, filename="", handle_existing='raise', p
             if user_input == 'yes' or user_input == 'Yes':
                 pass
             else:
-                raise OSError(('File {} already exists. Change overwrite to ' +
-                               'True or choose different name.').format(savname))
+                save = False
     else:
         raise ValueError('{} is not a valid option'.format(handle_existing))
 
-    pickle.dump(savobj, open(savname, 'wb'))
-    print('\nResults saved to:\n\t{}'.format(savname))
-    return savname
+    if save:
+        pickle.dump(savobj, open(savname, 'wb'))
+        print('\nResults saved to:\n\t{}'.format(savname))
+        return savname
+    else:
+        print('Result has not been saved.')

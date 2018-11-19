@@ -42,8 +42,7 @@ class Analysis(Xdata):
                       (method, sid, self.datdir))
                 print('Using {} processes to read data.'.format(nread_procs))
 
-            if last is None:
-                last = self.meta.loc[sid, 'nframes']
+            last = min([self.meta.loc[sid, 'nframes'], last])
 
             # if dark is not None:
             #     if type(dark) == int:
@@ -57,14 +56,15 @@ class Analysis(Xdata):
                         'dtype': dtype,
                         'qsec': self.setup['qsec'],
                         'output': '2dsection',
-                        'nprocs': nread_procs
+                        'nprocs': nread_procs,
+                        'chunk_size':chunk_size
                         }
             saxs_dict = read_opt.copy()
             read_opt.update(read_kwargs)
 
             qsec = self.setup['qsec']
-            proc_dat = {'nimages': last-first,
-                        'dim': (qsec[1][0]-qsec[0][0]+1, qsec[1][1]-qsec[0][1]+1)
+            proc_dat = {'nimages': last - first,
+                        'dim': (qsec[1][0] - qsec[0][0] + 1, qsec[1][1] - qsec[0][1] + 1)
                         }
 
             fmax = self.meta.loc[sid, 'nframes']

@@ -23,6 +23,7 @@ class CorrFunc(AnaList):
         self.corrFunc = None
         self.corrFuncRescaled = None
         self.staticContrast = None
+        self.corrFuncChi2 = None
         self.twotime = None
         self.g2plotl = None
         self.nq = np.arange(len(self.Xana.setup['qroi']))
@@ -48,11 +49,11 @@ class CorrFunc(AnaList):
         return cf3
 
     @Decorators.input2list
-    def get_g2(self, db_id, merge='append'):
+    def get_g2(self, db_id, merge='append', **kwargs):
         self.db_id = db_id
         self.corrFunc = []
         if merge == 'merge':
-            self.merge_g2(db_id)
+            self.merge_g2(db_id, **kwargs)
         elif merge == 'append':
             for sid in db_id:
                 try:
@@ -197,53 +198,64 @@ class CorrFunc(AnaList):
         for corrFunc, o in zip(self.corrFuncRescaled, offset):
             corrFunc[0][1:, nq+1] += o
 
-    def merge_g2(self, in_list, limit=0.005):
+    def merge_g2(self, in_list, limit=0.005, chi2sig=3):
+        self.corrFuncChi2 = []
+        
         t_exp = np.zeros(len(in_list))
         nframes = t_exp.copy()
         for ii, i in enumerate(in_list):
             t_exp[ii] = self.Xana.db.loc[i]['t_exposure']
             nframes[ii] = self.Xana.db.loc[i]['nframes']
 
-        ind = np.argsort(nframes)[::-1]
+        ind = np.argsort(t_exp)[::-1]
         t_exp = t_exp[ind]
         nframes = nframes[ind]
         in_list = np.array(in_list)[ind]
 
-#        if (np.unique(t_exp, return_inverse=True)[1] == np.unique(nframes, return_inverse=True)[1]).any():
         uq_et, uq_inv, uq_cnt,  = np.unique(
             t_exp, return_inverse=1, return_counts=1)
-#        else:
- #           raise AssertionError('Cannot merge correlation functions.')
 
-        qv = self.Xana.setup['qv']
         counter = np.zeros(uq_et.size, dtype=np.int32)
         for i, cnti in enumerate(uq_cnt):
             indall = np.where(uq_inv == i)[0]
-            for j in range(cnti):
-                ind = indall[j]
+            for j, ind in enumerate(indall):
                 counter[i] += nframes[ind]
                 item = in_list[ind]
                 try:
                     d = self.Xana.get_item(item)
                     if j == 0:
+                        max_t_item = in_list[np.argmax(nframes[indall])]
+                        max_t = self.Xana.get_item(max_t_item)['corf'].shape[0] - 1
+                        qv = d['corf'][0,1:]
                         t = d['corf'][1:, 0]
                         cf = np.zeros((cnti, t.size, qv.size))
                         dcf = np.zeros_like(cf)
-                    cf[j, :, :qv.size] = d['corf'][1:, 1:qv.size+1]
-                    dcf[j, :, :qv.size] = d['dcorf'][1:, 1:qv.size+1]
+                    cft = d['corf'][1:, 1:qv.size+1]
+                    cf[j, :cft.shape[0], :qv.size] = cft
+                    dcf[j, :cft.shape[0], :qv.size] = d['dcorf'][1:, 1:qv.size+1]
                 except ValueError as v:
                     print('Tried loading database entry: ', item)
                     raise ValueError(v)
 
             cf = np.ma.masked_array(cf, mask=((cf < limit) | np.isnan(cf) | (dcf <= 0)))
             dcf = np.ma.masked_array(dcf, mask=cf.mask)
-            dcf = 1/(dcf**2)# + np.ma.var(cf))
-            cf, dcf = np.ma.average(cf, weights=dcf, returned=1, axis=0)
-            cf = np.hstack((t[:, None], cf.filled(np.nan)))
-            dcf[dcf > 0] = np.sqrt(1/dcf[dcf > 0])
-            dcf = np.hstack((t[:, None], dcf.filled(np.nan)))
-            self.corrFunc.append((np.vstack((np.append(0, qv), cf)),
-                                  np.vstack((np.append(0, qv), dcf))))
+            
+            cfm, dcfm = np.ma.average(cf, weights=1/dcf**2, returned=1, axis=0)
+
+            chi2arr = np.ma.sum((cf - cfm)**2 / cfm**2, 1)
+            chi2arr /= cf.shape[1] - 1
+            chi2arr = np.max(chi2arr,-1)
+
+            chi2cond = chi2arr > (chi2arr.mean() + chi2sig * chi2arr.std())
+            chi2ret = (in_list[indall[chi2cond]], chi2arr.compressed())
+            self.corrFuncChi2.append(chi2ret)
+
+            cfm = np.hstack((t[:, None], cfm.filled(np.nan)))
+            dcfm = np.ma.sqrt(1/dcfm)
+            dcfm = np.hstack((t[:, None], dcfm.filled(np.nan)))
+            
+            self.corrFunc.append((np.vstack((np.append(0, qv), cfm)),
+                                  np.vstack((np.append(0, qv), dcfm))))
 
         tmp = "Merged g2 functions: "
         print('{:<22}{} (exposure times)'.format(tmp, np.round(uq_et, 6)))

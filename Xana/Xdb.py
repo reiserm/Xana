@@ -81,9 +81,12 @@ class Xdb:
             discard.append(self.db[(self.db['datdir'].str.match(datdir))
                                    & (self.db['series'] == series)
                                    & (self.db['sample'].str.match(sample))].index.values)
-        self.db.loc[np.unique(np.hstack(discard)), 'use'] = False
-        if save:
-            self.save_db(handle_existing='overwrite')
+        if len(discard) == 0:
+            print('No entry discarded.')
+        else:
+            self.db.loc[np.unique(np.hstack(discard)), 'use'] = False
+            if save:
+                self.save_db(handle_existing='overwrite')
 
     def save_db(self, filename=None, handle_existing='raise'):
         savdir, dbfile = make_filename(self, 'dbfile', filename)

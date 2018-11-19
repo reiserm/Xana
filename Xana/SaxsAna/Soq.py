@@ -45,13 +45,14 @@ class Soq(AnaList):
                   qexp=None, Iscaling=None, A=1., norm=False, normto=None, bg=None,
                   logax='xy', Ae=1., show_legend=True, color='b', **kwargs ):
 
-        if color_mode == 0:
-            color_multiplier, color_repeater = len(series_id), 1
-            self.update_colors(cmap, color_multiplier, 1)
-            self.update_markers(len(series_id), change_marker)
-
-        if color_mode > 0:
-            self.colors = [color]*len(series_id)            
+        if color_mode < 2:
+            if color_mode == 0:
+                color_multiplier, color_repeater = len(series_id), 1
+            elif color_mode == 1:
+                self.colors = [color]*len(series_id)            
+            self.update_colors(cmap, color_multiplier, color_repeater)
+        elif color_mode == 2:
+            self.colors = [color]*len(series_id)
 
         niceplot(ax)
 

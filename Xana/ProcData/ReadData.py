@@ -41,7 +41,9 @@ def get_firstnlast(first, last, nf, dim):
         first = (0,)*len(last)
     elif last is not None and first is None:
         if len(last) == 1:
-            last = (last[0], *dim)
+            last = (min([last[0],nf]), *dim)
+        else:
+            last = [min([last[0],nf]), *last[1:]]
         first = (0,)*len(last)
     elif last is None and first is not None:
         if len(first) > 1:
@@ -472,12 +474,15 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     # Nested Functions only invoked by read_data()
     # ---------------------------------------------
     def make_chunks():
-        """ if data should be read in chunks, this functions createas a list of chunked image indices
+        """ 
+        if data should be read in chunks, this functions createas a list of 
+        chunked image indices
         """
         if verbose:
             print('Loading data in chunks of {} images.'.format(chunk_size))
-        chunks = [np.arange(first[0]+i*chunk_size, first[0]+min([(i+1)*chunk_size, nimg]), step[0])
-                  for i in range(np.ceil(nimg/chunk_size).astype(np.int32))]
+        chunks = [np.arange(first[0] + i*chunk_size,
+                            min([min([(i + 1) * chunk_size, last[0]]), nimg]), step[0])
+                  for i in range(np.ceil(nimg / chunk_size).astype(np.int32))]
         return chunks
 
     # --------------------

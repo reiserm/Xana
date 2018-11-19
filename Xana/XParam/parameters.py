@@ -17,7 +17,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
         dD = 0
         D = kb*(T+273.15)/(6*np.pi*R*eta)
         if err:
-            dD = D*err/eta        
+            dD = D*err/eta
         return D, dD
 
     def geteta(D, err=0):
@@ -27,7 +27,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
             deta = eta*err/D
         return eta, deta
 
-    def blc(q,L,k,lc):
+    def blc(q, L, k, lc):
         def A(q):
             return 4*np.pi/lc*q/k*np.sqrt(1-q**2/(4*k**2))
         return 2*(A(q)*L-1+np.exp(-A(q)*L))/(A(q)*L)**2
@@ -38,34 +38,34 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
     def power(x, p):
         return p[0]*x**p[1] + p[2]
 
-
     if type(modes) == int:
-        modes = np.arange(modes-1,modes)
+        modes = np.arange(modes-1, modes)
     else:
         modes = np.array(modes)
         modes -= 1
 
-    if parameter in [0,'G','dispersion']:
+    if parameter in [0, 'G', 'dispersion']:
         name = 't'
-    elif parameter in [1,'kww']:
+    elif parameter in [1, 'kww']:
         name = 'g'
-    elif parameter in [2,'f0', 'ergodicity']:
+    elif parameter in [2, 'f0', 'ergodicity']:
         name = 'b'
-    
+
     if 'ax' is None:
-        fig, ax = plt.subplots(1,1, figsize=(9,4))
+        fig, ax = plt.subplots(1, 1, figsize=(9, 4))
 
     kb = 1.381e-23
     cmap = plt.get_cmap(cmap)
-    m_unit = {'G':'nm{} s-1'.format(alpha), 'kww':'nm{}'.format(alpha), 'f0':'nm{}'.format(alpha)}
-    b_unit = {'G':'s-1', 'kww':'', 'f0':''}
-    y_label = {'G':r'$\Gamma [s^{-1}]$', 'kww':'kww', 'f0':'ergodicity'}
+    m_unit = {
+        'G': 'nm{} s-1'.format(alpha), 'kww': 'nm{}'.format(alpha), 'f0': 'nm{}'.format(alpha)}
+    b_unit = {'G': 's-1', 'kww': '', 'f0': ''}
+    y_label = {'G': r'$\Gamma [s^{-1}]$', 'kww': 'kww', 'f0': 'ergodicity'}
 
     if fit == '' or fit is None:
         dofit = False
     else:
         dofit = True
-              
+
     qv = pars['q']
     qv = qv**alpha
 
@@ -73,24 +73,24 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
     iip = np.arange(qv.size)
     iif = iip.copy()
     if exc is not None:
-        iip = np.delete(iip,exc)
+        iip = np.delete(iip, exc)
     if excfit is not None:
-        iif = np.delete(iif,np.hstack((excfit)))
+        iif = np.delete(iif, np.hstack((excfit)))
 
-    x = np.linspace(np.min(qv[iif]),np.max(qv[iif]),100)
+    x = np.linspace(np.min(qv[iif]), np.max(qv[iif]), 100)
 
     textstr = ""
-    for ii,i in enumerate(modes):
+    for ii, i in enumerate(modes):
         if label is None:
             labstr = 'mode {}: {}'.format(i+1, parameter)
         else:
             labstr = label
         textstr += labstr
-        
-    #-------plot decay rates--------
+
+    # -------plot decay rates--------
         y = np.asarray(pars['{}{}'.format(name, i)])
         dy = np.asarray(pars['d{}{}'.format(name, i)])
-        
+
         if parameter == 'G':
             y = 1/y
             dy = y**2*dy
@@ -98,25 +98,28 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
             pass
 
         color = cmap(ci[ii])
-        ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o', label=labstr, color=color)
-        
-        nf = np.where(dy<=0)[0]
+        ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o',
+                    label=labstr, color=color)
+
+        nf = np.where(dy <= 0)[0]
         bad_points = nf.size
         if bad_points:
             print('Found {} points with zero error\n'.format(bad_points))
 
-        if dofit: 
+        if dofit:
             if fit == 'mcmc_line':
-                m, b, f_m, m_ls, b_ls = mcmc_sl(qv[iif], y[iif], dy[iif], doplot=corner_axes)
+                m, b, f_m, m_ls, b_ls = mcmc_sl(
+                    qv[iif], y[iif], dy[iif], doplot=corner_axes)
                 # ax[0].plot(x2,m_ls*x2+b_ls)
-                m, b = [(x[0], np.mean(x[1:])) for x in (m,b)]
+                m, b = [(x[0], np.mean(x[1:])) for x in (m, b)]
             else:
-                res = fit_basic(qv[iif], y[iif], dy[iif], fit, dict(init), fix, emcee)
+                res = fit_basic(qv[iif], y[iif], dy[iif],
+                                fit, dict(init), fix, emcee)
                 fitpar = res[0].astype(np.float32)
                 yf = res[4].eval(res[2].params, x=x)
 
             ax.plot(x, yf, color=color, label=None)
-        
+
         if parameter == 'G':
             # textstr += 'm = {:.2g} +/- {:.2g} [{}]\nb = {:.2g} +/- {:.2g} [{}]\n'.format(*m,
             #                m_unit[parameter], *b, b_unit[parameter])
@@ -125,23 +128,25 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
                     np.array(geteta(*fitpar[0]))*1e3)
         elif parameter == 'f0' and dofit:
             msd = 1/(2*res[2].params['t'].value)
-            dmsd = 2*msd**2*res[2].params['t'].stderr 
+            dmsd = 2*msd**2*res[2].params['t'].stderr
             r_loc = np.sqrt(6*(msd))
             dr_loc = 6/2/r_loc*dmsd
-            textstr += 'localization length: {:.2f} +/- {:.2f} nm\n'.format(r_loc,dr_loc)
+            textstr += 'localization length: {:.2f} +/- {:.2f} nm\n'.format(
+                r_loc, dr_loc)
 
         if fit_report and dofit:
             print('\n' + textstr)
             print('-'*16)
             print(res[3])
-        
+
     if format_ticks:
         x_labels = ax.get_xticks()
         try:
             @ticker.FuncFormatter
             def major_formatter(x, pos):
                 return "{:.2f}".format(x)
-            ax.ticklabel_format(axis='x', useMathText=True, style='sci', scilimits=(0,0))
+            ax.ticklabel_format(axis='x', useMathText=True,
+                                style='sci', scilimits=(0, 0))
         except:
             pass
 
@@ -153,9 +158,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
         ax.set_xscale('log')
     if 'y' in log:
         ax.set_yscale('log')
-    
+
     if textbox:
-        at = AnchoredText( textstr, loc=2,)
+        at = AnchoredText(textstr, loc=2,)
         ax.add_artist(at)
 
     ax.legend(loc='best')
