@@ -250,8 +250,6 @@ class hdf5(dataset):
 
         with h5py.File(self.masterfile, 'r', driver=self.driver) as f:
             if self.extlinks:
-                for n in f['/entry/data/']:
-                    print(n)
                 data_links = [f[self.datapath].name +
                               '/' + name for name in f[self.datapath]]
                 datapath = data_links
@@ -261,7 +259,6 @@ class hdf5(dataset):
             nf = 0
             for d in datapath:
                 nf += f[d].shape[0]
-            print(datapath, nf)
 
         rlock(self.lock)
         self.datapath = datapath
@@ -271,9 +268,12 @@ class hdf5(dataset):
     def load_chunk(self, indx=None):
 
         alock(self.lock)
+        print(indx[0], indx[-1])
 
+        datapath = self.datapath[indx[0]//self.imgpf]
         indx = (indx % self.imgpf).astype('int32')
-        datapath = self.datapath[int(indx[0]/self.imgpf)]
+        print(indx[0], indx[-1])
+        print(datapath)
         qsec = self.qsec
         with h5py.File(self.masterfile, 'r', driver=self.driver) as f:
             if indx is not None and qsec is not None:
