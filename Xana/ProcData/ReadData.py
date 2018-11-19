@@ -95,10 +95,13 @@ def rearrange_tiles(arr, func):
     return arr
 
 
-# ----------------------------------------------------------------------------------------------------
-# data format classes to provide specific functions to read data and get information on dataset shape
+# -----------------------------------------------------------------------
+# data format classes to provide specific functions to read data and get
+# information on dataset shape
 class dataset:
-    """Class that provides all meta information, options, correction functions for data loading
+    """
+    Class that provides all meta information, options, 
+    correction functions for data loading
     """
 
     def __init__(self, opt):
@@ -128,13 +131,6 @@ class dataset:
             self.dstream = [[] for i in range(len(self.qroi)+1)]
         else:
             pass
-
-        # elif method == 'events':
-        #     dstream = [[] for i in range(nimg)]
-        #     if return_prob:
-        #         prob = np.zeros((len(qroi),nimg+1,10))
-        #         for iq in range(len(qroi)):
-        #             prob[iq,0,1:] = np.arange(9)
 
     def calc_mean(self, weighted=False):
 
@@ -180,7 +176,8 @@ class dataset:
             else:
                 m = [arr.mean((1, 1))]
 
-            # extend the dstream list by the intensities in the pixels in the previously defined qrois
+            # extend the dstream list by the intensities in the pixels
+            # in the previously defined qrois
             for qi in range(len(self.qroi)):
                 ind = (...,*self.qroi[qi])
                 m.append(list(mat2evt(arr[ind])))
@@ -212,19 +209,6 @@ class dataset:
                                                           qsec[0][1]:qsec[1][1]+1]
                 if self.dstream.shape[0] == 1:
                     self.dstream = np.squeeze(self.dstream)
-
-    # def load_evts(fname, indx, return_prob=False):
-
-    #     arr = data[indx[0]:indx[-1]+1].astype(dtype)
-    #     for matr in arr:
-    #         out = []
-    #         for i in range(len(qroi)):
-    #             tmp = matr[qroi[i]]
-    #             tmp.shape = tmp.size, 1
-    #             out.append(mat2evt(tmp)[0])
-    #         if return_prob:
-    #             out = (out, evt2prob(out,qroi,9))
-    #         dataQ.put(out)
 
     def cond_rearrange_tiles(self):
 
@@ -266,16 +250,18 @@ class hdf5(dataset):
 
         with h5py.File(self.masterfile, 'r', driver=self.driver) as f:
             if self.extlinks:
+                for n in f['/entry/data/']:
+                    print(n)
                 data_links = [f[self.datapath].name +
                               '/' + name for name in f[self.datapath]]
                 datapath = data_links
             else:
                 datapath = [self.datapath, ]
             dim = f[datapath[0]][0].shape
-            # nf = f[xdata.attributes['nframes']].value
             nf = 0
             for d in datapath:
                 nf += f[d].shape[0]
+            print(datapath, nf)
 
         rlock(self.lock)
         self.datapath = datapath
@@ -481,7 +467,8 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         if verbose:
             print('Loading data in chunks of {} images.'.format(chunk_size))
         chunks = [np.arange(first[0] + i*chunk_size,
-                            min([min([(i + 1) * chunk_size, last[0]]), nimg]), step[0])
+                            first[0] + min([min([(i + 1) * chunk_size, last[0]]), nimg]),
+                            step[0])
                   for i in range(np.ceil(nimg / chunk_size).astype(np.int32))]
         return chunks
 
@@ -528,7 +515,7 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         if 'images_per_file' in h5opt:
             options['imgpf'] = h5opt['images_per_file']
             if verbose:
-                print('Loading {} images per file.'.format(imgpf))
+                print('Loading {} images per file.'.format(options['imgpf']))
         if 'chunk_size' in h5opt:
             chunk_size = h5opt['chunk_size']
         if 'arrange_tiles' in h5opt and '2d' in output:
@@ -549,7 +536,8 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     datafiles = np.array(datafiles)
     masterfile = datafiles[0]
 
-    # dcls is the data class that contains all necessary functions to deal with different file formats
+    # dcls is the data class that contains all necessary functions
+    # to deal with different file formats
     if case == 0:
         dcls = sglimgfmt(masterfile, datafiles, options)
     elif case in [1, 2]:
@@ -574,8 +562,8 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     dcls.update_shape(nimg, dim)
 
     if verbose:
-        print('First file is: ', imgindx[0], flush=1)
-        print('Last file is: ', imgindx[-1], flush=1)
+        print('First images is: ', first[0], flush=1)
+        print('Last image is: ', last[0], flush=1)
 
     nargin = nimg
     if dcls.use_chunks:
@@ -615,12 +603,14 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
                     break
                 else:
                     if qi == 0:
-                        dcls.dstream[qi] = np.append(dcls.dstream[qi],dcls.chunk[qi])
+                        dcls.dstream[qi] = np.append(
+                            dcls.dstream[qi],dcls.chunk[qi])
                     else:
                         for j in range(3):
                             if j == 1:
                                 dcls.chunk[qi][j] += chunks[i][0]
-                            dcls.dstream[qi][j] = np.append(dcls.dstream[qi][j],dcls.chunk[qi][j])
+                            dcls.dstream[qi][j] = np.append(
+                                dcls.dstream[qi][j],dcls.chunk[qi][j])
 
         #dcls.prepare_output()
         progress(1, 1)

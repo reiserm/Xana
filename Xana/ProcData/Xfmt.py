@@ -40,7 +40,7 @@ class Xfmt:
         kernel = {
             'prefix': 'img_eiger',
             'suffix': '((edf)$|(edf\.gz)$)',
-            'numfmt': '(((_\d{4}){2,}(?=\.))|(_\d{4,}(?=\.)))',
+            'numfmt': '\d{4}',
             'masterfmt': '((img_eiger_\d{4}_0000_0000)|(img_0{4})|(zaptime_\d{,5}_eiger1_0{4}))',
             'seriesfmt': '\d{1,5}',
             'get_header': edf.headeredf,
@@ -117,7 +117,7 @@ class Xfmt:
             'suffix': 'h5',
             'numfmt': '\d{5,6}',
             'masterfmt': '.*_master',
-            'seriesfmt': '\d{5}(?=_master)',
+            'seriesfmt': '\d{5}((?=_master)|(?=_data))',
             'get_header': get_header_h5,
             'get_attributes': get_attrs_h5,
             'attributes': {

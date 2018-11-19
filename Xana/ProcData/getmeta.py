@@ -13,7 +13,8 @@ def getfiles(datdir, suffix, numfmt='(_\d)*'):
     check_suffix = re.compile(suffix)
     filelist = [ os.path.abspath(datdir + item) for item in os.listdir(datdir)
                  if os.path.isfile(os.path.join(datdir, item)) and bool(check_suffix.search(item))]
-    filelist = sorted(filelist, key=lambda x: int(''.join(re.search( numfmt ,x).group(0).split('_'))))
+    filelist = sorted(filelist,
+                      key=lambda x: int(''.join(re.findall( numfmt ,x.split('/')[-1]))))
     return filelist
 
 def files2series(filelist, masters, seriesfmt,):
