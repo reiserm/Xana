@@ -54,7 +54,7 @@ def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix={}, dofit=Fal
     pars.add('beta', value=init['beta'][0], min=init['beta'][1], max=init['beta'][2], vary=1)
 
     if modes > 1:
-        beta_constraint = 'a+beta-'+'-'.join(['b{}'.format(x) for x in range(1,modes)])
+        beta_constraint = 'a+beta-1-'+'-'.join(['b{}'.format(x) for x in range(1,modes)])
         pars['b0'].set(expr=beta_constraint)
     else:
         pars['b0'].set(expr='beta')        
@@ -117,7 +117,7 @@ def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix={}, dofit=Fal
         if 'legf' in doplot and dofit:
             pard = {'t':r'$t: {:.2e}\mathrm{{s}},\,$',
                     'g':r'$\gamma: {:.2g},\,$',
-                    'b':r'$\mathrm{{b}}: {:.2g},\,$',
+                    'b':r'$\mathrm{{b}}: {:.3g},\,$',
                     'a':r'$\mathrm{{a}}: {:.3g},\,$'}
             labstr_fit = ''
             for i in range(modes):

@@ -355,7 +355,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
                     tmp_put.append(chunk[:,q0,q1]/normfactor[:,None])
                 elif norm == 'symmetric_whole':
                     tmp_put.append(chunk[:,q0,q1]/np.mean(chunk[:,lin_mask[0],lin_mask[1]]))
-                elif norm == 'sym_!trace':
+                elif norm == 'none':
                     tmp_put.append(chunk[:,q0,q1])
                 elif norm == 'corrcoef':
                     tmp_mat = chunk[:,q0,q1]/trace[idx,qi,None]
@@ -389,7 +389,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         sl = np.concatenate((sl,from_proc[i][4]), axis=1)
         tcalc_cum = max(tcalc_cum,from_proc[i][5])
 
-    if norm in ['symmetric', 'sym_!trace', 'symmetric_whole']:
+    if norm in ['symmetric', 'sym_!trace', 'symmetric_whole', 'none']:
         tmp = nk[:rcrc,None]**2/(sr[:rcrc]*sl[:rcrc])
         corf = corf[:rcrc] * tmp
         dcorf = np.abs(dcorf[:rcrc] * tmp**2 / (nk[:rcrc,None]**2))
