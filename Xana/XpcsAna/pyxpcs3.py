@@ -296,7 +296,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     lag *= dt # scale lag-vector with time step
     
     trace = np.empty((nf,lqv))
-    tt_vec = np.arange(min(nf,tt_max_images))*dt
+    tt_vec = np.linspace(0,nf,tt_max_images)*dt
 
     #----multiprocessing----
     # create lists of queues and processes

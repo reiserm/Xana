@@ -310,7 +310,7 @@ class CorrFunc(AnaList):
             
         if change_axes:
             ax_idx = np.arange(len(ax))
-            c_idx = np.repeat(np.arange(mm*npars), npl)
+            c_idx = np.repeat(np.arange(mm*npars), 1)
         else:
             ax_idx = np.zeros(npl, dtype=np.int16)
             c_idx = np.arange(npl*npars)

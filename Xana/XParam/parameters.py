@@ -10,7 +10,7 @@ from matplotlib import ticker
 
 def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=None,
                     textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
-                    format_ticks=False, cmap='Set1', init={}, fix=None, viscosity=False,
+                    format_ticks=True, cmap='Set1', init={}, fix=None, viscosity=False,
                     fit_report=False, emcee=False, exc=None, excfit=None, **kwargs):
 
     def getD(eta, err=0):
