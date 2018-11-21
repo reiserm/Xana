@@ -66,7 +66,7 @@ class CorrFunc(AnaList):
 
     @Decorators.init_figure()
     def plot_g2(self, nq=None, err=True, ax=None, nmodes=1, data='rescaled', cmap='jet',
-                change_marker=False, color_mode=0, color='b', dofit=True, **kwargs):
+                change_marker=False, color_mode=0, color='b', dofit=False, **kwargs):
         if data == 'original' or self.corrFuncRescaled is None:
             corrFunc = list(self.corrFunc)
         elif data == 'rescaled':
@@ -305,8 +305,11 @@ class CorrFunc(AnaList):
         else:
             ax = [ax,]
 
-        mm = max([len(x) if isinstance(x, (list,tuple)) else 1    
-                  for x in kwargs.get('modes',[1])])
+        modes = kwargs.get('modes', 1)
+        if isinstance(modes, (list, tuple)):
+            mm = max([len(x) if isinstance(x, (list,tuple)) else 1 for x in modes])
+        else:
+            mm = 1
             
         if change_axes:
             ax_idx = np.arange(len(ax))
@@ -317,7 +320,7 @@ class CorrFunc(AnaList):
 
         for ipar, pars in enumerate(self.pars):
             for i, p in enumerate(plot):
-                kwargsl = {key: value[i] if type(value) == tuple else value \
+                kwargsl = {key: value[i] if isinstance(value, (tuple, list)) else value \
                            for (key, value) in kwargs.items()}
                 plot_parameters(pars, p, ax=ax[ax_idx[i]], ci=c_idx[ipar:ipar+mm],
                                  **kwargsl)

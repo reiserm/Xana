@@ -8,7 +8,7 @@ from matplotlib.offsetbox import AnchoredText
 from matplotlib import ticker
 
 
-def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=None,
+def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                     textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
                     format_ticks=True, cmap='Set1', init={}, fix=None, viscosity=False,
                     fit_report=False, emcee=False, exc=None, excfit=None, **kwargs):
@@ -121,11 +121,11 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
             ax.plot(x, yf, color=color, label=None)
 
         if parameter == 'G':
-            # textstr += 'm = {:.2g} +/- {:.2g} [{}]\nb = {:.2g} +/- {:.2g} [{}]\n'.format(*m,
-            #                m_unit[parameter], *b, b_unit[parameter])
+            
             if viscosity:
                 textstr += '\neta = {0[0]:.4g} +/- {0[1]:.2g} [cP]'.format(
                     np.array(geteta(*fitpar[0]))*1e3)
+                
         elif parameter == 'f0' and dofit:
             msd = 1/(2*res[2].params['t'].value)
             dmsd = 2*msd**2*res[2].params['t'].stderr
@@ -151,7 +151,11 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit='linear', modes=0, ax=N
             pass
 
     # set style
-    ax.set_xlabel(r'$\mathrm{{q}}^{0} [nm^{{-{0}}}]$'.format(alpha))
+    if alpha == 1:
+        x_lab = r'$\mathrm{q} [nm^{-1}]$'
+    else:
+        x_lab = r'$\mathrm{{q}}^{0} [nm^{{-{0}}}]$'.format(alpha)
+    ax.set_xlabel(x_lab)
     ax.set_ylabel(y_label[parameter])
 
     if 'x' in log:
