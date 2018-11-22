@@ -7,12 +7,15 @@ from misc.progressbar import progress
 from XpcsAna.xpcsmethods import cftomt, mat2evt
 
 #---MAIN FUNCTION---
-def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
-    ''' Event correlator
+def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
+                    twotime_par=-1, **kwargs):
+    ''' 
+    Event correlator
     '''
     time0 = time()
     lqv = len(qroi)
     rlqv = range(lqv)
+    twotime_par = np.array(twotime_par)
     
     if qv is None:
         qv = np.arange(lqv)
@@ -82,7 +85,8 @@ def eventcorrelator( data, qroi, qv=None, dt=1., method='matrix' ):
             cc[1:,0] = x[:,0]
             z[1:,0] = x[:,0]
         
-        ttcf[roii] = cor.copy()
+        if roii in twotime_par:
+            ttcf[roii] = cor.copy()
         cfmt.append(cftomt(cc[1:,[0,roii+1]],err2=z[1:,roii+1]))
         trace.append(s)
         del cor

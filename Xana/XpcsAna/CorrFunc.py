@@ -363,10 +363,11 @@ class CorrFunc(AnaList):
 
     @Decorators.init_figure()
     @Decorators.input2list
-    def plot_trace(self, db_id, log='', ax=None):
+    def plot_trace(self, db_id, log='', ax=None, cmap='Set1'):
         axtop = ax.twiny()
 
         ci = 0
+        cmap = plt.get_cmap(cmap)
         for sid in db_id:
             corfd = self.Xana.get_item(sid)
             trace = corfd['trace']
@@ -376,9 +377,9 @@ class CorrFunc(AnaList):
             time = np.linspace(time0, time1, framen.size)
             for i, iq in enumerate(self.nq):
                 ax.plot(
-                    time, trace[:, iq], 'o', color=self.colors[ci], markersize=2, label=str(i))
+                    time, trace[:, iq], 'o-', color=cmap(ci), markersize=2, label=str(i))
                 axtop.plot(
-                    framen, trace[:, iq], 'o', color=self.colors[ci], markersize=2, label=str(i))
+                    framen, trace[:, iq], 'o-', color=cmap(ci), markersize=2, label=str(i))
                 ci += 1
 
         ax.set_ylabel('photons per pixel')

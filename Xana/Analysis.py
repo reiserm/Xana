@@ -123,7 +123,7 @@ class Analysis(Xdata):
                                       qroi=self.setup['qroi'],
                                       nprocs=read_opt['nprocs'])
                 savd = Xpcs.eventcorrelator(evt[1:], self.setup['qroi'], self.setup['qv'],
-                                            dt, method='events')
+                                            dt, method='events', **kwargs)
 
             elif method == 'xsvs':
 
