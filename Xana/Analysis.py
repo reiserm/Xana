@@ -32,7 +32,7 @@ class Analysis(Xdata):
         super().__init__(**kwargs)
 
     @Decorators.input2list
-    def analyze(self, series_id, method, first=0, last=None, handle_existing='next',
+    def analyze(self, series_id, method, first=0, last=np.inf, handle_existing='next',
                 nread_procs=4, chunk_size=200, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
 
@@ -42,13 +42,13 @@ class Analysis(Xdata):
                       (method, sid, self.datdir))
                 print('Using {} processes to read data.'.format(nread_procs))
 
-            last = min([self.meta.loc[sid, 'nframes'], last])
-
             # if dark is not None:
             #     if type(dark) == int:
             #         print('Loading DB entry {} as dark.'.format(dark))
             #         dark = self.xana.get_item(dark)['Isaxs']
 
+            last = min([self.meta.loc[sid, 'nframes'], last])
+            
             read_opt = {'first': (first,),
                         'last': (last,),
                         'dark': dark,
@@ -115,13 +115,13 @@ class Analysis(Xdata):
 
             elif method == 'xpcs_evt':
                 dt = self.get_delay_time(sid)
-                evt = self.get_series(sid,
-                                      first=read_opt['first'],
-                                      last=read_opt['last'],
-                                      method='events',
-                                      verbose=True,
-                                      qroi=self.setup['qroi'],
-                                      nprocs=read_opt['nprocs'])
+                evt_dict = dict(method='events',
+                                verbose=True,
+                                qroi=self.setup['qroi'],
+                                dtype=np.uint32,
+                )
+                read_opt.update(evt_dict)
+                evt = self.get_series(sid, **read_opt)
                 savd = Xpcs.eventcorrelator(evt[1:], self.setup['qroi'], self.setup['qv'],
                                             dt, method='events', **kwargs)
 

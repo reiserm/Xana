@@ -35,7 +35,8 @@ def cftomt(d, par=16, err2=None):
     if err2 is None:
         err2 = np.ones(d.shape[0], dtype=d.dtype)
 
-    print(d.shape)
+    err2 = np.ma.masked_array(err2)
+
     for i in range(par):
         nt.append(d[i,0])
         nd.append(d[i,1])
@@ -47,7 +48,7 @@ def cftomt(d, par=16, err2=None):
 
     while len(t) >= par:
         invsvar = 1/(1/err2[:-1] + 1/err2[1:])
-        nval = (val[:-1]/err2[:-1] + val[1:]/err2[1:])*invsvar
+        nval = (val[:-1]/err2[:-1] + val[1:]/err2[1:]) * invsvar
         tt = (t[:-1] + t[1:])/2
         for i in range(0,par,2):
             nt.append(tt[i])

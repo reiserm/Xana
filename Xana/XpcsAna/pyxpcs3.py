@@ -96,24 +96,25 @@ def avr_better( saxs, ctr, mask ):
     """Return an average saxs image for normalization of images.
     """
     cx, cy = ctr
-    dim1,dim2 = np.shape(saxs)
-    [X,Y] = np.mgrid[1-cy:dim1+1-cy,1-cx:dim2+1-cx]
-    q = np.float32(np.sqrt(X**2+Y**2))
-    n = np.int16(q+0.5)
+    dim1, dim2 = np.shape(saxs)
+    [X,Y] = np.mgrid[1-cy : dim1+1-cy, 1-cx : dim2+1-cx]
+    q = np.float32(np.sqrt(X**2 + Y**2))
+    n = np.int16(q + 0.5)
     q[mask==0] = 0
     n[mask==0] = 0
-    max_n = n.max()+1
-    mean_saxs = 0.0*np.arange(max_n+1)
-    new_saxs = saxs*0.0
+    max_n = n.max() + 1
+    mean_saxs = np.zeros(max_n+1, np.float32)
+    new_saxs = np.zeros_like(saxs, np.float32)
     radi = np.zeros((max_n,2), np.float32)
+    
     for i in range(max_n):
-        ind = np.where((n==i)&(mask==1))
+        ind = np.where((n==i) & (mask==1))
         if ind[0].size:
             mean_saxs[i] = np.mean(saxs[ind])
             
     for i in range(dim1):
         for j in range(dim2):
-            if q[i,j]>0:
+            if q[i,j] > 0:
                 par = int(q[i,j])
                 f1 = q[i,j] - par
                 if mean_saxs[par+1]>0 and mean_saxs[par]>0 :

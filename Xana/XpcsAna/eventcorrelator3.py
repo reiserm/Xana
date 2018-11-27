@@ -21,7 +21,7 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         qv = np.arange(lqv)
 
     for roii in rlqv:
-        print('Analyzing ROI: {}'.format(roii))
+        print('\nAnalyzing ROI: {}'.format(roii), flush=1)
         if method == 'matrix':
             roi = data[:,qroi[roii][0],qroi[roii][1]]
             ntimes, npix = np.shape(roi)
@@ -84,13 +84,13 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         if roii == 0:
             cc[1:,0] = x[:,0]
             z[1:,0] = x[:,0]
+        del x
+        cfmt.append(cftomt(cc[1:,[0,roii+1]],err2=z[1:,roii+1]))
+        trace.append(s)
         
         if roii in twotime_par:
             ttcf[roii] = cor.copy()
-        cfmt.append(cftomt(cc[1:,[0,roii+1]],err2=z[1:,roii+1]))
-        trace.append(s)
         del cor
-        del x
 
     shp = cfmt[0].shape[0]
     corf = np.empty((shp+1,len(qv)+1))

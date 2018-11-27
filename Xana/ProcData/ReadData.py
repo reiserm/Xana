@@ -126,7 +126,7 @@ class dataset:
             self.dstream = self.chunk
         elif self.method == 'events':
             if self.qroi is None:
-                self.qroi = [np.where(self.mask)]
+                self.qroi = [self.mask]
                 print('Qrois not defined. Using all pixels that are not masked.')
             self.dstream = [[] for i in range(len(self.qroi)+1)]
         else:
@@ -174,7 +174,7 @@ class dataset:
                 ind = (..., *self.mask)
                 m = [arr[ind].mean(1)]
             else:
-                m = [arr.mean((1, 1))]
+                m = [arr.mean((1, 2))]
 
             # extend the dstream list by the intensities in the pixels
             # in the previously defined qrois
@@ -199,7 +199,7 @@ class dataset:
                     if self.variance is not None:
                         self.variance = rearrange_tiles(
                             self.variance, self.arrange_tiles)
-                if 'section' in self.output or 'sec' in self.output:
+                if 'sec' in self.output:
                     if self.cond_section():
                         qsec = self.qsec
                         self.dstream = self.dstream[..., qsec[0][0]:qsec[1][0]+1,
@@ -346,8 +346,7 @@ class sglimgfmt(dataset):
             for f in from_queue:
                 matr = self.get_image(f).astype(dtype)
                 if qsec is not None:
-                    matr = matr[qsec[0][0]:qsec[1]
-                                [0]+1, qsec[0][1]:qsec[1][1]+1]
+                    matr = matr[qsec[0][0]:qsec[1][0]+1, qsec[0][1]:qsec[1][1]+1]
                 out_queue.put(matr)
 
     def start_reading_data(self):
@@ -483,8 +482,9 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         options['dark'] = dark.astype(dtype)
         options['corrections'].append('dark')
 
-    if mask is not None:
-        options['mask'] = np.where(mask)
+    if isinstance(mask, np.ndarray):
+        if qsec is not None and 'sec' in output:
+            mask = mask[qsec[0][0]:qsec[1][0]+1, qsec[0][1]:qsec[1][1]+1]
         # options['corrections'].append('mask')
 
     if xdata is not None:
@@ -520,12 +520,29 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
             if verbose:
                 print('Rearranging tiles.')
         if 'mask' in xdata.__dict__:
-            options['mask'] = np.where(xdata.mask)
+            mask = xdata.mask.copy()
+            if qsec is not None and 'sec' in output:
+                mask = mask[qsec[0][0]:qsec[1][0]+1, qsec[0][1]:qsec[1][1]+1]
+
+    if isinstance(mask, np.ndarray):
+        mask = np.where(mask)
+        if qsec is not None:
+            mask = (mask[0]-qsec[0][0], mask[1]-qsec[0][1])
+        options['mask'] = mask
+    else:
+        mask = None
+
+    if qroi is not None and 'sec' in output:
+        options['qroi'] = qroi
+        for iq in range(len(qroi)):
+            options['qroi'][iq] = (qroi[iq][0]-qsec[0][0], qroi[iq][1]-qsec[0][1])
 
     if 'sec' not in output:
         options['qsec'] = None
         qsec = None
 
+    # dcls is the data class that contains all necessary functions
+    # to deal with different file formats
     if detector is None and xdata is not None:
         detector = xdata.fmtstr
 
@@ -533,8 +550,6 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     datafiles = np.array(datafiles)
     masterfile = datafiles[0]
 
-    # dcls is the data class that contains all necessary functions
-    # to deal with different file formats
     if case == 0:
         dcls = sglimgfmt(masterfile, datafiles, options)
     elif case in [1, 2]:
@@ -594,6 +609,7 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
 
             dcls.load_chunk(chunks[i])
             dcls.process_chunk()
+            print(chunks[i][0], chunks[i][-1])
             for qi in range(len(dcls.dstream)):
                 if i == 0:
                     dcls.dstream = dcls.chunk.copy()
@@ -601,15 +617,14 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
                 else:
                     if qi == 0:
                         dcls.dstream[qi] = np.append(
-                            dcls.dstream[qi],dcls.chunk[qi])
+                            dcls.dstream[qi], dcls.chunk[qi])
                     else:
                         for j in range(3):
                             if j == 1:
-                                dcls.chunk[qi][j] += chunks[i][0]
+                                dcls.chunk[qi][j] += chunks[i][0] - first[0]
                             dcls.dstream[qi][j] = np.append(
-                                dcls.dstream[qi][j],dcls.chunk[qi][j])
+                                dcls.dstream[qi][j], dcls.chunk[qi][j])
 
-        #dcls.prepare_output()
         progress(1, 1)
 
     elif method == 'average':
