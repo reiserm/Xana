@@ -1,11 +1,11 @@
 import h5py
 import numpy as np
 import multiprocessing as mp
-from XpcsAna.xpcsmethods import mat2evt
-from misc.progressbar import progress
-import ProcData.EdfMethods as edf
-import ProcData.CbfMethods as cbf
-from helper import *
+from ..XpcsAna.xpcsmethods import mat2evt
+from ..misc.progressbar import progress
+from . import EdfMethods as edf
+from . import CbfMethods as cbf
+from ..helper import *
 from matplotlib import pyplot as plt
 
 
@@ -609,7 +609,6 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
 
             dcls.load_chunk(chunks[i])
             dcls.process_chunk()
-            print(chunks[i][0], chunks[i][-1])
             for qi in range(len(dcls.dstream)):
                 if i == 0:
                     dcls.dstream = dcls.chunk.copy()

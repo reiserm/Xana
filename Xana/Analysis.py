@@ -3,15 +3,15 @@ import time
 import multiprocessing as mp
 from multiprocessing.managers import SyncManager
 from queue import PriorityQueue
-from XpcsAna.Xpcs import Xpcs
-from XsvsAna.Xsvs import Xsvs
-from SaxsAna.Saxs import Saxs
-from ProcData.Xdata import Xdata
-from Setup import Setup
-from Xdb import Xdb
-from Decorators import Decorators
-from misc.xsave import mksavdir, save_result, make_filename
-from helper import *
+from .XpcsAna.Xpcs import Xpcs
+from .XsvsAna.Xsvs import Xsvs
+from .SaxsAna.Saxs import Saxs
+from .ProcData.Xdata import Xdata
+from .Setup import Setup
+from .Xdb import Xdb
+from .Decorators import Decorators
+from .misc.xsave import mksavdir, save_result, make_filename
+from .helper import *
 import copy
 
 

@@ -2,10 +2,10 @@ import numpy as np
 import multiprocessing as mp
 from queue import PriorityQueue
 from multiprocessing.managers import SyncManager
-from helper import *
+from ..helper import *
 import time
 import h5py as h5
-from misc.progressbar import progress
+from ..misc.progressbar import progress
 
 
 class MyManager(SyncManager):

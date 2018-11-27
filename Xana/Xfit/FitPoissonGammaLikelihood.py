@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
 import lmfit
-from Xfit.PoissonGammaDistribution import PoissonGamma as poisgam
+from .PoissonGammaDistribution import PoissonGamma as poisgam
 
 def fit_pg_likelihood(prob, npix, err=None, kv=None, init={}, fix=None, method='Nelder-mead'):
     """ Fit the Poisson-Gamma distribution using the likelihood ratio approach.

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
 import lmfit
-from Xfit.PoissonGammaDistribution import PoissonGamma as poisgam
-from Xplot.PlotPoissonGamma import plot_poissongamma
+from .PoissonGammaDistribution import PoissonGamma as poisgam
+from ..Xplot.PlotPoissonGamma import plot_poissongamma
 
 
 def fit_pg(prob, err=None, ind_var='kb', krange=None, init={}, fix=None, logscale=False, qv=None,

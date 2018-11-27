@@ -1,4 +1,4 @@
-from misc.xsave import save_result, make_filename
+from .misc.xsave import save_result, make_filename
 import pickle
 import os
 import numpy as np

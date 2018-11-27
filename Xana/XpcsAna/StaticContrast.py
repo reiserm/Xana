@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 import matplotlib
 import pandas as pd
 
-from Decorators import Decorators
-from Xplot.niceplot import niceplot
+from ..Decorators import Decorators
+from ..Xplot.niceplot import niceplot
 
 @Decorators.init_figure((2,2),(9,8))
 def staticcontrast(obj, nq=None, ax=None, data='original', cmap='jet',

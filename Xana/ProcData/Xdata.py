@@ -3,10 +3,10 @@ import sys
 import re
 import numpy as np
 import pandas as pd
-from ProcData.Xfmt import Xfmt
-from ProcData.EdfMethods import loadedf
-from ProcData.to_h5 import to_h5
-from misc.makemask import masker
+from .Xfmt import Xfmt
+from .EdfMethods import loadedf
+from .to_h5 import to_h5
+from ..misc.makemask import masker
 
 class Xdata(Xfmt):
 

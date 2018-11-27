@@ -1,10 +1,10 @@
 from time import time
 import numpy as np
 import sys
-from XpcsAna.fecorrt3m import fecorrt3m
+from .fecorrt3m import fecorrt3m
 from scipy.ndimage import gaussian_filter
-from misc.progressbar import progress
-from XpcsAna.xpcsmethods import cftomt, mat2evt
+from ..misc.progressbar import progress
+from .xpcsmethods import cftomt, mat2evt
 
 #---MAIN FUNCTION---
 def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',

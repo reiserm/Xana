@@ -1,5 +1,5 @@
 import numpy as np
-from SaxsAna.integrate import get_soq
+from .integrate import get_soq
 import copy
 
 

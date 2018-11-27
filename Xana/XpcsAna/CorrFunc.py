@@ -5,13 +5,13 @@ import itertools
 import copy
 import pandas as pd
 
-from Decorators import Decorators
-from Analist import AnaList
-from XParam.parameters import plot_parameters
-from Xfit.fitg2 import fitg2
-from Xplot.niceplot import niceplot
-from misc.resample import resample as resample_func
-from XpcsAna.StaticContrast import staticcontrast
+from ..Decorators import Decorators
+from ..Analist import AnaList
+from ..XParam.parameters import plot_parameters
+from ..Xfit.fitg2 import fitg2
+from ..Xplot.niceplot import niceplot
+from ..misc.resample import resample as resample_func
+from .StaticContrast import staticcontrast
 
 
 class CorrFunc(AnaList):

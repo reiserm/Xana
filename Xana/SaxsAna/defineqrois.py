@@ -1,5 +1,5 @@
 import numpy as np
-from Xplot.plotqrois import plotqrois
+from ..Xplot.plotqrois import plotqrois
 
 def getqroi(saxs, setup, qr, phir=None, mask=None, mirror=False):
     if mask is None:

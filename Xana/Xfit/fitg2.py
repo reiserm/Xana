@@ -1,9 +1,9 @@
 import numpy as np
 import lmfit
-from Xfit.g2function import g2
+from .g2function import g2
 import matplotlib
 from matplotlib import pyplot as plt
-from Xplot.niceplot import niceplot
+from ..Xplot.niceplot import niceplot
 
 def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix={}, dofit=False,
            doplot=False, marker='o', qv=None, h_plot=None, ax=None, xl=None, yl=None,

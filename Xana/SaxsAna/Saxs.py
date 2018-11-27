@@ -1,6 +1,6 @@
-from SaxsAna.pysaxs3 import pysaxs
-from SaxsAna.defineqrois import defineqrois
-from SaxsAna.find_center import find_center
+from .pysaxs3 import pysaxs
+from .defineqrois import defineqrois
+from .find_center import find_center
 
 class Saxs:
 

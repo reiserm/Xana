@@ -1,6 +1,6 @@
 import numpy as np
-from XsvsAna.betaratio import betaratio
-from Xfit.FitPoissonGammaLikelihood import fit_pg_likelihood
+from .betaratio import betaratio
+from ..Xfit.FitPoissonGammaLikelihood import fit_pg_likelihood
 
 
 def prob2beta( prob, gproi):

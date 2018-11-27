@@ -5,8 +5,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib
 import copy
-from Setup import Setup
-from Xdb import Xdb
+from .Setup import Setup
+from .Xdb import Xdb
 
 
 class AnaList:

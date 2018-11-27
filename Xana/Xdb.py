@@ -5,8 +5,8 @@ import numpy as np
 import pickle
 import pandas as pd
 
-from Decorators import Decorators
-from misc.xsave import save_result, make_filename
+from .Decorators import Decorators
+from .misc.xsave import save_result, make_filename
 
 
 class Xdb:

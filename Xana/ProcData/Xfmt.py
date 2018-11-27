@@ -1,6 +1,6 @@
-from ProcData.ReadData import read_data
-from ProcData.getmeta import getfiles, files2series, get_attrs_from_dict, get_attrs_h5, get_header_h5
-from ProcData.H5Methods import common_mode_from_hist
+from .ReadData import read_data
+from .getmeta import getfiles, files2series, get_attrs_from_dict, get_attrs_h5, get_header_h5
+from .H5Methods import common_mode_from_hist
 
 class Xfmt:
     """Class that defines all methods and attributes to handle
@@ -36,7 +36,7 @@ class Xfmt:
 
     @staticmethod
     def __init_id10_eiger_single_edf():
-        import ProcData.EdfMethods as edf
+        from . import EdfMethods as edf
         kernel = {
             'prefix': 'img_eiger',
             'suffix': '((edf)$|(edf\.gz)$)',
@@ -55,7 +55,7 @@ class Xfmt:
 
     @staticmethod
     def __init_id02_eiger_single_edf():
-        import ProcData.EdfMethods as edf
+        from . import EdfMethods as edf
         kernel = {
             'prefix': '',
             'suffix': '((edf)$|(edf\.gz)$)',
@@ -74,7 +74,7 @@ class Xfmt:
 
     @staticmethod
     def __init_id02_eiger_multi_edf():
-        import ProcData.EdfMethods as edf
+        from . import EdfMethods as edf
         kernel = {
             'prefix': '',
             'suffix': '((edf)$|(edf\.gz)$)',
@@ -93,7 +93,7 @@ class Xfmt:
 
     @staticmethod
     def __init_pilatus_single_cbf():
-        import ProcData.CbfMethods as cbf
+        from . import CbfMethods as cbf
         kernel = {
             'prefix': 'img_eiger',
             'suffix': '(cbf)$',
@@ -137,8 +137,8 @@ class Xfmt:
 
     @staticmethod
     def __init_xcs_cspad_h5():
-        from ProcData.ArrangeModules import arrange_cspad_tiles
-        from Xdrop.DropletizeData import dropletizedata
+        from .ArrangeModules import arrange_cspad_tiles
+        from ..Xdrop.DropletizeData import dropletizedata
         kernel = {
             'prefix': '',
             'suffix': 'h5',

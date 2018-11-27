@@ -2,9 +2,9 @@ from time import time
 import numpy as np
 import pickle as pkl
 from multiprocessing import Process, Queue
-from XpcsAna.mp_corr3_err import mp_corr
+from .mp_corr3_err import mp_corr
 from scipy.optimize import leastsq
-from misc.progressbar import progress
+from ..misc.progressbar import progress
 import sys
 from matplotlib import pyplot as plt
 

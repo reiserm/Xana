@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from Xfit.basic import fitline, fitline0, fitconstant
-from Xfit.MCMC_straight_line import mcmc_sl
-from Xfit.fit_basic import fit_basic
-from Xplot.niceplot import niceplot
+from .Xfit.basic import fitline, fitline0, fitconstant
+from .Xfit.MCMC_straight_line import mcmc_sl
+from ..Xfit.fit_basic import fit_basic
+from ..Xplot.niceplot import niceplot
 from matplotlib.offsetbox import AnchoredText
 from matplotlib import ticker
 

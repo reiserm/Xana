@@ -1,12 +1,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from Decorators import Decorators
-from Xplot.plotqrois import shadeqrois
-from XpcsAna.CorrFunc import CorrFunc
-from Analist import AnaList
-from SaxsAna.integrate import get_soq
+from ..Decorators import Decorators
+from ..Analist import AnaList
+from .integrate import get_soq
 import copy
-from Xplot.niceplot import niceplot
+from ..Xplot.niceplot import niceplot
 
 
 class Soq(AnaList):

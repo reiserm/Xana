@@ -1,5 +1,5 @@
 from os.path import isfile
-from ProcData import EdfFile3
+from .EdfFile3 import EdfFile, EdfGzipFile
 
 ####################################
 #--- Standard EDF w/r functions ---#
@@ -9,9 +9,9 @@ from ProcData import EdfFile3
 def loadedf(filename, imgn=0):
     if isfile(filename):
         if filename.endswith('edf'):
-            f = EdfFile3.EdfFile(filename)
+            f = EdfFile(filename)
         elif filename.endswith('edf.gz'):
-            f = EdfFile3.EdfGzipFile(filename)
+            f = EdfGzipFile(filename)
         return f.GetData(imgn)
     else:
         print("file ", filename, " does not exist!")
@@ -20,7 +20,7 @@ def loadedf(filename, imgn=0):
 
 def saveedf(filename, data, imgn=0):
     try:
-        newf = EdfFile3.EdfFile(filename)
+        newf = EdfFile(filename)
         newf.WriteImage({}, data, imgn)
         print("file is saved to ", filename)
         return
@@ -32,9 +32,9 @@ def saveedf(filename, data, imgn=0):
 def headeredf(filename, imgn=0):
     if isfile(filename):
         if filename.endswith('edf'):
-            f = EdfFile3.EdfFile(filename)
+            f = EdfFile(filename)
         elif filename.endswith('edf.gz'):
-            f = EdfFile3.EdfGzipFile(filename)
+            f = EdfGzipFile(filename)
         return f.GetHeader(imgn)
     else:
         print("file ", filename, " does not exist!")

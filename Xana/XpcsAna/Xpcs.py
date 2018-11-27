@@ -1,5 +1,5 @@
-from XpcsAna.pyxpcs3 import pyxpcs
-from XpcsAna.eventcorrelator3 import eventcorrelator
+from .pyxpcs3 import pyxpcs
+from .eventcorrelator3 import eventcorrelator
 
 class Xpcs:
 

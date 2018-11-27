@@ -1,4 +1,4 @@
-from XsvsAna.pyxsvs3 import pyxsvs
+from .pyxsvs3 import pyxsvs
 
 class Xsvs:
 

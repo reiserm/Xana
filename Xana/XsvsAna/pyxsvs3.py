@@ -2,8 +2,8 @@ from time import time
 import numpy as np
 import pickle as pkl
 from multiprocessing import Process, Queue
-from XsvsAna.mp_prob import mp_prob
-from misc.progressbar import progress
+from .mp_prob import mp_prob
+from ..misc.progressbar import progress
 import sys
 
 

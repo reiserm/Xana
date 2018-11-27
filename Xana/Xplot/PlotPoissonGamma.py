@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
 from matplotlib import pyplot as plt
-from Xfit.PoissonGammaDistribution import PoissonGamma as pg
+from ..Xfit.PoissonGammaDistribution import PoissonGamma as pg
 
 
 def plot_poissongamma(x, y, p, M, cmap='tab20', ind_var='kb', confint=None,

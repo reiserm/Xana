@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 from matplotlib.collections import PatchCollection
 import matplotlib.patches as patches
 from matplotlib.colors import LogNorm
-from Xplot.niceplot import niceplot
-from SaxsAna.integrate import get_soq
+from .niceplot import niceplot
+from ..SaxsAna.integrate import get_soq
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 

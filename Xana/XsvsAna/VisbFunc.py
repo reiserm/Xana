@@ -5,11 +5,11 @@ import itertools
 import copy
 import pandas as pd
 
-from Decorators import Decorators
-from Analist import AnaList
-from XsvsAna.PlotContrast import plot_quicklook
-from Xplot.niceplot import niceplot
-from XsvsAna.PhotonStats import prob2beta, average_beta, beta_from_likelihood, prob2betasigma
+from ..Decorators import Decorators
+from ..Analist import AnaList
+from .PlotContrast import plot_quicklook
+from ..Xplot.niceplot import niceplot
+from .PhotonStats import prob2beta, average_beta, beta_from_likelihood, prob2betasigma
 
 
 class VisbFunc(AnaList):

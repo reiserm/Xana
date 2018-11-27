@@ -1,13 +1,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from Xfit.MCMC_straight_line import mcmc_sl
-from Xfit.fit_basic import fit_basic
-from Xfit.FitPoissonGamma import fit_pg
-from Xplot.niceplot import niceplot
+from ..Xfit.MCMC_straight_line import mcmc_sl
+from ..Xfit.fit_basic import fit_basic
+from ..Xfit.FitPoissonGamma import fit_pg
+from ..Xplot.niceplot import niceplot
 from matplotlib.offsetbox import AnchoredText
 from matplotlib import ticker
-from misc.running_mean import running_mean
-from misc.resample import resample
+from ..misc.running_mean import running_mean
+from ..misc.resample import resample
 from matplotlib.colors import LogNorm
 from matplotlib import ticker
 
