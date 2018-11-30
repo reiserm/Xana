@@ -1,4 +1,4 @@
-# Xana --- First Steps
+# Xana - First Steps
 
 ## Install
 
