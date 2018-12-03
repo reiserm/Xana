@@ -12,7 +12,8 @@ from os.path import isfile
 def getfiles(datdir, suffix, numfmt='(_\d)*'):
     check_suffix = re.compile(suffix)
     filelist = [ os.path.abspath(datdir + item) for item in os.listdir(datdir)
-                 if os.path.isfile(os.path.join(datdir, item)) and bool(check_suffix.search(item))]
+                 if os.path.isfile(os.path.join(datdir, item))
+                 and bool(check_suffix.search(item))]
     filelist = sorted(filelist,
                       key=lambda x: int(''.join(re.findall( numfmt ,x.split('/')[-1]))))
     return filelist
@@ -29,7 +30,7 @@ def files2series(filelist, masters, seriesfmt,):
         series.append([x for x in filelist if re.search(searchstr, x) is not None])
     return series, series_id
 
-def get_attrs_from_dict(obj, meta):
+def get_attrs_from_dict(obj, meta, *args, **kwargs):
             
     def init_meta(p):
         for key, value in p.items():
@@ -54,7 +55,7 @@ def get_attrs_from_dict(obj, meta):
 def get_header_h5(*args, **kwargs):
     return 0
 
-def get_attrs_h5(obj, meta):
+def get_attrs_h5(obj, meta, *args, **kwargs):
             
     def init_meta(p):
         for key, value in p.items():
@@ -87,6 +88,42 @@ def get_attrs_h5(obj, meta):
             for key, value in p.items():
                 meta[key][i] = get_attr(f, value, key)
 
+def get_attrs_agipd(obj, meta, depth):
+
+    def init_meta(p):
+        for key, value in p.items():
+            meta[key] = np.empty(nfiles, dtype=np.dtype(value[1]))
+            
+    def get_attr(f, p, key):
+        if p[0] == obj.h5opt['data']:
+            attr = f[p[0]].attrs[key]
+        else:
+            if p[0]:
+                attr = f[p[0]]
+                if attr.dtype.kind == 'V':
+                    attr = np.mean(attr.value['value']).astype(np.dtype(p[1]))
+                elif attr.dtype.kind == 'f':
+                    attr = attr[()]#.astype(np.dtype(p[1]))
+                elif attr.dtype.kind == 'u':
+                    attr = attr[()]#.astype(np.dtype(p[1]))
+                elif attr.dtype.kind == 'i':
+                    attr = attr[()]
+            else:
+                attr = f[obj.h5opt['data']].shape[0]
+        return attr
+
+    f_files = get_files(self.datdir, self.suffix, self.fastname)
+    s_files = get_files(self.datdir, self.suffix, self.slowname)
+    print(f_files,s_files)
+
+    p = obj.attributes
+    s = obj.slowdata
+    init_meta(p)
+    for i, m in enumerate(meta.copy()['master']):
+        filename = obj.datdir + m
+        with h5py.File(filename, 'r', driver=obj.h5opt['driver']) as f:
+            for key, value in p.items():
+                meta[key][i] = get_attr(f, value, key)
 
 def common_mode_from_hist(im, searchoffset=50):                        
     bins = np.arange(-searchoffset,searchoffset) 

@@ -22,7 +22,7 @@ class Xdata(Xfmt):
         self.serieslist = []
         self.series_ids = None
         
-    def connect(self, datdir):
+    def connect(self, datdir, **kwargs):
         if datdir == '':
             raise ValueError('Data directory is empty. Use valid data directory.')
         self.datdir = os.path.abspath(datdir) + '/'
@@ -31,14 +31,15 @@ class Xdata(Xfmt):
         self.get_masters()
         self.get_headers(start)
         self.get_serieslist(start)
-        self.get_meta(start)
+        self.get_meta(start, **kwargs)
 
     def get_filelist(self, datdir):
         return self.getfiles(datdir, self.suffix, self.numfmt)
 
     def get_masters(self):
         master = re.compile(self.masterfmt + r"\."+ self.suffix)
-        masters = [master.search(x).group().split('/')[-1] for x in self.filelist if bool(master.search(x))]
+        masters = [master.search(x).group().split('/')[-1] for x in self.filelist
+                   if bool(master.search(x))]
         self.masters.extend(masters)
 
     def get_headers(self, start=0):
@@ -46,12 +47,15 @@ class Xdata(Xfmt):
         for m in self.masters[start:]:
             self.headers.append(self.get_header(self.datdir+m))
         
-    def get_meta(self, start=0):
-        meta = {'series':self.series_ids, 'master':self.masters[start:], 'datdir':[self.datdir]*len(self.masters[start:])}
-        self.get_attributes(self, meta)
+    def get_meta(self, start=0, depth=0, uid=None):
+        meta = {'series':self.series_ids, 'master':self.masters[start:],
+                'datdir':[self.datdir]*len(self.masters[start:])}
+        self.get_attributes(self, meta, depth, uid)
         meta = pd.DataFrame.from_dict(meta)
-        meta = meta.reindex(columns=['series'] + list([a for a in meta.columns if a not in ['series', 'master', 'datdir']])
-                                              + ['master', 'datdir'])
+        meta = meta.reindex(columns=['series']
+                            + list([a for a in meta.columns
+                                  if a not in ['series', 'master', 'datdir']])
+                            + ['master', 'datdir'])
         if self.meta is None:
             self.meta = meta
         else:
@@ -63,7 +67,7 @@ class Xdata(Xfmt):
         tmp = self.files2series(self.filelist, self.masters[start:], self.seriesfmt,)
         self.serieslist.extend(tmp[0])
         self.series_ids = tmp[1]
-        self.filelist = None
+        # self.filelist = None
     
     def get_series(self, series_id, **kwargs):
         return self.load_data_func(self.serieslist[series_id], xdata=self, **kwargs)

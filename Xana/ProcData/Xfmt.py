@@ -29,10 +29,16 @@ class Xfmt:
                 kernel = self.__init_id02_eiger_single_edf()
             elif fmtstr == 'id02_eiger_multi_edf':
                 kernel = self.__init_id02_eiger_multi_edf()
+            elif fmtstr == 'spb_agipd':
+                kernel = self.__init_spb_agipd()
+
             self.__dict__.update(kernel)
-            self.load_data_func = read_data
-            self.getfiles = getfiles
-            self.files2series = files2series
+            if 'agipd' not in fmtstr:
+                self.load_data_func = read_data
+                self.getfiles = getfiles
+                self.files2series = files2series
+            else:
+                pass
 
     @staticmethod
     def __init_id10_eiger_single_edf():
@@ -148,14 +154,18 @@ class Xfmt:
             'get_header': get_header_h5,
             'get_attributes': get_attrs_h5,
             'attributes': {
-                'rate': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/EpicsArch.0:NoDevice.0/Rate/data', 'float32'),
-                'pulseLength': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/EpicsArch.0:NoDevice.0/Pulse length/data', 'float32'),
-                'photonEnergy': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/EpicsArch.0:NoDevice.0/Photon beam energy/data', 'float32'),
+                'rate': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/' \
+                         'EpicsArch.0:NoDevice.0/Rate/data', 'float32'),
+                'pulseLength': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/' \
+                                'EpicsArch.0:NoDevice.0/Pulse length/data', 'float32'),
+                'photonEnergy': ('/Configure:0000/Run:0000/CalibCycle:0000/Epics::EpicsPv/' \
+                                 'EpicsArch.0:NoDevice.0/Photon beam energy/data', 'float32'),
                 'nframes': (False, 'int32')
             },
 
             'h5opt': {'driver': 'stdio',
-                      'data': '/Configure:0000/Run:0000/CalibCycle:0000/CsPad::ElementV2/XcsEndstation.0:Cspad.0/data',
+                      'data': '/Configure:0000/Run:0000/CalibCycle:0000/' \
+                      'CsPad::ElementV2/XcsEndstation.0:Cspad.0/data',
                       'ExternalLinks': False,
                       'chunk_size': 256,
                       'commonmode': common_mode_from_hist,
@@ -214,3 +224,42 @@ class Xfmt:
                       },
         }
         return kernel
+
+    @staticmethod
+    def __init_spb_agipd():
+        from .getmeta import get_attrs_agipd
+        # from .ArrangeModules import arrange_cspad_tiles
+        # from ..Xdrop.DropletizeData import dropletizedata
+        kernel = {
+            'prefix': '',
+            'suffix': 'h5',
+            'numfmt': '',
+            'masterfmt': '',
+            'seriesfmt': '(?<=-R)\d{4}',
+            'runfolder': 'r{:04}',
+            'fastname': '(?<=AGIPD00-S)\d{5}',
+            'slowname': '(?<=DA)\d{2}-S\d{5}',
+            'get_attributes': get_attrs_agipd,
+            'fastdata': {
+                'rate': (''),
+                'trainId': ('/INDEX/trainId', 'int32'),
+                'pulseId': ('INSTRUMENT/SPB_DET_AGIPD1M-1/DET/0CH0:xtdf/image/pulseId',
+                            'int32'),
+                'pulseCount': ('INSTRUMENT/SPB_DET_AGIPD1M-1/DET/0CH0:xtdf/header/' \
+                               'pulseCount', 'int32')
+            },
+            'slowdata': {
+                'trainId':('/INDEX/trainId', 'int32'),
+                'photonEnergy':('CONTROL/ACC_SYS_DOOCS/CTRL/BEAMCONDITIONS/energy/value',
+                                 'float32'),
+                'photonFluc':('CONTROL/SPB_XTD9_XGM/XGM/DOOCS/pulseEnergy/photonFlux/value',
+                              'float32'),
+                'nframes': (False, 'int32')
+            },
+
+            'h5opt': {'driver': 'stdio',
+                      'chunk_size': 256,
+                      },
+        }
+        return kernel
+    
