@@ -101,6 +101,8 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         corf[1:,i+1] = cfmt[i][:,1]
         dcorf[1:,i+1] = cfmt[i][:,2]
 
+    trace = np.squeeze(np.array(trace)).T        
+
     corfd = {'corf':corf,
              'dcorf':dcorf,
              'corf_full':cc,

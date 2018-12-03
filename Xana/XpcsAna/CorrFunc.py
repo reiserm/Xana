@@ -190,15 +190,24 @@ class CorrFunc(AnaList):
         for corrFunc, pars in zip(self.corrFuncRescaled[index], self.pars[index]):
             normFunc(corrFunc, pars)
 
-    def rescale_user(self, offset=0., nq=None):
+    def rescale_user(self, offset=None, factor=None,  nq=None):
 
         if nq is None:
             nq = self.nq
 
-        for corrFunc, o in zip(self.corrFuncRescaled, offset):
+        if offset is None:
+            offset = np.zeros(len(self.corrFuncRescaled))
+
+        if factor is None:
+            factor = np.ones(len(self.corrFuncRescaled))
+
+        for corrFunc, o, f in zip(self.corrFuncRescaled, offset, factor):
+            corrFunc[0][1:, nq+1] *= f
+            corrFunc[0][1:, nq+1] -= f - 1
+            corrFunc[1][1:, nq+1] *= f
             corrFunc[0][1:, nq+1] += o
 
-    def merge_g2(self, in_list, limit=0.005, chi2sig=3):
+    def merge_g2(self, in_list, limit=0., chi2sig=3, cutoff=0):
         self.corrFuncChi2 = []
         
         t_exp = np.zeros(len(in_list))
@@ -230,15 +239,19 @@ class CorrFunc(AnaList):
                         t = d['corf'][1:, 0]
                         cf = np.zeros((cnti, t.size, qv.size))
                         dcf = np.zeros_like(cf)
-                    cft = d['corf'][1:, 1:qv.size+1]
+                    cft = d['corf'][1:-(cutoff+1), 1:qv.size+1]
                     cf[j, :cft.shape[0], :qv.size] = cft
-                    dcf[j, :cft.shape[0], :qv.size] = d['dcorf'][1:, 1:qv.size+1]
+                    dcf[j, :cft.shape[0], :qv.size] = d['dcorf'][1:-(cutoff+1), 1:qv.size+1]
                 except ValueError as v:
                     print('Tried loading database entry: ', item)
                     raise ValueError(v)
 
-            cf = np.ma.masked_array(cf, mask=((cf < limit) | np.isnan(cf) | (dcf <= 0)))
-            dcf = np.ma.masked_array(dcf, mask=cf.mask)
+            cf = np.ma.masked_array(cf, mask=np.isnan(cf))
+            cf = np.ma.masked_less_equal(cf, limit, copy=False)
+            dcf = np.ma.masked_array(dcf, mask=np.isnan(dcf))
+            dcf = np.ma.masked_where(dcf.filled(-1)<=0, dcf, copy=False)
+            cf = np.ma.masked_where(dcf.mask, cf, copy=False)
+            dcf = np.ma.masked_where(cf.mask, dcf, copy=False)
             
             cfm, dcfm = np.ma.average(cf, weights=1/dcf**2, returned=1, axis=0)
 

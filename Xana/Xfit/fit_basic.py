@@ -67,6 +67,8 @@ def init_pars(model,init, x, y):
                     init[vn] = (x[len(x)//2], 0, None)
                 elif vn == 'b':
                     init[vn] = (0, None, None)
+                elif vn == 'g':
+                    init[vn] = (1, None, None)
         p = init[vn]
         pars[vn].set(p[0], min=p[1], max=p[2])
     return pars
@@ -82,8 +84,8 @@ def power(x, a, n, b):
 def quadratic(x, a, b, c):
     return a*x**2 + b*x + c
 
-def exponential(x, a, t, b):
-    return a*np.exp(-x/t) + b
+def exponential(x, a, t, b, g):
+    return a*np.exp(-(x/t)**g) + b
 
 # Main Fit Function
 def fit_basic( x, y, dy=None, model='line', init={}, fix=None, emcee=False):

@@ -14,16 +14,20 @@ def shadeqrois(ax, qv, dqv, alpha=0.6, cmap='inferno', coords='data'):
     # Loop over data points; create box from errors at each point
     cmap = plt.get_cmap(cmap)
     clrs = cmap(np.linspace(.1,.9,qv.size))
-    for qi,ci,dqi in zip(qv,clrs,dqv):
+    if coords == 'axes':
+        yl = ax.get_ylim()
+    elif coords == 'data':
+        xp, yp = ax.lines[-1].get_data()
+        yl = (np.inf,0)
+        for qi, dqi in zip(qv, dqv):
+            q1 = qi - dqi/2
+            q2 = qi + dqi/2
+            y = yp[np.argmin(np.abs(q1 - xp)):np.argmin(np.abs(q2 - xp))]
+            yl = (min([yl[0], y.min()]), max([yl[1], y.max()]))
+    for qi, ci, dqi in zip(qv,clrs,dqv):
         q1 = qi - dqi/2
         q2 = qi + dqi/2
-        if coords == 'axes':
-            yl = ax.get_ylim()
-        elif coords == 'data':
-            x, y = ax.lines[-1].get_data()
-            y = y[np.argmin(np.abs(q1 - x)):np.argmin(np.abs(q2 - x))]
-            yl = (y.min(), y.max())
-        rect = patches.Rectangle((q1, yl[0]), dqi, yl[1]-yl[0])
+        rect = patches.Rectangle((q1, 2*yl[0]-yl[1]), dqi, (yl[1]-yl[0])*2)
         boxes.append(rect)
 
     # Create patch collection with specified colour/alpha

@@ -20,3 +20,10 @@ During installation `f2py` (now part of `numpy`) is used to build python modules
    cd Xana
    pip install .
    ```
+   
+   
+## Example Notebook
+The folder `xpcs_example` contains an example notebook and an example
+XPCS data set of 100nm SiO2 nanoparticles dispersed in glycerol. It
+shows how to create a setup file and calculate correlation
+functions. A detailed explanation is given in the notebook.
