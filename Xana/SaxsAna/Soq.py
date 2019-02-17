@@ -41,7 +41,8 @@ class Soq(AnaList):
     def plot_soq( self, series_id, shade=False, cmap='tab10', cmap_shade='inferno',
                   color_mode=0, ax=None, change_marker=0, markersize=3, legend='id',
                   qexp=None, Iscaling=None, A=1., norm=False, normto=None, bg=None,
-                  logax='xy', Ae=1., show_legend=True, color='b', **kwargs ):
+                  logax='xy', Ae=1., show_legend=True, color='b', normto_exposure=False,
+                  **kwargs ):
 
         if color_mode < 2:
             if color_mode == 0:
@@ -58,7 +59,7 @@ class Soq(AnaList):
 
         if normto is not None:
             del series_id[series_id.index(normto)]
-            series_id.insert(normto,0)
+            series_id.insert(0, normto)
 
         Ib = 0
         if bg is not None:
@@ -85,7 +86,7 @@ class Soq(AnaList):
 
             legstr = None
             if legend == 'id':
-                legstr = 'id {}'.format(sid)
+                legstr = 'id {}'.format(int(sid))
             elif legend == 't_exposure':
                 legstr = r'$t_{{e}} = {:.2e}s$'.format(self.Xana.db.loc[sid, 't_exposure'])
             elif legend == 'sample':
@@ -110,12 +111,15 @@ class Soq(AnaList):
                 else:
                     I -= Ib
 
+            if normto_exposure:
+                I /= self.Xana.db.loc[sid, 't_exposure']
+
             if norm:
                 e /= I.mean()
                 I /= I.mean()
 
             if normto is not None:
-                if (i==0) and (ncorrections==0):
+                if (i==0):
                     normto = (q,I,e)
                     continue
                 else:

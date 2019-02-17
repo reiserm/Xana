@@ -9,6 +9,7 @@ from ..Decorators import Decorators
 from ..Analist import AnaList
 from ..XParam.parameters import plot_parameters
 from ..Xfit.fitg2 import fitg2
+from ..Xfit.fitg2global import G2
 from ..Xplot.niceplot import niceplot
 from ..misc.resample import resample as resample_func
 from .StaticContrast import staticcontrast
@@ -33,7 +34,7 @@ class CorrFunc(AnaList):
         return 'Corr Func class for g2 displaying.'
 
     def __repr__(self):
-        return 
+        return self.__str__()
 
     def __add__(self, cf2):
         cf3 = CorrFunc(self.Xana)
@@ -65,8 +66,10 @@ class CorrFunc(AnaList):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     @Decorators.init_figure()
-    def plot_g2(self, nq=None, err=True, ax=None, nmodes=1, data='rescaled', cmap='jet',
-                change_marker=False, color_mode=0, color='b', dofit=False, **kwargs):
+    def plot_g2(self, nq=None, err=True, ax=None, data='rescaled', cmap='jet',
+                change_marker=False, color_mode=0, color='b', dofit=False,
+                **kwargs):
+        
         if data == 'original' or self.corrFuncRescaled is None:
             corrFunc = list(self.corrFunc)
         elif data == 'rescaled':
@@ -93,42 +96,27 @@ class CorrFunc(AnaList):
 
         self.update_markers(len(corrFunc), change_marker)
 
-        self.g2plotl = [[]] * len(corrFunc)
         self.pars = [[]] * len(corrFunc)
-        self.fit_result = [[[] for i in range(self.nq.size)]] * len(corrFunc)
+        self.fit_result = [[]] * len(corrFunc)
 
         ci = 0
         for j, (cfi, dcfi) in enumerate(corrFunc):
-            rates = np.zeros((self.nq.size, 3*nmodes+3, 2))
-            ti = cfi[1:, 0]
-            for i, qi in enumerate(self.nq):
-                if i == 0:
-                    cf_id = self.db_id[j]
-                else:
-                    cf_id = None
-                res = fitg2(ti, cfi[1:, qi+1], err=dcfi[1:, qi+1],
-                            qv=cfi[0,1+qi],
-                            ax=ax, color=self.colors[ci],
-                            marker=self.markers[j % len(self.markers)], cf_id=cf_id,
-                            modes=nmodes, dofit=dofit, **kwargs)
-                self.fit_result[j][i] = res[2:4]
-                self.g2plotl[j].append(
-                    list(itertools.chain.from_iterable(res[4])))
-                if dofit:
-                    if i == 0:
-                        db_tmp = self.init_pars(list(res[2].params.keys()))
-                    entry = [cfi[0, qi+1], *res[0].flatten(), *res[1]]
-                    db_tmp.loc[i] = entry
-                else:
-                    db_tmp = 0
+            g2 = G2(cfi, self.nq, dcfi)
+            if dofit:
+                res = g2.fit(**kwargs)
+                self.pars[j] = res[0]
+                self.fit_result[j] = res[1]
+            if 'doplot' in kwargs.keys():
+                g2.plot(marker=self.markers[j % len(self.markers)],
+                        ax=ax, colors=self.colors[ci*len(self.nq):(ci+1)*len(self.nq)],
+                        data_label='id {}'.format(self.db_id[j]), **kwargs)
                 ci += 1
-            self.pars[j] = db_tmp
 
     @staticmethod
-    def init_pars(names):
+    def init_pars(names, entry0):
         names = [names[i//2] if (i+1) % 2 else 'd'+names[i//2]
                  for i in range(len(names)*2)]
-        names.insert(0, 'q')
+        names.insert(0, entry0)
         names.extend(['chisqr', 'redchi', 'bic', 'aic'])
         return pd.DataFrame(columns=names)
 
@@ -190,7 +178,7 @@ class CorrFunc(AnaList):
         for corrFunc, pars in zip(self.corrFuncRescaled[index], self.pars[index]):
             normFunc(corrFunc, pars)
 
-    def rescale_user(self, offset=None, factor=None,  nq=None):
+    def rescale_user(self, ind=None, offset=None, factor=None,  nq=None):
 
         if nq is None:
             nq = self.nq
@@ -257,7 +245,7 @@ class CorrFunc(AnaList):
 
             chi2arr = np.ma.sum((cf - cfm)**2 / cfm**2, 1)
             chi2arr /= cf.shape[1] - 1
-            chi2arr = np.max(chi2arr,-1)
+            chi2arr = chi2arr[:,0]  # np.max(chi2arr, -1)
 
             chi2cond = chi2arr > (chi2arr.mean() + chi2sig * chi2arr.std())
             chi2ret = (in_list[indall[chi2cond]], chi2arr.compressed())
@@ -287,8 +275,9 @@ class CorrFunc(AnaList):
                         dcf_tmp = np.vstack((dcf_tmp, cf[1][1:cutoff]))
 
                 if resample:
-                    new_t, new_cf, new_dcf = resample_func(cf_tmp[1:, 0], cf_tmp[1:, 1:], dcf_tmp[1:, 1:],
-                                                           resample, **kwargs)
+                    new_t, new_cf, new_dcf = resample_func(cf_tmp[1:, 0], cf_tmp[1:, 1:],
+                                                           dcf_tmp[1:, 1:], resample,
+                                                           **kwargs)
                     cf_tmp = np.hstack((new_t[:, None], new_cf))
                     cf_tmp = np.vstack((cf_master[0][0][0, :], cf_tmp))
                     dcf_tmp = np.hstack((new_t[:, None], new_dcf))
@@ -299,8 +288,8 @@ class CorrFunc(AnaList):
                 elif ii == 1:
                     self.corrFuncRescaled = [(cf_tmp, dcf_tmp), ]
 
-    def plot_parameters(self, plot, ax=None, change_axes=True,
-                        cindoff=0, **kwargs):
+    def plot_parameters(self, plot, cmap='jet', ax=None, change_axes=True,
+                        cindoff=0, extpar_name='extpar', extpar_vec=None, **kwargs):
         """Plot Fit parameter (decay rates, kww exponent, etc.)
         """
         npl = len(plot)
@@ -329,35 +318,62 @@ class CorrFunc(AnaList):
             c_idx = np.repeat(np.arange(mm*npars), 1)
         else:
             ax_idx = np.zeros(npl, dtype=np.int16)
-            c_idx = np.arange(npl*npars)
+            c_idx = np.arange(npars)
 
-        for ipar, pars in enumerate(self.pars):
-            for i, p in enumerate(plot):
+        cmap = plt.get_cmap('inferno', 5)            
+
+        self.pars2 = [[]] * npl
+        self.fit_result2 = [[[] for i in range(npars)]] * npl
+
+        if extpar_vec is None:
+            extpar_vec = np.zeros(npars)
+        else:
+            assert len(extpar_vec) == npars
+
+        for i, p in enumerate(plot):
+            pars_initialized = False
+            db_tmp = 0
+            for ipar, pars in enumerate(self.pars):
                 kwargsl = {key: value[i] if isinstance(value, (tuple, list)) else value \
                            for (key, value) in kwargs.items()}
-                plot_parameters(pars, p, ax=ax[ax_idx[i]], ci=c_idx[ipar:ipar+mm],
-                                 **kwargsl)
+                res = plot_parameters(pars, p, ax=ax[ax_idx[i]], ci=c_idx[ipar:ipar+mm], cmap=cmap,
+                                      **kwargsl)
+                self.fit_result2[i][ipar] = res[2:4]
+                if not isinstance(res, np.ndarray):
+                    if not pars_initialized:
+                        db_tmp = self.init_pars(list(res[2].params.keys()), extpar_name)
+                        pars_initialized = True
+                    entry = [extpar_vec[ipar], *res[0].flatten(), *res[1]]
+                    db_tmp.loc[ipar] = entry
+            self.pars2[i] = db_tmp
+
         plt.tight_layout()
-        return ax
+    
 
     @Decorators.input2list
     def get_twotime(self, db_id, twotime_par=None):
         """Receive two-time correlation functions from database
         """
         self.twotime = 0.
-        for i, sid in enumerate(db_id):
+        i = 0
+        for sid in db_id:
             d = self.Xana.get_item(sid)
             if twotime_par is None:
                 twotime_par = d['twotime_par']
-            self.twotime += d['twotime_corf'][twotime_par]
-        self.twotime /= i + 1
+            try:    
+                self.twotime += d['twotime_corf'][twotime_par]
+                i += 1
+            except ValueError as e:
+                print('Could not average %d error message was\n\t%s' % (int(sid), e))
+        self.twotime /= i
 
     @Decorators.init_figure()
     @Decorators.input2list
-    def plot_twotime(self, db_id, clim=(None, None), ax=None, interpolation='gaussian'):
+    def plot_twotime(self, db_id, clim=(None, None), ax=None, interpolation='gaussian', \
+                     twotime_par=None):
         """Plot two-time correlation functions read from database
         """
-        self.get_twotime(db_id)
+        self.get_twotime(db_id, twotime_par)
 
         vmin, vmax = clim
         corfd = self.Xana.get_item(db_id[0])

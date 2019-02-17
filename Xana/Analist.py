@@ -20,7 +20,7 @@ class AnaList:
         self.markers = ['o',]
         
     def __str__(self):
-        return 'Corr Func class for g2 displaying.'
+        return 'Analist: super class for analysis classes.'
 
     def __repr__(self):
         return self.__str__()

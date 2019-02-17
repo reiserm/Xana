@@ -50,14 +50,14 @@ def init_pars(model,init, x, y):
                 if vn == 'a':
                     init[vn] = (y[0], None, None)
                 elif vn == 'n':
-                    init[vn] = (1, 0, 6)
+                    init[vn] = (1, None, None)
                 elif vn == 'b':
                     init[vn] = (y[0], None, None)
             if model.name == 'Model(quadratic)':
                 if vn == 'a':
-                    init[vn] = (np.nanmean(np.diff(y)/np.diff(x)**2), None, None)
+                    init[vn] = (np.nanmean(np.diff(y)/(np.diff(x)**2)), None, None)
                 elif vn == 'b':
-                    init[vn] = (np.nanmean(np.diff(y)/np.diff(x)), None, None)
+                    init[vn] = (np.nanmean(y), None, None)
                 elif vn == 'c':
                     init[vn] = (y[0], None, None)
             if model.name == 'Model(exponential)':

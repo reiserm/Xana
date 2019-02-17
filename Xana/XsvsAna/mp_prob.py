@@ -11,7 +11,6 @@ def mp_prob(method, nbins, nf, lind, nq, quc, quce):
                 tmp = np.append(np.sum(line), np.histogram(line, bins=np.arange(nbins+1)-0.5)[0])
                 prob[qi,:,t0+i] = tmp / lind[qi]
 
-
     tcalc = time()
     xnq = range(nq)
     prob = np.zeros((nq,nbins+1,nf), dtype=np.float32)
@@ -23,7 +22,7 @@ def mp_prob(method, nbins, nf, lind, nq, quc, quce):
         xsvs_full(chunk)
         t0 += chunk_size
 
-    #END OF MAIN LOOP put results to output queue
+    # END OF MAIN LOOP put results to output queue
     quc.close()
     quc.join_thread()
     tcalc = time() - tcalc

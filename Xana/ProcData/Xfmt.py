@@ -33,10 +33,11 @@ class Xfmt:
                 kernel = self.__init_spb_agipd()
 
             self.__dict__.update(kernel)
+            self.getfiles = getfiles
+            self.files2series = files2series
+
             if 'agipd' not in fmtstr:
                 self.load_data_func = read_data
-                self.getfiles = getfiles
-                self.files2series = files2series
             else:
                 pass
 
@@ -180,7 +181,7 @@ class Xfmt:
         kernel = {
             'prefix': '',
             'suffix': 'h5',
-            'numfmt': '(((_\d{4}){2,}(?=\.)))',  # '|(_\d{4,}(?=\.)))',
+            'numfmt': '(?<=_)(\d{4})',  # '|(_\d{4,}(?=\.)))',
             'masterfmt': '((img_eiger_\d{4}_0000_0000)|(img_0{4})|(zaptime_\d{,5}_eiger1_0{4}))',
             'seriesfmt': '\d{1,5}',
             'get_header': get_header_h5,
@@ -227,7 +228,7 @@ class Xfmt:
 
     @staticmethod
     def __init_spb_agipd():
-        from .getmeta import get_attrs_agipd
+        # from .getmeta import get_attrs_agipd
         # from .ArrangeModules import arrange_cspad_tiles
         # from ..Xdrop.DropletizeData import dropletizedata
         kernel = {

@@ -268,8 +268,7 @@ class hdf5(dataset):
     def load_chunk(self, indx=None):
 
         alock(self.lock)
-
-        datapath = self.datapath[indx[0]//self.imgpf]
+        datapath = self.datapath[int(indx[0]//self.imgpf)]
         indx = (indx % self.imgpf).astype('int32')
         qsec = self.qsec
         with h5py.File(self.masterfile, 'r', driver=self.driver) as f:

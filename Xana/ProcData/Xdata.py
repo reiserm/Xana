@@ -26,11 +26,13 @@ class Xdata(Xfmt):
         if datdir == '':
             raise ValueError('Data directory is empty. Use valid data directory.')
         self.datdir = os.path.abspath(datdir) + '/'
-        self.filelist = self.get_filelist(self.datdir)
-        start = len(self.masters)
-        self.get_masters()
-        self.get_headers(start)
-        self.get_serieslist(start)
+        start = 0
+        if 'agipd' not in self.fmtstr:
+            self.filelist = self.get_filelist(self.datdir)
+            start = len(self.masters)
+            self.get_masters()
+            self.get_headers(start)
+            self.get_serieslist(start)
         self.get_meta(start, **kwargs)
 
     def get_filelist(self, datdir):
@@ -48,7 +50,6 @@ class Xdata(Xfmt):
             self.headers.append(self.get_header(self.datdir+m))
         
     def get_meta(self, start=0, depth=0, uid=None):
-        # just a test
         meta = {'series':self.series_ids, 'master':self.masters[start:],
                 'datdir':[self.datdir]*len(self.masters[start:])}
         self.get_attributes(self, meta, depth, uid)

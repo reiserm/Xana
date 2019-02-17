@@ -14,6 +14,7 @@ def getfiles(datdir, suffix, numfmt='(_\d)*'):
     filelist = [ os.path.abspath(datdir + item) for item in os.listdir(datdir)
                  if os.path.isfile(os.path.join(datdir, item))
                  and bool(check_suffix.search(item))]
+    print(re.findall( numfmt ,filelist[0].split('/')[-1]))
     filelist = sorted(filelist,
                       key=lambda x: int(''.join(re.findall( numfmt ,x.split('/')[-1]))))
     return filelist
@@ -88,7 +89,46 @@ def get_attrs_h5(obj, meta, *args, **kwargs):
             for key, value in p.items():
                 meta[key][i] = get_attr(f, value, key)
 
-def get_attrs_agipd(obj, meta, depth):
+                
+'''
+AGIPD Methods
+'''
+
+class Pulse:
+
+    def __init__(self,):
+        pass
+
+class Train(Pulse):
+
+    def __init__(self,):
+        self.id = None
+        self.npulses = None
+        self.pulse_ids = None
+
+class Run(Train):
+
+    def __init__(self, runid, rundir, attrdict):
+        self.id = runid
+        self.rundir = rundir
+        self.attrdict = attrdict
+        self.ntrains = None
+        self.train_ids = None
+
+    def get_(self):
+        pass
+
+class MidMetadata(Run):
+
+    def __init__(self, *uid, depth=None, datdir='./',):
+        self.datdir = os.path.abspath(datdir)
+        if depth is None:
+            depth = len(uid)
+        self.depth = depth
+        
+    
+
+def get_attrs_agipd(obj, meta, depth, uid):
 
     def init_meta(p):
         for key, value in p.items():
@@ -112,8 +152,8 @@ def get_attrs_agipd(obj, meta, depth):
                 attr = f[obj.h5opt['data']].shape[0]
         return attr
 
-    f_files = get_files(self.datdir, self.suffix, self.fastname)
-    s_files = get_files(self.datdir, self.suffix, self.slowname)
+    f_files = getfiles(obj.datdir, obj.suffix, obj.fastname)
+    s_files = getzafiles(obj.datdir, obj.suffix, obj.slowname)
     print(f_files,s_files)
 
     p = obj.attributes

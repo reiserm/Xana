@@ -57,24 +57,30 @@ def fitg2( t, cf, err=None, mode='semilogx', modes=1, init={}, fix={}, dofit=Fal
         beta_constraint = 'a+beta-1-'+'-'.join(['b{}'.format(x) for x in range(1,modes)])
         pars['b0'].set(expr=beta_constraint)
     else:
-        pars['b0'].set(expr='beta')        
-
-    ind = np.where(~np.isnan(cf[:-2]))
-    t = t[ind]
-    cf = cf[ind]
-    
-    for vn in fix.keys():
-        pars[vn].set(value=fix[vn], min=-np.inf, max=np.inf, vary=0)
+        pars['b0'].set(expr='beta')
 
     if err is not None:
+        inderr = np.isfinite(err) & (err>0) 
+    else:
+        inderr = np.ones_like(cf, bool)
+
+    ind = np.where(np.isfinite(cf) & inderr)[0]
+    ind = ind[:-2]
+    t = t[ind]
+    cf = cf[ind]
+    if err is not None:
         err = err[ind]
-        err = np.abs(err)
+    
+    for vn in fix.keys():
+        if vn in pars.keys():
+            pars[vn].set(value=fix[vn], min=-np.inf, max=np.inf, vary=0)
+
+    if err is not None:
         wgt = err.copy()
-        ind = np.where((wgt>0)&((wgt/cf)>=errthr))
-        wgt[ind] = 1./wgt[ind]
+        wgt = 1./wgt
     else:
         wgt = None
-        
+
     if 'semilogx' in mode:
         if err is not None:
             wgt = np.log10(wgt)

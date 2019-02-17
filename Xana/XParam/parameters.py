@@ -10,8 +10,9 @@ from matplotlib import ticker
 
 def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                     textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
-                    format_ticks=True, cmap='Set1', init={}, fix=None, viscosity=False,
-                    fit_report=False, emcee=False, exc=None, excfit=None, **kwargs):
+                    format_ticks=True, cmap=None, init={}, fix=None, viscosity=False,
+                    fit_report=False, emcee=False, exc=None, excfit=None, excbad=True,
+                    weighted=True, xl=None, **kwargs):
 
     def getD(eta, err=0):
         dD = 0
@@ -55,7 +56,6 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         fig, ax = plt.subplots(1, 1, figsize=(9, 4))
 
     kb = 1.381e-23
-    cmap = plt.get_cmap(cmap)
     m_unit = {
         'G': 'nm{} s-1'.format(alpha), 'kww': 'nm{}'.format(alpha), 'f0': 'nm{}'.format(alpha)}
     b_unit = {'G': 's-1', 'kww': '', 'f0': ''}
@@ -77,7 +77,11 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
     if excfit is not None:
         iif = np.delete(iif, np.hstack((excfit)))
 
-    x = np.linspace(np.min(qv[iif]), np.max(qv[iif]), 100)
+    if xl is None:
+        x = np.linspace(np.min(qv[iif]), np.max(qv[iif]), 100)
+    else:
+        x = np.linspace(xl[0], xl[1], 100)
+        
 
     textstr = ""
     for ii, i in enumerate(modes):
@@ -88,8 +92,14 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         textstr += labstr
 
     # -------plot decay rates--------
-        y = np.asarray(pars['{}{}'.format(name, i)])
-        dy = np.asarray(pars['d{}{}'.format(name, i)])
+        try:
+            y = np.asarray(pars['{}{}'.format(name, i)], dtype=np.float32)
+            dy = np.asarray(pars['d{}{}'.format(name, i)], dtype=np.float32)
+        except KeyError:
+            return np.zeros(5)
+
+        y = np.ma.masked_where(~np.isfinite(y), y)
+        dy = np.ma.masked_array(dy, mask=y.mask)
 
         if parameter == 'G':
             y = 1/y
@@ -97,14 +107,20 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         else:
             pass
 
-        color = cmap(ci[ii])
-        ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o',
-                    label=labstr, color=color)
-
-        nf = np.where(dy <= 0)[0]
+        nf = np.where(dy.filled(0) <= 0)[0]
         bad_points = nf.size
         if bad_points:
             print('Found {} points with zero error\n'.format(bad_points))
+            if excbad:
+                iff = np.array([p for p in iif if p not in nf])
+                iip = np.array([p for p in iip if p not in nf])
+                print('Excluded bad points.')
+                if len(iff)==0 or len(iip)==0:
+                    return np.zeros(5)
+
+        color = cmap(ci[ii])
+        ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o',
+                    label=labstr, color=color)
 
         if dofit:
             if fit == 'mcmc_line':
@@ -126,7 +142,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                 textstr += '\neta = {0[0]:.4g} +/- {0[1]:.2g} [cP]'.format(
                     np.array(geteta(*fitpar[0]))*1e3)
                 
-        elif parameter == 'f0' and dofit:
+        elif parameter == 'f0' and dofit and 't' in res[2].params.keys():
             msd = 1/(2*res[2].params['t'].value)
             dmsd = 2*msd**2*res[2].params['t'].stderr
             r_loc = np.sqrt(6*(msd))
@@ -139,16 +155,16 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
             print('-'*16)
             print(res[3])
 
-    if format_ticks:
-        x_labels = ax.get_xticks()
-        try:
-            @ticker.FuncFormatter
-            def major_formatter(x, pos):
-                return "{:.2f}".format(x)
-            ax.ticklabel_format(axis='x', useMathText=True,
-                                style='sci', scilimits=(0, 0))
-        except:
-            pass
+    # if format_ticks:
+    #     x_labels = ax.get_xticks()
+    #     try:
+    #         @ticker.FuncFormatter
+    #         def major_formatter(x, pos):
+    #             return "{:.2f}".format(x)
+    #         ax.ticklabel_format(axis='x', useMathText=True,
+    #                             style='sci', scilimits=(0, 0))
+    #     except:
+    #         pass
 
     # set style
     if alpha == 1:
@@ -171,3 +187,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
 
     # ax.get_yaxis().get_major_formatter().set_useOffset(False)
     niceplot(ax,)
+
+    if dofit:
+        return res
+    else:
+        return np.zeros(5)
+

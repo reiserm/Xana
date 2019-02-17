@@ -1,4 +1,5 @@
 from .misc.xsave import save_result, make_filename
+from .detectors import Detector
 import pickle
 import os
 import numpy as np
