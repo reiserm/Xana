@@ -518,10 +518,10 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
             options['arrange_tiles'] = h5opt['arrange_tiles']
             if verbose:
                 print('Rearranging tiles.')
-        if 'mask' in xdata.__dict__:
-            mask = xdata.mask.copy()
+        if 'mask' in vars(xdata.setup):
+            mask = xdata.setup.mask.copy()
             if qsec is not None and 'sec' in output:
-                mask = mask[qsec[0][0]:qsec[1][0]+1, qsec[0][1]:qsec[1][1]+1]
+                mask = xdata.setup.qsec_mask
 
     if isinstance(mask, np.ndarray):
         mask = np.where(mask)

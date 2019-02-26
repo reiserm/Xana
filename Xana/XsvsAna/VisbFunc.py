@@ -24,7 +24,7 @@ class VisbFunc(AnaList):
         self.t_exposure = None
         self.contrast = None
         self.v2plotl = None
-        self.nq = np.arange(len(self.Xana.setup['qroi']))
+        self.nq = np.arange(len(self.Xana.setup.qroi))
         self.db_id = None
 
     def __str__(self):
@@ -81,7 +81,7 @@ class VisbFunc(AnaList):
         for ii, probl in enumerate(self.prob[:1]):
             for prob in probl:
                 if method == 'formula':
-                    gproi = self.Xana.setup['gproi']
+                    gproi = self.Xana.setup.gproi
                     self.contrast[ii].append(prob2beta(prob, gproi))
                     # self.contrast[ii+1].append(prob2betasigma(prob, gproi, sigma))
 
@@ -90,12 +90,12 @@ class VisbFunc(AnaList):
         """
         methods = ['av', 'md', 'mx', 'pg', 'ml']
         self.v2 = {}
-        v2_av = average_beta(self.t_exposure, self.Xana.setup['qv'], self.contrast, ratio)
+        v2_av = average_beta(self.t_exposure, self.Xana.setup.qv, self.contrast, ratio)
         for i,m in enumerate(methods[:3]):
             self.v2[m] = v2_av[i]
 
-        self.v2['ml'] = beta_from_likelihood(self.t_exposure, self.Xana.setup['qv'], self.prob,
-                                             self.Xana.setup['gproi'], **kwargs)
+        self.v2['ml'] = beta_from_likelihood(self.t_exposure, self.Xana.setup.qv, self.prob,
+                                             self.Xana.setup.gproi, **kwargs)
  
         return None
 
@@ -177,7 +177,7 @@ class VisbFunc(AnaList):
                     cf_id = self.db_id[j]
                 else:
                     cf_id = None
-                res = fitg2(ti, cfi[1:,qi+1], err=dcfi[1:,qi+1], qv=self.Xana.setup['qv'][qi],
+                res = fitg2(ti, cfi[1:,qi+1], err=dcfi[1:,qi+1], qv=self.Xana.setup.qv[qi],
                             ax=ax, color=self.colors[ci], dofit=True,
                             marker=self.markers[j%len(self.markers)], cf_id=cf_id,
                             modes=nmodes, **kwargs)

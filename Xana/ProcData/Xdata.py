@@ -12,9 +12,7 @@ class Xdata(Xfmt):
 
     def __init__(self, **kwargs):
         super().__init__(kwargs.pop('fmtstr', ''))
-        self.maskfile = kwargs.pop('maskfile', '')
         self.datdir = kwargs.pop('datdir', '')
-        self.mask = self.get_mask()
         self.filelist = None
         self.masters = []
         self.headers = []
@@ -78,19 +76,8 @@ class Xdata(Xfmt):
         return self.load_data_func(self.serieslist[series_id], first=(imgn,),
                                    last=(imgn+1,), **kwargs)[0]
 
-    def get_mask(self):
-        self.maskfile = os.path.abspath(self.maskfile)
-        if self.maskfile.endswith('edf'):
-            mask = loadedf(self.maskfile)
-        elif self.maskfile.endswith('npy'):
-            mask = np.load(self.maskfile)
-        else:
-            print('Mask file not found. Continuing without mask.')
-            mask = None
-        return mask
-
     def masker(self, Isaxs, **kwargs):
-        mask = kwargs.get('mask', self.mask)
+        mask = kwargs.get('mask', self.setup.mask)
         masker(Isaxs, mask)
 
     def to_h5(self, series_id, filename, **kwargs):

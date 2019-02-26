@@ -1,21 +1,19 @@
 import numpy as np
 from ..Xplot.plotqrois import plotqrois
 
-def getqroi(saxs, setup, qr, phir=None, mask=None, mirror=False):
-    if mask is None:
-        mask = np.ones_like(saxs)
-    mask = mask.astype(np.uint8)
-    
-    wavelength = setup['lambda']/10
-    pix_size = setup['pix_size'][0]*1e-6
-    distance = setup['distance']
-    cx, cy = setup['ctr']
-    dim2, dim1 = np.shape(saxs)
-    wf = 4 * np.pi / wavelength
-    [X,Y] = np.mgrid[1-cy:dim2+1-cy,1-cx:dim1+1-cx]
-    radius = np.sqrt(X**2 + Y**2)
-    q = wf * np.sin(np.arctan(radius * pix_size / distance) / 2)
-    phi = np.arctan2(-X, Y)
+def check_dimension(setup, img):
+    s = np.shape(img)
+    if s != setup.detector.dim:
+        setup.dim = s
+        print(f'Detector dimensiion has been changed to {s}.')
+    else:
+        return None
+
+def getqroi(saxs, setup, qr, phir=None, mirror=False):
+
+    q = setup.ai.array_from_unit(unit='q_nm^-1')
+    radius = setup.ai.array_from_unit(unit='r_m')/75e-6
+    phi = setup.ai.chiArray()
 
     qv = qr[:,0]
     dqv = qr[:,1]
@@ -36,7 +34,7 @@ def getqroi(saxs, setup, qr, phir=None, mask=None, mirror=False):
 
     for i in range(len(qv)):
         for j in range(len(phiv)):
-            tmp_q = (q>=(qv[i]-dqv[i]/2)) & (q<=(qv[i]+dqv[i]/2)) & mask
+            tmp_q = (q>=(qv[i]-dqv[i]/2)) & (q<=(qv[i]+dqv[i]/2)) & setup.mask
             phit = phi.copy()
             phit = (phit - phiv[j]) % (2*np.pi)
             if mirror:
@@ -74,47 +72,54 @@ def flatten_init(inp):
         i += 1
     return rois
         
-def defineqrois(setup, Isaxs, mask=None, qv_init=None, phiv_init=[(0,360)], 
+def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)], 
                 plot=False, d=250, mirror=False, **kwargs):
+
+    # check_dimension(setup, Isaxs)
+    
     if qv_init is None:
         try:
-            qv_init = setup['qv_init']
-            if phiv_init is None and 'phiv_init' in setup.keys():
-                phiv_init = setup['phiv_init']
+            qv_init = setup.qv_init
+            if phiv_init is None and 'phiv_init' in vars(setup):
+                phiv_init = setup.phiv_init
         except KeyError:
             print('Setup does not contain "qv_init" to initialize Q ROIs.')
     else:
         qv_init = flatten_init(qv_init)
         phiv_init = flatten_init(phiv_init)
-        setup['qv_init'] = qv_init
-        setup['phiv_init'] = phiv_init
-
-    if mask is None:
-        mask = np.ones_like(Isaxs, dtype=np.bool)
+        setup.qv_init = qv_init
+        setup.phiv_init = phiv_init
 
     phiv_init[:,0] -= phiv_init[:,1]/2
     
-    qroi, r = getqroi(Isaxs, setup, qv_init, mask=mask, phir=phiv_init, mirror=mirror)
+    qroi, radii = getqroi(Isaxs, setup, qv_init,
+                          phir=phiv_init, mirror=mirror)
 
-    setup['dqv'] = qv_init[:,1]
-    setup['phiv'] = phiv_init
-    setup['qv'] = np.tile(qv_init[:,0],setup['phiv'].shape[0])
-    setup['r'] = r
+    setup.dqv = qv_init[:,1]
+    setup.phiv = phiv_init
+    setup.qv = np.tile(qv_init[:,0],setup.phiv.shape[0])
+    setup.radii = radii
 
-    gproi = np.ones(len(qroi),np.float32)
-    for i in range(len(qroi)):
-        gproi[i] = np.sum(mask[qroi[i]])
-    setup['gproi'] = gproi
-    setup['qroi'] = qroi
-    setup['qv'] = setup['qv'][:len(setup['qroi'])]
+    setup.gproi = np.array([len(x[0]) for x in qroi], dtype=int)
+    setup.qroi = qroi
+    setup.qv = setup.qv[:len(setup.qroi)]
         
-    xmin = min([x[0].min() for x in setup['qroi']])
-    ymin = min([x[1].min() for x in setup['qroi']])
-    xmax = max([x[0].max() for x in setup['qroi']])
-    ymax = max([x[1].max() for x in setup['qroi']])
+    xmin = min([x[0].min() for x in setup.qroi])
+    ymin = min([x[1].min() for x in setup.qroi])
+    xmax = max([x[0].max() for x in setup.qroi])
+    ymax = max([x[1].max() for x in setup.qroi])
 
-    setup['qsec'] = ((xmin, ymin), (xmax, ymax))
-    print('Added the following Q-values [nm-1]:\n{}'.format(setup['qv']))
+    qsec = ((xmin, ymin), (xmax, ymax))
+    qsec_dim = (xmax - xmin + 1, ymax - ymin + 1)
+    setup.qsec = qsec
+    setup.qsec_dim = qsec_dim
+    setup.qsec_mask = setup.mask[qsec[0][0]:qsec_dim[0]+qsec[0][0], qsec[0][1]:qsec_dim[1]+qsec[0][1]]
+    setup.qsec_center = (setup.center[0]-qsec[0][1], setup.center[1]-qsec[0][0])
+    setup.qsec_ai = setup.update_ai(setup.qsec_center)
+    
+    print('Added the following Q-values [nm-1]:\n{}'.format(setup.qv))
 
     if plot:
-        plotqrois(Isaxs, mask, setup, method=plot, d=d, shade=True, mirror=mirror, **kwargs)
+        plotqrois(Isaxs, setup, method=plot, d=d, shade=True, mirror=mirror,
+                  **kwargs)
+        

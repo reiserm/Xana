@@ -19,7 +19,6 @@ class Xdb:
         if dbfile is not None:
             self.load_db(dbfile)
         self.savdir = None
-        self.setupfile = None
 
     def __str__(self):
         return ('Xana Instance\n' +

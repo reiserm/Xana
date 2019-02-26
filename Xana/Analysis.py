@@ -7,7 +7,6 @@ from .XpcsAna.Xpcs import Xpcs
 from .XsvsAna.Xsvs import Xsvs
 from .SaxsAna.Saxs import Saxs
 from .ProcData.Xdata import Xdata
-from .Setup import Setup
 from .Xdb import Xdb
 from .Decorators import Decorators
 from .misc.xsave import mksavdir, save_result, make_filename
@@ -54,7 +53,7 @@ class Analysis(Xdata):
                         'dark': dark,
                         'verbose': False,
                         'dtype': dtype,
-                        'qsec': self.setup['qsec'],
+                        'qsec': self.setup.qsec,
                         'output': '2dsection',
                         'nprocs': nread_procs,
                         'chunk_size':chunk_size
@@ -62,9 +61,8 @@ class Analysis(Xdata):
             saxs_dict = read_opt.copy()
             read_opt.update(read_kwargs)
 
-            qsec = self.setup['qsec']
             proc_dat = {'nimages': last - first,
-                        'dim': (qsec[1][0] - qsec[0][0] + 1, qsec[1][1] - qsec[0][1] + 1)
+                        'dim': self.setup.qsec_dim
                         }
 
             fmax = self.meta.loc[sid, 'nframes']
@@ -109,27 +107,27 @@ class Analysis(Xdata):
                 saxs = kwargs.pop('saxs', 'compute')
                 Isaxs = self.get_xpcs_args(sid, saxs, saxs_dict)
                 dt = self.get_delay_time(sid)
-                savd = Xpcs.pyxpcs(proc_dat, self.setup['qroi'], dt=dt, qv=self.setup['qv'],
-                                   saxs=Isaxs, mask=self.mask, ctr=self.setup['ctr'],
-                                   qsec=self.setup['qsec'][0], **kwargs)
+                savd = Xpcs.pyxpcs(proc_dat, self.setup.qroi, dt=dt, qv=self.setup.qv,
+                                   saxs=Isaxs, mask=self.setup.mask, ctr=self.setup.center,
+                                   qsec=self.setup.qsec[0], **kwargs)
 
             elif method == 'xpcs_evt':
                 dt = self.get_delay_time(sid)
                 evt_dict = dict(method='events',
                                 verbose=True,
-                                qroi=self.setup['qroi'],
+                                qroi=self.setup.qroi,
                                 dtype=np.uint32,
                 )
                 read_opt.update(evt_dict)
                 evt = self.get_series(sid, **read_opt)
-                savd = Xpcs.eventcorrelator(evt[1:], self.setup['qroi'], self.setup['qv'],
+                savd = Xpcs.eventcorrelator(evt[1:], self.setup.qroi, self.setup.qv,
                                             dt, method='events', **kwargs)
 
             elif method == 'xsvs':
 
                 t_e = self.get_xsvs_args(sid,)
-                savd = Xsvs.pyxsvs(proc_dat, self.setup['qroi'], t_e=t_e,
-                                   qv=self.setup['qv'], qsec=self.setup['qsec'][0],
+                savd = Xsvs.pyxsvs(proc_dat, self.setup.qroi, t_e=t_e,
+                                   qv=self.setup.qv, qsec=self.setup.qsec[0],
                                    **kwargs)
 
             elif method == 'saxs':
@@ -138,7 +136,7 @@ class Analysis(Xdata):
                 proc_dat = {'get_series': self.get_series,
                             'sid': sid,
                             'setup': self.setup,
-                            'mask': self.mask}
+                            'mask': self.setup.mask}
                 savd = Saxs.pysaxs(proc_dat, **read_opt, **kwargs)
 
             else:
@@ -213,7 +211,7 @@ class Analysis(Xdata):
             Isaxs = input_
         if Isaxs.ndim == 3:
             Isaxs = self.arrange_tiles(Isaxs)
-        Saxs.defineqrois(self.setup, Isaxs, self.mask, **kwargs)
+        Saxs.defineqrois(self.setup, Isaxs, **kwargs)
 
     @staticmethod
     def find_center(*args, **kwargs):

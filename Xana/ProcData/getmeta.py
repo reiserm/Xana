@@ -14,7 +14,6 @@ def getfiles(datdir, suffix, numfmt='(_\d)*'):
     filelist = [ os.path.abspath(datdir + item) for item in os.listdir(datdir)
                  if os.path.isfile(os.path.join(datdir, item))
                  and bool(check_suffix.search(item))]
-    print(re.findall( numfmt ,filelist[0].split('/')[-1]))
     filelist = sorted(filelist,
                       key=lambda x: int(''.join(re.findall( numfmt ,x.split('/')[-1]))))
     return filelist

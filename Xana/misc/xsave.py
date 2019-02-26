@@ -7,6 +7,8 @@ import pickle
 def make_filename(obj, attr=None, filename=None):
 
     def splitpath(path):
+        if path is None:
+            print('No valid file specified.')
         tmp = path.split('/')
         fname = tmp[-1]
         path = os.path.abspath('/'.join(tmp[:-1])) + '/'
