@@ -27,7 +27,7 @@ class CorrFunc(AnaList):
         self.corrFuncChi2 = None
         self.twotime = None
         self.g2plotl = None
-        self.nq = np.arange(len(self.Xana.setup['qroi']))
+        self.nq = np.arange(len(self.Xana.setup.qroi))
         self.db_id = None
 
     def __str__(self):
