@@ -12,7 +12,7 @@ During installation `f2py` (now part of `numpy`) is used to build python modules
      to install a FORTRAN compiler is given [here](https://www.scivision.co/windows-gcc-gfortran-cmake-make-install/).
 3. Download the Xana source code from gitlab
    ```sh
-   git clone git clone https://git.xfel.eu/gitlab/reiserm/Xana.git
+   git clone https://git.xfel.eu/gitlab/reiserm/Xana.git
    ```
    
 2. Install Xana code
