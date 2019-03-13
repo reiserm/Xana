@@ -111,6 +111,7 @@ class dataset:
         self.dstream = None
         self.variance = None
         self.chunk = None
+        self.imgpf = None
 
     def update_shape(self, nimg, dim):
 
@@ -255,14 +256,16 @@ class hdf5(dataset):
                 datapath = data_links
             else:
                 datapath = [self.datapath, ]
-            dim = f[datapath[0]][0].shape
+            dim = f[datapath[0]].shape
             nf = 0
+            # determine number of images per file
+            self.imgpf = dim[0]
             for d in datapath:
                 nf += f[d].shape[0]
 
         rlock(self.lock)
         self.datapath = datapath
-        self.shape = (nf, *dim)
+        self.shape = (nf, *dim[1:])
         return self.shape
 
     def load_chunk(self, indx=None):
@@ -449,7 +452,7 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
               dtype=np.float32, var_weight=False, nprocs=1, datapath="", driver='stdio',
               extlinks=False, filter_value=False, dropopt=None, dropmask=None, xdata=None,
               indxQ=None, dataQ=None, lock=False, dark=None, commonmode=True,
-              dropletize=False, imgpf=int(1e10), mask=False, mask_value=-1, **kwargs):
+              dropletize=False, mask=False, mask_value=-1, **kwargs):
 
     # ---------------------------------------------
     # Nested Functions only invoked by read_data()
@@ -508,10 +511,6 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
                 print('H5 file using external links.')
         if datapath == '' and 'data' in h5opt:
             options['datapath'] = h5opt['data']
-        if 'images_per_file' in h5opt:
-            options['imgpf'] = h5opt['images_per_file']
-            if verbose:
-                print('Loading {} images per file.'.format(options['imgpf']))
         if 'chunk_size' in h5opt:
             chunk_size = h5opt['chunk_size']
         if 'arrange_tiles' in h5opt and '2d' in output:

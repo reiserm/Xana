@@ -59,7 +59,8 @@ class CorrFunc(AnaList):
             for sid in db_id:
                 try:
                     d = self.Xana.get_item(sid)
-                    self.corrFunc.append((d['corf'], d['dcorf']))
+                    self.corrFunc.append((np.ma.masked_invalid(d['corf']),
+                                          np.ma.masked_invalid(d['dcorf'])))
                 except KeyError:
                     print('Could not load item {}'.format(sid))
             print('Loaded {} correlation functions.'.format(len(db_id)))
@@ -124,16 +125,16 @@ class CorrFunc(AnaList):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     def rescale(self, index=None, normby='average', norm_baseline=True,
-                   norm_contrast=False, nq=None, baseline=1., contrast=None,
-                   interval=(1, -1), weighted=True):
+                   norm_contrast=False, nq=None, baseline=1., contrast=1.,
+                   interval=(1, -1), weighted=False):
 
         def rescale(y, mn, mx, rng=(0, 1)):
             p = (rng[1]-rng[0])/(mx-mn)
             return p * (y - mn) + rng[0], p
 
         def normFunc(corrFunc, pars):
-            norm_b = np.min(corrFunc[0][1:, nq+1], axis=0)
-            norm_c = np.max(corrFunc[0][1:, nq+1], axis=0)
+            norm_b = np.nanmin(corrFunc[0][1:, nq+1], axis=0)
+            norm_c = np.nanmax(corrFunc[0][1:, nq+1], axis=0)
             if normby == 'fit':
                 for iq in range(nq.size):
                     norm_b[iq] = pars.loc[iq, 'a']
@@ -154,16 +155,14 @@ class CorrFunc(AnaList):
                         else:
                             weights = None
                         norm_c[iq] = np.ma.average(
-                            corrFunc[0][1:max([interval[0],1])+1, nq[iq]+1],
-                            weights=weights)
+                            corrFunc[0][1:max([interval[0],1])+1, nq[iq]+1], weights=weights)
 
-            if contrast is None:
+            if norm_contrast is False:
                 initial_contrast = norm_c - norm_b
             else:
                 initial_contrast = contrast
-            corrFunc[0][1:, nq+1], p = rescale(
-                corrFunc[0][1:, nq+1], norm_b, norm_c,
-                (baseline, initial_contrast + baseline))
+            corrFunc[0][1:, nq+1], p = rescale(corrFunc[0][1:, nq+1], norm_b, norm_c,
+                                               (baseline, initial_contrast + baseline))
             corrFunc[1][1:, nq+1] *= p
 
         if self.pars is None:
@@ -235,7 +234,7 @@ class CorrFunc(AnaList):
                     raise ValueError(v)
 
             cf = np.ma.masked_array(cf, mask=np.isnan(cf))
-            cf = np.ma.masked_less_equal(cf, limit, copy=False)
+            cf = np.ma.masked_less_equal(cf.filled(-1), limit, copy=False)
             dcf = np.ma.masked_array(dcf, mask=np.isnan(dcf))
             dcf = np.ma.masked_where(dcf.filled(-1)<=0, dcf, copy=False)
             cf = np.ma.masked_where(dcf.mask, cf, copy=False)
@@ -251,12 +250,12 @@ class CorrFunc(AnaList):
             chi2ret = (in_list[indall[chi2cond]], chi2arr.compressed())
             self.corrFuncChi2.append(chi2ret)
 
-            cfm = np.hstack((t[:, None], cfm.filled(np.nan)))
+            cfm = np.ma.hstack((t[:, None], cfm))
             dcfm = np.ma.sqrt(1/dcfm)
-            dcfm = np.hstack((t[:, None], dcfm.filled(np.nan)))
-            
-            self.corrFunc.append((np.vstack((np.append(0, qv), cfm)),
-                                  np.vstack((np.append(0, qv), dcfm))))
+            dcfm = np.ma.hstack((t[:, None], dcfm))
+
+            self.corrFunc.append((np.ma.vstack((np.append(0, qv), cfm)),
+                                  np.ma.vstack((np.append(0, qv), dcfm))))
 
         tmp = "Merged g2 functions: "
         print('{:<22}{} (exposure times)'.format(tmp, np.round(uq_et, 6)))

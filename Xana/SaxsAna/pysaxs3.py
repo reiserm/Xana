@@ -1,5 +1,4 @@
 import numpy as np
-from .integrate import get_soq
 import copy
 
 

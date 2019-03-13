@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from ..Decorators import Decorators
 from ..Analist import AnaList
-from .integrate import get_soq
+from .pysaxs3 import get_soq
 import copy
 from ..Xplot.niceplot import niceplot
 
@@ -23,7 +23,7 @@ class Soq(AnaList):
 
     def get_sec(self, img):
 
-        if np.shape(img) != np.shape(self.Xana.mask):
+        if np.shape(img) != np.shape(self.Xana.setup.mask):
             qsec = self.Xana.setup['qsec'][0]
             mask = self.Xana.mask.copy()
             dim = np.shape(img)
@@ -76,8 +76,8 @@ class Soq(AnaList):
                 if Isaxs.ndim == 3:
                     Isaxs = self.Xana.arrange_tiles(Isaxs)
 
-                mask, setup = self.get_sec(Isaxs)
-                q, I, e  = get_soq(Isaxs, mask, setup)
+#                mask, setup = self.get_sec(Isaxs)
+                q, I, e  = get_soq(Isaxs, self.Xana.setup)
             else:
                 tmp = saxsd['soq']
                 q = tmp[:,0]

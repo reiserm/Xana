@@ -99,6 +99,6 @@ class Setup:
         elif self.maskfile.endswith('npy'):
             mask = np.load(self.maskfile)
         else:
-            print('Mask file not found. Continuing without mask.')
-            mask = None
+            print('Mask file not found. Continuing with no pixel masked.')
+            mask = np.ones(self.detector.shape, dtype='bool')
         return mask
