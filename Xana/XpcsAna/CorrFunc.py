@@ -1,14 +1,11 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib
-import itertools
 import copy
 import pandas as pd
 
 from ..Decorators import Decorators
 from ..Analist import AnaList
 from ..XParam.parameters import plot_parameters
-from ..Xfit.fitg2 import fitg2
 from ..Xfit.fitg2global import G2
 from ..Xplot.niceplot import niceplot
 from ..misc.resample import resample as resample_func
