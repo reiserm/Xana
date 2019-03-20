@@ -14,7 +14,7 @@ def get_case(detector):
     """
     if detector in ['id10_eiger_single_edf', 'pilatus_single_cbf', 'id02_eiger_single_edf']:
         case = 0
-    elif detector in ['p10_eiger_h5', 'converted_h5', 'lambda_nxs', 'p10_eiger_h5_2']:
+    elif detector in ['p10_eiger_h5', 'converted_h5', 'lambda_nxs']:
         case = 1
     elif detector == 'xcs_cspad_h5':
         case = 2
