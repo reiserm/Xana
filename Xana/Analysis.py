@@ -65,9 +65,7 @@ class Analysis(Xdata):
                         'dim': self.setup.qsec_dim
                         }
 
-            fmax = self.meta.loc[sid, 'nframes']
-            chunks = [np.arange(first + i*chunk_size,
-                                min([min(first + (i + 1)*chunk_size, last), fmax]))
+            chunks = [np.arange(first + i*chunk_size, min(first + (i + 1)*chunk_size, last))
                       for i in range(np.ceil((last - first) / chunk_size).astype(np.int32))]
 
             if method in ['xpcs', 'xsvs']:

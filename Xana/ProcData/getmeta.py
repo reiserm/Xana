@@ -20,14 +20,15 @@ def getfiles(datdir, suffix, numfmt='(_\d)*'):
 
 def files2series(filelist, masters, seriesfmt,):
     series = []
-    series_id = np.empty(len(masters), dtype=np.int32)
+    series_id = []
     find_seriesid = re.compile(seriesfmt)
     for i,m in enumerate(masters):
         idstr = find_seriesid.search(m).group()
-        series_id[i] = int(idstr)
+        series_id.append(int(idstr))
         nblocks = len(re.findall('(_\d{4,})', m))
         searchstr = idstr + '.*(_\d{{4,}}){{{}}}'.format(nblocks-1)
         series.append([x for x in filelist if re.search(searchstr, x) is not None])
+    series_id = np.asarray(series_id, dtype='int32')
     return series, series_id
 
 def get_attrs_from_dict(obj, meta, *args, **kwargs):

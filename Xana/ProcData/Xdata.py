@@ -73,8 +73,8 @@ class Xdata(Xfmt):
         return self.load_data_func(self.serieslist[series_id], xdata=self, **kwargs)
 
     def get_image(self, imgn, series_id=0, **kwargs):
-        return self.load_data_func(self.serieslist[series_id], first=(imgn,),
-                                   last=(imgn+1,), **kwargs)[0]
+        return self.load_data_func(self.serieslist[series_id], xdata.self, first=(imgn,),
+                                   last=(imgn+1,), **kwargs)
 
     def masker(self, Isaxs, **kwargs):
         mask = kwargs.get('mask', self.setup.mask)
