@@ -1,6 +1,4 @@
-import sys
 import os
-import re
 import numpy as np
 import pickle
 import pandas as pd
@@ -10,7 +8,8 @@ from .misc.xsave import save_result, make_filename
 
 
 class Xdb:
-    """Data base for handling analysis results
+    """Data base class for handling analysis results and making them accessible through the
+       data interpretation modules.
     """
 
     def __init__(self, dbfile=None, db=None, **kwargs):

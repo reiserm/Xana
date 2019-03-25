@@ -1,6 +1,7 @@
 from .ReadData import read_data
-from .getmeta import getfiles, files2series, get_attrs_from_dict, get_attrs_h5, get_header_h5
+from .getmeta import get_attrs_from_dict, get_attrs_h5, get_header_h5
 from .H5Methods import common_mode_from_hist
+import warnings
 
 class Xfmt:
     """Class that defines all methods and attributes to handle
@@ -10,8 +11,9 @@ class Xfmt:
     def __init__(self, fmtstr=''):
 
         self.fmtstr = fmtstr
+        kernel = {}
         if fmtstr == '':
-            print('Format string is empty. Specify valid data format to load data.')
+            warnings.warn('Format string is empty. Specify valid data format to load data.')
         else:
             if fmtstr == 'id10_eiger_single_edf':
                 kernel = self.__init_id10_eiger_single_edf()
@@ -32,14 +34,16 @@ class Xfmt:
             elif fmtstr == 'spb_agipd':
                 kernel = self.__init_spb_agipd()
 
+            self.suffix = None
+            self.numfmt = None
+            self.masterfmt = None
+            self.seriesfmt = None
+            self.get_header = None
+            self.get_attributes = None
             self.__dict__.update(kernel)
-            self.getfiles = getfiles
-            self.files2series = files2series
 
             if 'agipd' not in fmtstr:
                 self.load_data_func = read_data
-            else:
-                pass
 
     @staticmethod
     def __init_id10_eiger_single_edf():

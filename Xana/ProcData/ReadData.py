@@ -5,8 +5,6 @@ from ..XpcsAna.xpcsmethods import mat2evt
 from ..misc.progressbar import progress
 from . import EdfMethods as edf
 from . import CbfMethods as cbf
-from ..helper import *
-from matplotlib import pyplot as plt
 
 
 def get_case(detector):
@@ -454,6 +452,7 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
               indxQ=None, dataQ=None, lock=False, dark=None, commonmode=True,
               dropletize=False, mask=False, mask_value=-1, **kwargs):
 
+
     # ---------------------------------------------
     # Nested Functions only invoked by read_data()
     # ---------------------------------------------
@@ -560,6 +559,10 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     shape = dcls.get_shape()
     nf = shape[0]
     dim = shape[1:]
+
+    if output == 'shape':
+        return shape
+
     first, last = get_firstnlast(first, last, nf, dim)
 
     if qsec is not None and len(dim) < 3:
