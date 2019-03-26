@@ -18,6 +18,8 @@ def get_case(detector):
         case = 2
     elif detector == 'id02_eiger_multi_edf':
         case = 3
+    else:
+        case = -1
     return case
 
 # def evt2prob( events, qroi, nbins ):
@@ -34,24 +36,30 @@ def get_case(detector):
 
 def get_firstnlast(first, last, nf, dim):
 
+    nf = nf - 1
+
     if last is None and first is None:
         last = (nf, *dim)
         first = (0,)*len(last)
     elif last is not None and first is None:
+        if isinstance(last, (int, np.integer)):
+            last = (last,)
         if len(last) == 1:
             last = (min([last[0],nf]), *dim)
         else:
             last = [min([last[0],nf]), *last[1:]]
         first = (0,)*len(last)
     elif last is None and first is not None:
+        if isinstance(first, (int, np.integer)):
+            first = (first,)
         if len(first) > 1:
             last = (nf, *dim)
         else:
             first = (first[0], 0, 0)
             last = (nf, *dim)
-    elif last is not None and first is not None and len(last) == len(first) == 1:
-        first = (first[0], 0, 0)
-        last = (last[0], *dim)
+    elif last is not None and first is not None:
+        first = (first, 0, 0)
+        last = (last, *dim)
     elif last is not None and first is not None and len(last) == len(first) == 2:
         first = (0, first[1], first[0])
         last = (nf, last[1], last[0])
@@ -569,8 +577,9 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         dim = list(dim)
         dim[-2:] = (qsec[1][0]-qsec[0][0]+1, qsec[1][1]-qsec[0][1]+1)
 
-    imgindx = np.arange(first[0], last[0], step[0])
+    imgindx = np.arange(first[0], last[0]+1, step[0])
     nimg = len(imgindx)
+    print(nimg)
 
     dcls.update_shape(nimg, dim)
 

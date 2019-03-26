@@ -19,7 +19,7 @@ class Xdata(Xfmt):
         self._files = None
         self._masters = []
         self._headers = []
-        self.meta  = None
+        self.meta  = []
         self._series = []
         self._series_ids = None
         
@@ -95,12 +95,18 @@ class Xdata(Xfmt):
                     tot_img = self.get_series(idx, verbose=False, output='shape')[0]
                     img_per_series = row['nframes']
                     nrow = row.copy()
+                    idx_subset = 1
                     while nrow['last'] + 1 - tot_img < 0:
+                        if 'subset' not in meta:
+                            meta.insert(1, 'subset', int(0))
                         nrow['first'] = img_per_series + nrow['first']
                         nrow['last'] = img_per_series + nrow['last']
+                        nrow['subset'] = idx_subset
+                        idx_subset += 1
                         meta.loc[meta.shape[0]] = nrow
 
-        if self.meta is None:
+
+        if not len(self.meta):
             self.meta = meta
         else:
             self.meta = self.meta.append(meta, ignore_index=True)
@@ -114,6 +120,14 @@ class Xdata(Xfmt):
         :param kwargs: are passed to load_data_func in ProcData module.
         :return: np.ndarray if method is `full` or tuple of average images and variance if method is `average`.
         """
+        if 'subset' in self.meta:
+            nf = self.meta.loc[series_id, 'nframes']
+            first = self.meta.loc[series_id, 'first']
+            last = self.meta.loc[series_id, 'last']
+            kwargs['first'] =  kwargs.get('first', first) % nf + first
+            kwargs['last'] = kwargs.get('last', last) % nf + first
+            series_id = self.meta[(self.meta['series']==self.meta.loc[series_id, 'series'])
+                                    & (self.meta['subset']==0)].index.values[0]
         return self.load_data_func(self._series[series_id], xdata=self, **kwargs)
 
     def get_image(self, series_id, imgn=0, **kwargs):
