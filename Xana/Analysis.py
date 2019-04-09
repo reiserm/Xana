@@ -32,6 +32,9 @@ class Analysis(Xdata):
                 nread_procs=4, chunk_size=200, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
 
+        if not self.setup.wavelength:
+            raise ValueError('Setup is not defined properly. Cannot perform analysis.')
+
         for sid in series_id:
             if verbose:
                 print('\n\n#### Starting %s Analysis ####\nSeries: %d in folder %s\n' %
@@ -43,10 +46,13 @@ class Analysis(Xdata):
             #         print('Loading DB entry {} as dark.'.format(dark))
             #         dark = self.xana.get_item(dark)['Isaxs']
 
+            nf = self.meta.loc[sid, 'nframes']
+            first = first % nf + self.meta.loc[sid, 'first']
             last = min([self.meta.loc[sid, 'nframes'], last])
-            
-            read_opt = {'first': (first,),
-                        'last': (last,),
+            last = (last - 1) % nf + self.meta.loc[sid, 'first']
+
+            read_opt = {'first': first,
+                        'last': last,
                         'dark': dark,
                         'verbose': False,
                         'dtype': dtype,
@@ -58,7 +64,7 @@ class Analysis(Xdata):
             saxs_dict = read_opt.copy()
             read_opt.update(read_kwargs)
 
-            proc_dat = {'nimages': last - first,
+            proc_dat = {'nimages': last - first + 1,
                         'dim': self.setup.qsec_dim
                         }
 
@@ -73,7 +79,7 @@ class Analysis(Xdata):
                 dataQ = m.PriorityQueue(nread_procs)
                 indxQ = m.PriorityQueue()
                 #dataQ = mp.Queue(nread_procs)
-                #indxQ = mp.Queue()
+                #indxQ = mp.Queue()'symmetric_whole'
 
                 # add queues to read and process dictionaries
                 read_opt['dataQ'] = dataQ

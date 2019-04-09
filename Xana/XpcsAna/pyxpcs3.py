@@ -216,6 +216,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
 
     if verbose:
         print('Number of images is:', nf)
+        print('shape of image section is:', dim)
 
     if isinstance(mask, np.ndarray):
         mask = mask[qsec[0]:qsec[0]+dim[0],qsec[1]:qsec[1]+dim[1]]
@@ -310,7 +311,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     for i in range(nprocs):
         q_beg = q_sec[i]
         q_end = q_sec[i+1]
-        pcorr.append(Process(target=mp_corr, args=(i, nf, chn, srch, rcr,
+        pcorr.append(Process(target=mp_corr, args=(i, nf-1, chn, srch, rcr,
                 lind[q_beg:q_end], q_end-q_beg, qur[i], qure[i])))
         
     # start processes
@@ -323,7 +324,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     t0 = 0
     last_chunk = -1
     lin_mask = np.where(mask)
-    while t0 < nf:
+    while t0 < nf - 1:
         progress(t0,nf)
 
         c_idx, chunk = get_chunk()

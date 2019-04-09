@@ -42,10 +42,10 @@ def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
     if sample_name is None:
         sample_name = input(('Chose a sample name for saving in {}\n'
                              + 'or enter full path.').format(savhome))
-    if '/' in sample_name:
-        savdir = os.path.abspath(sample_name.rstrip('/')) + '/'
-    else:
-        savdir = savhome.rstrip('/') + '/' + sample_name.rstrip('/') + '/'
+    # if '/' in sample_name:
+    #     savdir = os.path.abspath(sample_name.rstrip('/')) + '/'
+    # else:
+    savdir = savhome.rstrip('/') + '/' + sample_name.rstrip('/') + '/'
 
     try:
         os.makedirs(savdir)

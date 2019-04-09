@@ -316,7 +316,7 @@ class CorrFunc(AnaList):
             ax_idx = np.zeros(npl, dtype=np.int16)
             c_idx = np.arange(npars)
 
-        cmap = plt.get_cmap('inferno', 5)            
+        cmap = plt.get_cmap(cmap, npars)
 
         self.pars2 = [[]] * npl
         self.fit_result2 = [[[] for i in range(npars)]] * npl

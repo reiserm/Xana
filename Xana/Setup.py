@@ -49,7 +49,10 @@ class Setup:
 
     def __setstate__(self, d):
         if 'lambda' in d:  # handle old syntax
-            d['wavelengt'] = d.pop('lambda')
+            d['wavelength'] = d.pop('lambda')
+        if 'ctr' in d and 'center'not in d:
+            d['center'] = d['ctr']
+
         self.detector = d.pop('detector', None)
         self.__dict__.update(d)
         self.ai = self.update_ai()
@@ -100,3 +103,7 @@ class Setup:
             print('Mask file not found. Continuing with no pixel masked.')
             mask = np.ones(self.detector.shape, dtype='bool')
         return mask
+
+    def from_dict(self):
+        pass
+

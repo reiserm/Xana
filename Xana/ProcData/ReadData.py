@@ -58,8 +58,14 @@ def get_firstnlast(first, last, nf, dim):
             first = (first[0], 0, 0)
             last = (nf, *dim)
     elif last is not None and first is not None:
-        first = (first, 0, 0)
-        last = (last, *dim)
+        if isinstance(first, (int, np.integer)):
+            first = (first, 0, 0)
+        else:
+            first = (first[0], 0, 0)
+        if isinstance(last, (int, np.integer)):
+            last = (last, *dim)
+        else:
+            last = (last[0], *dim)
     elif last is not None and first is not None and len(last) == len(first) == 2:
         first = (0, first[1], first[0])
         last = (nf, last[1], last[0])
@@ -579,7 +585,6 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
 
     imgindx = np.arange(first[0], last[0]+1, step[0])
     nimg = len(imgindx)
-    print(nimg)
 
     dcls.update_shape(nimg, dim)
 

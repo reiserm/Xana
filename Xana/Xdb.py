@@ -63,10 +63,18 @@ class Xdb:
     def add_db_entry(self, series_id, savfile, method):
         self.db.reset_index(inplace=True, drop=True)
         savname = savfile.split('/')[-1]
-        dbn = self.db.shape[0]
-        entry = [True, self.sample, method, *self.meta.loc[series_id],
-                 pd.datetime.today(), savname, savfile, self.setupfile, ""]
-        self.db.loc[dbn] = entry
+        # dbn = self.db.shape[0]
+        entry = {'use':True,
+                'sample':self.sample,
+                'analysis':method,
+                 'mod':pd.datetime.today(),
+                 'savnmae':savname,
+                 'savfile':savfile,
+                 'setupfile':self.setupfile,
+                 'comment':""}
+        entry.update(dict(zip(self.meta.columns, self.meta.loc[series_id],)))
+        entry = pd.DataFrame(entry, index=[0])
+        self.db = pd.concat([self.db, entry], join='outer', ignore_index=True, sort=False, copy=False)
         self.save_db(handle_existing='overwrite')
 
     @Decorators.input2list
@@ -76,9 +84,12 @@ class Xdb:
             datdir = self.db.loc[i, 'datdir']
             series = self.db.loc[i, 'series']
             sample = self.db.loc[i, 'sample']
+            subset = self.db.loc[i].get('subset', np.nan)
             discard.append(self.db[(self.db['datdir'].str.match(datdir))
-                                   & (self.db['series'] == series)
-                                   & (self.db['sample'].str.match(sample))].index.values)
+                                    & (self.db['series'] == series)
+                                    & (self.db['sample'].str.match(sample))
+                                    & (self.db.get('subset', np.nan) == subset)
+                                  ].index.values)
         if len(discard) == 0:
             print('No entry discarded.')
         else:
@@ -102,7 +113,7 @@ class Xdb:
                 return None
         elif isinstance(dbfile, pd.DataFrame):
             db = dbfile
-        self.db = self.db.append(db, ignore_index=True)
+        self.db = pd.concat([self.db, db], join='outer', ignore_index=True, sort=False, copy=False)
 
         if len(self.db[self.db['use'] == False]) and check_duplicates:
             self.discard_entry(

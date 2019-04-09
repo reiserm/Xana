@@ -72,7 +72,7 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
     for i in range(nprocs):
         q_beg = q_sec[i]
         q_end = q_sec[i+1]
-        pcorr.append(Process(target=mp_prob, args=(method, nbins, nf,
+        pcorr.append(Process(target=mp_prob, args=(method, nbins, nf-1,
                 lind[q_beg:q_end], q_end-q_beg, qur[i], qure[i])))
         
     # start processes
@@ -84,7 +84,7 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
     tcalc_cum = 0
     t0 = 0
     last_chunk = -1
-    while t0 < nf:
+    while t0 < nf - 1:
         progress(t0,nf)
         
         c_idx, chunk = get_chunk()
