@@ -132,7 +132,7 @@ def fit_basic( x, y, dy=None, model='line', init={}, fix=None, emcee=False):
     pars_arr =  np.zeros((len(pars),2))
     for i,vn in enumerate(pars):
         pars_arr[i,0] = out.params[vn].value
-        pars_arr[i,1] = 1.*out.params[vn].stderr
+        pars_arr[i,1] = out.params[vn].stderr if  out.params[vn].stderr else 0
 
     if not emcee:
         gof = np.array([out.chisqr, out.redchi, out.bic, out.aic])

@@ -6,13 +6,13 @@ import string
 import matplotlib
 from matplotlib import pyplot as plt
 
-def niceplot(ax, kind='default', autoscale=True, grid=True, lfs=10):
+def niceplot(ax, kind='default', autoscale=True, grid=True, lfs=10, labelsize=14, ticksize=12):
     if autoscale:
         ax.autoscale(enable=True, axis='both')
     #plt.legend(bbox_to_anchor=(1, 1))#, bbox_transform=plt.gcf().transFigure)
-    ax.tick_params(labelsize=12)
-    ax.xaxis.label.set_size(14)
-    ax.yaxis.label.set_size(14)
+    ax.tick_params(labelsize=ticksize)
+    ax.xaxis.label.set_size(labelsize)
+    ax.yaxis.label.set_size(labelsize)
     ax.minorticks_on()
     if grid:
         ax.grid(1)

@@ -74,7 +74,7 @@ class Xdata(Xfmt):
         self._series_ids = np.asarray(series_id, dtype='int32')
         self._series.extend(series)
 
-    def _get_meta(self, addfirstnlast=True, checksubseries=True, **kwargs):
+    def _get_meta(self, addfirstnlast=True, checksubseries=True, nframesfromfiles=False):
         meta = {'series':self._series_ids, 'master':self._masters,
                 'datdir':[self.datdir]*len(self._masters)}
         self.get_attributes(self, meta,)
@@ -83,6 +83,10 @@ class Xdata(Xfmt):
                             + list([a for a in meta.columns
                                   if a not in ['series', 'master', 'datdir']])
                             + ['master', 'datdir'])
+        if nframesfromfiles:
+            for idx, row in meta.iterrows():
+                row['nframes'] = len(self._series[idx])
+                meta.loc[idx] = row
 
         if addfirstnlast:
             meta.insert(5, 'last', int(0))

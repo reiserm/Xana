@@ -29,10 +29,10 @@ class AnaList:
             self.cmap = cmap
 
         self.colors = []
-        cm = plt.get_cmap(cmap)
+        cm = plt.get_cmap(cmap, factor)
         ci = np.linspace(0,1,factor)
         for i in range(factor):
-            self.colors.append(cm(ci[i]))
+            self.colors.append(cm(i))
         self.colors = np.tile(self.colors, (repeat, 1))
 
     def update_markers(self, nmarkers, change_marker=0):

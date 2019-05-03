@@ -68,7 +68,7 @@ class Xdb:
                 'sample':self.sample,
                 'analysis':method,
                  'mod':pd.datetime.today(),
-                 'savnmae':savname,
+                 'savname':savname,
                  'savfile':savfile,
                  'setupfile':self.setupfile,
                  'comment':""}
@@ -85,11 +85,14 @@ class Xdb:
             series = self.db.loc[i, 'series']
             sample = self.db.loc[i, 'sample']
             subset = self.db.loc[i].get('subset', np.nan)
-            discard.append(self.db[(self.db['datdir'].str.match(datdir))
-                                    & (self.db['series'] == series)
-                                    & (self.db['sample'].str.match(sample))
-                                    & (self.db.get('subset', np.nan) == subset)
-                                  ].index.values)
+            cond = (self.db['datdir'].str.match(datdir))     \
+                        & (self.db['series'] == series)         \
+                        & (self.db['sample'].str.match(sample)) \
+
+            if not np.isnan(subset):
+                cond &= self.db['subset'] == subset
+            discard.append(self.db[cond].index.values)
+
         if len(discard) == 0:
             print('No entry discarded.')
         else:

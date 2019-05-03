@@ -30,9 +30,6 @@ class CorrFunc(AnaList):
     def __str__(self):
         return 'Corr Func class for g2 displaying.'
 
-    def __repr__(self):
-        return self.__str__()
-
     def __add__(self, cf2):
         cf3 = CorrFunc(self.Xana)
         cf3.fit_result = copy.deepcopy(self.fit_result)
@@ -45,6 +42,15 @@ class CorrFunc(AnaList):
         cf3.corrFuncRescaled.extend(cf2.corrFuncRescaled)
         cf3.db_id = np.append(self.db_id, cf2.db_id)
         return cf3
+
+    def __getstate__(self):
+        d = dict(vars(self))
+        # d['twotime'] = None
+        d['g2plotl'] = None
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     @Decorators.input2list
     def get_g2(self, db_id, merge='append', **kwargs):
@@ -206,7 +212,7 @@ class CorrFunc(AnaList):
         in_list = np.array(in_list)[ind]
 
         uq_et, uq_inv, uq_cnt,  = np.unique(
-            t_exp, return_inverse=1, return_counts=1)
+            t_exp, return_inverse=True, return_counts=True)
 
         counter = np.zeros(uq_et.size, dtype=np.int32)
         for i, cnti in enumerate(uq_cnt):
@@ -217,13 +223,19 @@ class CorrFunc(AnaList):
                 try:
                     d = self.Xana.get_item(item)
                     if j == 0:
-                        max_t_item = in_list[np.argmax(nframes[indall])]
-                        max_t = self.Xana.get_item(max_t_item)['corf'].shape[0] - 1
                         qv = d['corf'][0,1:]
                         t = d['corf'][1:, 0]
                         cf = np.zeros((cnti, t.size, qv.size))
                         dcf = np.zeros_like(cf)
+
                     cft = d['corf'][1:-(cutoff+1), 1:qv.size+1]
+
+                    if cft.shape[0] > t.size:
+                        t = d['corf'][1:, 0]
+                        pad = np.zeros((cnti, t.size-cf.shape[1], qv.size))
+                        cf = np.concatenate((cf, pad), axis=1)
+                        dcf = np.concatenate((dcf, pad), axis=1)
+
                     cf[j, :cft.shape[0], :qv.size] = cft
                     dcf[j, :cft.shape[0], :qv.size] = d['dcorf'][1:-(cutoff+1), 1:qv.size+1]
                 except ValueError as v:
@@ -285,7 +297,8 @@ class CorrFunc(AnaList):
                     self.corrFuncRescaled = [(cf_tmp, dcf_tmp), ]
 
     def plot_parameters(self, plot, cmap='jet', ax=None, change_axes=True,
-                        cindoff=0, extpar_name='extpar', extpar_vec=None, **kwargs):
+                        cindoff=0, extpar_name='extpar', extpar_vec=None,
+                        color_discrete=False, **kwargs):
         """Plot Fit parameter (decay rates, kww exponent, etc.)
         """
         npl = len(plot)
@@ -316,7 +329,10 @@ class CorrFunc(AnaList):
             ax_idx = np.zeros(npl, dtype=np.int16)
             c_idx = np.arange(npars)
 
-        cmap = plt.get_cmap(cmap, npars)
+        if color_discrete:
+            cmap = plt.get_cmap(cmap, npars+1)
+        else:
+            cmap = plt.get_cmap(cmap)
 
         self.pars2 = [[]] * npl
         self.fit_result2 = [[[] for i in range(npars)]] * npl
