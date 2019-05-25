@@ -26,6 +26,7 @@ class CorrFunc(AnaList):
         self.g2plotl = None
         self.nq = np.arange(len(self.Xana.setup.qroi))
         self.db_id = None
+        self.fit_config = None
 
     def __str__(self):
         return 'Corr Func class for g2 displaying.'
@@ -70,16 +71,27 @@ class CorrFunc(AnaList):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     @Decorators.init_figure()
-    def plot_g2(self, nq=None, err=True, ax=None, data='rescaled', cmap='jet',
-                change_marker=False, color_mode=0, color='b', dofit=False,
-                **kwargs):
-        
+    def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet', change_marker=False,
+                color_mode=0, color='b', dofit=False, index = None, **kwargs):
+
+        fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars']
+        fit_kwargs = {k:i for k,i in kwargs.items() if k in fit_keys}
+
         if data == 'original' or self.corrFuncRescaled is None:
             corrFunc = list(self.corrFunc)
         elif data == 'rescaled':
             corrFunc = list(self.corrFuncRescaled)
         else:
             raise ValueError('No usable correlation data defined.')
+
+        if index is not None:
+            if isinstance(index, (int, np.integer)):
+                s = slice(index, index+1)
+            elif isinstance(index, (list, tuple)):
+                s = slice(index[0], index[1])
+            else:
+                raise ValueError(f'Index of type {type(index)} not supported. User int or list.')
+            corrFunc = corrFunc[s]
 
         if nq is None:
             pass
@@ -97,8 +109,12 @@ class CorrFunc(AnaList):
             self.update_colors(cmap, color_multiplier, color_repeater)
         elif color_mode == 2:
             self.colors = [color]*len(self.nq)*len(corrFunc)
-
         self.update_markers(len(corrFunc), change_marker)
+
+        if self.fit_config is None:
+            self.fit_config = dict(fit_kwargs)
+        elif isinstance(self.fit_config, dict):
+            self.fit_config.update(fit_kwargs)
 
         self.pars = [[]] * len(corrFunc)
         self.fit_result = [[]] * len(corrFunc)
@@ -107,13 +123,15 @@ class CorrFunc(AnaList):
         for j, (cfi, dcfi) in enumerate(corrFunc):
             g2 = G2(cfi, self.nq, dcfi)
             if dofit:
-                res = g2.fit(**kwargs)
+                res = g2.fit(**self.fit_config)
                 self.pars[j] = res[0]
                 self.fit_result[j] = res[1]
-            if 'doplot' in kwargs.keys():
+            if 'doplot' in kwargs:
                 g2.plot(marker=self.markers[j % len(self.markers)],
-                        ax=ax, colors=self.colors[ci*len(self.nq):(ci+1)*len(self.nq)],
-                        data_label='id {}'.format(self.db_id[j]), **kwargs)
+                        ax=ax,
+                        colors=self.colors[ci*len(self.nq):(ci+1)*len(self.nq)],
+                        data_label='id {}'.format(self.db_id[j]),
+                        **kwargs)
                 ci += 1
 
     @staticmethod
@@ -298,7 +316,7 @@ class CorrFunc(AnaList):
 
     def plot_parameters(self, plot, cmap='jet', ax=None, change_axes=True,
                         cindoff=0, extpar_name='extpar', extpar_vec=None,
-                        color_discrete=False, **kwargs):
+                        color_discrete=True, **kwargs):
         """Plot Fit parameter (decay rates, kww exponent, etc.)
         """
         npl = len(plot)
