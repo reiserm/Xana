@@ -12,7 +12,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                     textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
                     format_ticks=True, cmap=None, init={}, fix=None, viscosity=False,
                     fit_report=False, emcee=False, exc=None, excfit=None, excbad=True,
-                    weighted=True, xl=None, **kwargs):
+                    weighted=True, xl=None, xlim=[None,None], ylim=[None,None], **kwargs):
 
     def getD(eta, err=0):
         dD = 0
@@ -187,6 +187,8 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
 
     # ax.get_yaxis().get_major_formatter().set_useOffset(False)
     niceplot(ax,)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
 
     if dofit:
         return res

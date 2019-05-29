@@ -74,7 +74,7 @@ class CorrFunc(AnaList):
     def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet', change_marker=False,
                 color_mode=0, color='b', dofit=False, index = None, **kwargs):
 
-        fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars']
+        fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars', 'fitqdep']
         fit_kwargs = {k:i for k,i in kwargs.items() if k in fit_keys}
 
         if data == 'original' or self.corrFuncRescaled is None:

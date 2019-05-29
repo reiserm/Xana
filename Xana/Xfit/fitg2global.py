@@ -2,7 +2,7 @@ import numpy as np
 import lmfit
 from .g2function import g2 as g2func
 from copy import copy
-import re
+import sys
 import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
@@ -17,7 +17,7 @@ class G2:
         self.nq = np.asarray(nq)
 
         self.cf = np.ma.masked_invalid(cf[1:,1:]).T
-        ind_sort = np.argsort(self.cf[0])
+        ind_sort = np.argsort(self.t)
         self.t = self.t[ind_sort]
         self.cf = self.cf[:,ind_sort]
 
@@ -30,15 +30,22 @@ class G2:
         # properties
         self.nmodes = 1
         self.fitglobal = []
+        self.fitqdep = None
 
         # attributes defined in private methods
         self._lmpars = None
         self._weights = None
-        self._sum_residuals = False
+        self._varnames = None
+
+        self._fit_data = None
+        self._fit_weights = None
 
         # fit results
         self.pars = None
         self.fit_result = []
+
+        self._minimizer = None
+
 
     @property
     def nmodes(self):
@@ -66,71 +73,66 @@ class G2:
             fitglobal = []
         self.__fitglobal = fitglobal
 
-    def fit(self, mode='semilogx', nmodes=1, fitglobal=[], init={}, fix={}, lmfit_pars={},):
+    @staticmethod
+    def _reduce_func(arr):
+        return -0.5 * np.nansum(arr * arr)
+
+    @staticmethod
+    def _iter_cb(params, iter, resid, *args, **kws):
+        if (iter) % 128 == 0:
+            print('\rOptimizing...(%d)' % iter, end='', flush=1)
+        else:
+            pass
+
+
+    def fit(self, mode='sig', nmodes=1, fitglobal=[], init={}, fix={}, lmfit_pars={}, fitqdep={}):
         '''
         Function that computes the fits using lmfit's minimizer
         '''        
 
         self.fitglobal = fitglobal
         self.nmodes = nmodes
+        self.fitqdep = fitqdep
 
         # make the parameters
-        if lmfit_pars.get('method', 0) == 'emcee':
-            self._sum_residuals = True
-            if not bool(init.get('__lnsigma',0)):
-                init['__lnsigma'] = 1
+        if not lmfit_pars.get('is_weighted', True):
+            init['__lnsigma'] = 1
+
         self._init_parameters(init, fix)
 
         # setting the weights of the data
         self._get_weights(mode)
 
+        self._minimizer = lmfit.Minimizer(self._residuals, params=self._lmpars,
+                                          reduce_fcn=self._reduce_func,
+                                          iter_cb=self._iter_cb,
+                                          nan_policy='omit')
+
         if bool(self.fitglobal):
-            out = lmfit.minimize(self._residuals, params=self._lmpars,
-                                 args=(self.t,), kws={'data':self.cf[self.nq],
-                                                      'eps':self._weights[self.nq]},
-                                 nan_policy='omit', **lmfit_pars)
+            # set data to fit
+            self._fit_data = self.cf[self.nq]
+            self._fit_weights = self._weights[self.nq]
 
-            self.pars['q'] = self.qv[self.nq]
-            for i, vn in enumerate(out.params.keys()):
-                if '_' not in vn:
-                    idx = 0
-                    nm = vn
-                else:
-                    nm, idx = vn.split('_')
-                    idx = int(idx) + 1
-                self.pars.loc[idx, nm] = out.params[vn].value
-                try:
-                    err = 1.*out.params[vn].stderr
-                except TypeError:
-                    err = np.nan
-                self.pars.loc[idx, 'd'+nm] = err
+            # do the fit
+            out = self._minimizer.minimize(**lmfit_pars)
 
-            gof = np.array([out.chisqr, out.redchi, out.bic, out.aic])                      
-            self.pars.iloc[:,-4:] = gof
-            self.pars = self.pars.apply(pd.to_numeric)
+            self._write_to_pars(out)
             self.fit_result.append((out, lmfit.fit_report(out)))
 
         else:
-            
-            for qi in self.nq:
-                out = lmfit.minimize(self._residuals, params=self._lmpars,
-                                     args=(self.t,), kws={'data':self.cf[qi:qi+1],
-                                                          'eps':self._weights[qi:qi+1]},
-                                     nan_policy='omit', **lmfit_pars)
+            for line, qi in enumerate(self.nq):
+                # set data to fit
+                self._fit_data = self.cf[qi]
+                self._fit_weights = self._weights[qi]
 
-                pars_arr = np.zeros((len(out.params), 2))
-                for i, vn in enumerate(out.params.keys()):
-                    pars_arr[i,0] = out.params[vn].value
-                    try:
-                        pars_arr[i,1] = 1.*out.params[vn].stderr
-                    except TypeError:
-                        pars_arr[i,1] = 1
-                gof = np.array([out.chisqr, out.redchi, out.bic, out.aic])
-                pars = np.hstack((self.qv[qi], pars_arr.flatten(), gof))
-                # print(pars.shape)
-                # print(self.pars.shape)
-                self.pars.loc[self.pars.shape[0]] = pars
+                # do the fit
+                out = self._minimizer.minimize( **lmfit_pars)
+
+                self._write_to_pars(out, line=line)
                 self.fit_result.append((out, lmfit.fit_report(out)))
+
+        self.pars['q'] = self.qv[self.nq]
+        self.pars = self.pars.apply(pd.to_numeric)
 
         return self.pars, self.fit_result
 
@@ -256,29 +258,34 @@ class G2:
                 ax.set_ylim(*yl)
 
         return None
-    
-    def _residuals(self, pars, x, data=None, eps=0):
+
+    def _calc_model(self, v,):
+        """Calculate multi mode g2 funktion
+        """
+        # v = pars.valuesdict()
+        vn = self._varnames
+        model = np.zeros((self.ndat,self.t.size), dtype=np.float64)
+
+        for j in range(self.ndat):
+            for i in range(self.nmodes):
+                a = v[vn['a'][j][i]] if (i==0) else 0
+                model[j] += g2func(self.t,
+                                   t=v[vn['t'][j][i]],
+                                   b=v[vn['b'][j][i]],
+                                   g=v[vn['g'][j][i]],
+                                   a=a)
+        return model
+
+    def _residuals(self, pars,):
         """2D Residual function to minimize
         """
         v = pars.valuesdict()
-        resid = np.zeros((self.ndat,self.t.size))
-        model = np.zeros(x.size, dtype=np.float32)
-        for j in range(self.ndat):
-            jj = j - 1
-            for i in range(self.nmodes):
-                ve = f'{i}' + f'_{jj}'*bool(j)
-                model += g2func(x, t=v['t'+ve], b=v['b'+ve], g=v['g'+ve],
-                            a=v['a'+f'_{jj}'*bool(j)]*1.*(not bool(i)))
-            if np.sum(eps) > 0:
-                resid[j] = (data[j] - model) * np.abs(eps[j])
-            else:
-                resid[j] = (data[j] - model)
-            model *= 0
+        model = self._calc_model(v)
 
-        if not self._sum_residuals:
-            return np.squeeze(resid.flatten())
-        else:
-            return np.sum(resid.flatten())
+        resid = (self._fit_data - model) * np.abs(self._fit_weights)
+
+        return np.squeeze(resid.flatten())
+
 
     def _init_parameters(self, init, fix):
         '''Initialize lmfit parameters dictionary
@@ -289,18 +296,19 @@ class G2:
         # initialize parameters
         pars = lmfit.Parameters()
         for vn, vinit in init.items():
-            pars.add(vn, value=vinit[0], min=vinit[1], max=vinit[2], vary=1)
+            if vn in self.fitqdep:
+                pars.add(vn)
+            else:
+                pars.add(vn, value=vinit[0], min=vinit[1], max=vinit[2], vary=1)
         pars.add('a', value=init['a'][0], min=init['a'][1], max=init['a'][2], vary=1)
         pars.add('beta', value=init['beta'][0], min=init['beta'][1], max=init['beta'][2], vary=1)
 
         self._init_pars_dataframe(init)
+        self._make_varnames()
         
         # setting contrast constraint
-        if self.nmodes > 1:
-            beta_constraint = 'a + beta - 1 -' + '-'.join([f'b{x}' for x in range(1,self.nmodes)])
-            pars['b0'].set(expr=beta_constraint)
-        else:
-            pars['b0'].set(expr='beta')
+        beta_constraint = self._get_beta_constraint(ndat=-1)
+        pars['b0'].set(expr=beta_constraint)
 
         # setting parameters fixed
         for vn in fix.keys():
@@ -308,29 +316,27 @@ class G2:
                 pars[vn].set(value=fix[vn], min=-np.inf, max=np.inf, vary=0)
 
         # modifying pars for global fitting if not globalfit then ndat=1
-        pv = list(pars.values())
+        lpars = list(pars.items())[::-1]
         for j in range(self.ndat-1):
-            for p in pv:
-                pt = copy(p)
-                pt.name += '_' + str(j)
-                pars.add(pt)
+            for pk, pv in lpars:
+                if (pk not in self.fitglobal) or (pk in self.fitqdep):
+                    pt = copy(pv)
+                    pt.name += f'_{j}'
 
-        re_beta = re.compile('beta_\d{1}')
-        re_b = re.compile('b\d{1}')
-        for p in list(pars.keys()):
-            if '_' in p and p.startswith('b') and not p.startswith('be'):
-                pt = p.split('_')[-1]
-                texp = pars[p.split('_')[0]].expr
-                if bool(texp) and self.nmodes > 1:
-                    texp = re_beta.sub('beta_%s' % pt, texp)
-                    tmp  = re_b.findall(texp)[0]
-                    texp = re_b.sub(tmp+'_%s' % pt, texp)
-                    pars[p].set(expr=texp.replace('beta', 'beta_%d' % int(pt)))
-                
-        for gpar in self.fitglobal:
-            for vn in pars.keys():
-                if gpar in vn and len(vn.replace(gpar, '')):
-                    pars[vn].set(expr=pars[gpar].name)
+                    # add the constraint for b0
+                    if pk == 'b0':
+                        beta_constraint = self._get_beta_constraint(ndat=j)
+                        pt.set(expr=beta_constraint)
+
+                    pars.add(pt)
+
+        for p in self.fitqdep:
+            for new_par, par_kw in self.fitqdep[p]['pars'].items():
+                pars.add(new_par, **par_kw)
+            for j in range(self.ndat):
+                vn = p + f'_{j-1}'*bool(j)
+                q = self.qv[self.nq[j]]
+                pars[vn].set(expr=self.fitqdep[p]['expr'].replace('q', f'{q:.5f}'))
 
         self._lmpars = pars
 
@@ -346,7 +352,7 @@ class G2:
             wgt = np.ma.masked_where(excerr, wgt)
             if mode == 'semilogx':
                 wgt = np.log10(wgt)
-            elif mode == 'equal':
+            elif (mode == 'equal') or (mode == 'none') or (mode == None):
                 wgt = np.ones_like(wgt)
             elif mode == 'logt':
                 wgt = 1/np.log10(self.t)
@@ -360,9 +366,6 @@ class G2:
                 wgt = 1/np.log10(wgt)
             elif mode == 'data':
                 wgt = 1/self.cf.copy()
-            elif mode == 'none' or mode == None:
-                wgt *= 0
-                wgt = wgt.astype('uint8')
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
         else:
@@ -405,10 +408,68 @@ class G2:
             init['a'] = (1, 0, 2)
         if 'beta' not in init:
             init['beta'] = (0.2, 0, 1)
-        if bool(init.get('__lnsigma', 0)):
+        if bool(init.get('__lnsigma', False)):
             if not isinstance(init['__lnsigma'], tuple):
                 init['__lnsigma'] = (np.log(0.1), None, None)
 
-    def _parameter_expr(self,):
-        pass
+    def _get_beta_constraint(self, ndat=-1):
+        dc = f'_{ndat}' * bool(ndat+1) # counter for fit_global
+        if self.nmodes > 1:
+            beta_constraint = 'a' + dc + \
+                              ' + beta' + dc + \
+                              ' - 1 - ' + '-'.join([f'b{x}' + dc for x in range(1,self.nmodes)])
+        else:
+            beta_constraint = 'beta' + dc
+        return beta_constraint
+
+    def _make_varnames(self):
+        """Make dict of varnames for easy handling in _calc_model
+        """
+        self._varnames = {'t': [],
+                          'g': [],
+                          'b': [],
+                          'a': [],
+                          'beta': [],
+                          }
+
+        if "__lnsigma" in self.pars.columns:
+            self._varnames["__lnsigma"] = []
+
+        for k in self._varnames.keys():
+            cond = k in ['a', 'beta', '__lnsigma']
+            for j in range(self.ndat):
+                self._varnames[k].append([])
+                jj = j - 1
+                for i in range(self.nmodes):
+                    ve = k + f'{i}' if not cond else k
+                    if (ve not in self.fitglobal) or (ve in self.fitqdep):
+                        ve += f'_{jj}' * bool(j)
+                    self._varnames[k][j].append(ve)
+                    if cond:
+                        break
+
+    def _write_to_pars(self, out, line=0):
+        """ Save fit results in self.pars variable
+        """
+        for k in self._varnames.keys():
+            cond = k in ['a', 'beta', '__lnsigma']
+            gof = np.hstack([out.chisqr, out.redchi, out.bic, out.aic])
+            for j in range(self.ndat):
+                for i in range(self.nmodes):
+                    df_name = k + f'{i}' if not cond else k
+                    if (df_name not in self.fitglobal) or (df_name in self.fitqdep):
+                        param_name = df_name + f'_{j-1}' * bool(j)
+                    else:
+                        param_name = df_name
+                    value = out.params[param_name].value
+                    try:
+                        stderr = 1. * out.params[param_name].stderr
+                    except TypeError:
+                        stderr = np.nan
+                    self.pars.loc[j+line, df_name] = value
+                    self.pars.loc[j+line, 'd'+df_name] = stderr
+
+                self.pars.iloc[j+line, -4:] = gof
+
+
 
