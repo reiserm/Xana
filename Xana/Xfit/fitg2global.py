@@ -31,6 +31,7 @@ class G2:
         self.nmodes = 1
         self.fitglobal = []
         self.fitqdep = None
+        self.fix = None
 
         # attributes defined in private methods
         self._lmpars = None
@@ -45,7 +46,6 @@ class G2:
         self.fit_result = []
 
         self._minimizer = None
-
 
     @property
     def nmodes(self):
@@ -93,6 +93,7 @@ class G2:
         self.fitglobal = fitglobal
         self.nmodes = nmodes
         self.fitqdep = fitqdep
+        self.fix = fix
 
         # make the parameters
         if not lmfit_pars.get('is_weighted', True):
@@ -318,17 +319,21 @@ class G2:
         # modifying pars for global fitting if not globalfit then ndat=1
         lpars = list(pars.items())[::-1]
         for j in range(self.ndat-1):
-            for pk, pv in lpars:
+            for pk, pv in sorted(lpars):
                 if (pk not in self.fitglobal) or (pk in self.fitqdep):
                     pt = copy(pv)
                     pt.name += f'_{j}'
-
-                    # add the constraint for b0
                     if pk == 'b0':
+                        pb0 = pt
                         beta_constraint = self._get_beta_constraint(ndat=j)
-                        pt.set(expr=beta_constraint)
-
+                        pb0.set(expr=beta_constraint)
+                        continue
+                    # print(pars)
+                    # print(pt)
                     pars.add(pt)
+
+            # add the constraint for b0
+            pars.add(pb0)
 
         for p in self.fitqdep:
             for new_par, par_kw in self.fitqdep[p]['pars'].items():
@@ -338,6 +343,15 @@ class G2:
                 q = self.qv[self.nq[j]]
                 pars[vn].set(expr=self.fitqdep[p]['expr'].replace('q', f'{q:.5f}'))
 
+        if sum([x.startswith('t') for x in self.fitglobal]) == 0:
+            for j in range(self.ndat):
+                for i in range(1,self.nmodes):
+                    vc = f't{i}' + f'_{j-1}' * bool(j)
+                    vs = f't{i-1}' + f'_{j-1}'*bool(j)
+                    pars.add(vs+'_dtmp', value=pars[vc].value - pars[vs].value, min=0)
+                    pars[vc].set(expr=f'{vs} + {vs}'+'_dtmp')
+
+        # print(pars)
         self._lmpars = pars
 
     def _get_weights(self, mode):
@@ -369,8 +383,7 @@ class G2:
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
         else:
-            excerr = np.zeros_like(self.cf, bool)
-            wgt = None
+            wgt = np.ma.masked_array(np.ones_like(self.cf))
 
         excdat = ~np.isfinite(self.cf) | wgt.mask
         self.cf = np.ma.masked_where(excdat, self.cf)
@@ -414,12 +427,13 @@ class G2:
 
     def _get_beta_constraint(self, ndat=-1):
         dc = f'_{ndat}' * bool(ndat+1) # counter for fit_global
+        dcb = '' if ('beta' in self.fitglobal) or ('beta' in self.fix) else dc
         if self.nmodes > 1:
             beta_constraint = 'a' + dc + \
-                              ' + beta' + dc + \
+                              ' + beta' + dcb + \
                               ' - 1 - ' + '-'.join([f'b{x}' + dc for x in range(1,self.nmodes)])
         else:
-            beta_constraint = 'beta' + dc
+            beta_constraint = 'beta' + dcb
         return beta_constraint
 
     def _make_varnames(self):
