@@ -8,7 +8,7 @@ from matplotlib.offsetbox import AnchoredText
 from matplotlib import ticker
 
 
-def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
+def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None, marker='o',
                     textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
                     format_ticks=True, cmap=None, init={}, fix=None, viscosity=False,
                     fit_report=False, emcee=False, exc=None, excfit=None, excbad=True,
@@ -119,7 +119,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                     return np.zeros(5)
 
         color = cmap(ci[ii])
-        ax.errorbar(qv[iip], y[iip], dy[iip], fmt='o',
+        ax.errorbar(qv[iip], y[iip], dy[iip], fmt=marker,
                     label=labstr, color=color)
 
         if dofit:
@@ -186,7 +186,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
     ax.legend(loc='best')
 
     # ax.get_yaxis().get_major_formatter().set_useOffset(False)
-    niceplot(ax,)
+    # niceplot(ax,)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
 

@@ -138,9 +138,14 @@ class G2:
         return self.pars, self.fit_result
 
     def plot(self, doplot=False, marker='o', ax=None, xl=None, yl=None, colors=None, alpha=1.,
-             markersize=3., data_label=None, confint=False, **kwargs):
+             markersize=3., data_label=None, confint=False, pars=None, **kwargs):
 
-        sucfit = True if self.pars is not None else False
+        sucfit = True if (self.pars is not None) else False
+
+        if pars is not None:
+            self.pars = pars
+            self.nmodes = max([int(x[1]) if x.startswith('t') else 0 for x in pars.columns]) +1
+            sucfit = True
 
         if xl is None:
             if ax is None:
@@ -154,7 +159,8 @@ class G2:
         for ii, iq in enumerate(self.nq):
             pl = []
             if sucfit:
-                v = self.pars.iloc[ii]
+                ipars = np.abs(self.pars['q']-self.qv[iq]).idxmin()
+                v = self.pars.iloc[ipars]
                 g2f = 0
                 for i in range(self.nmodes):
                     ve = f'{i}'
@@ -253,7 +259,7 @@ class G2:
             ax.set_xlabel(r'delay time $\tau$ [s]')
             ax.set_ylabel(r'$g_2(\tau)$')
 
-            niceplot(ax, autoscale=0)
+            # niceplot(ax, autoscale=0)
             ax.set_xlim(*xl)
             if yl is not None:
                 ax.set_ylim(*yl)
