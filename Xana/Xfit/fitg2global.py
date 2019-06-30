@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
+import re
 from ..Xplot.niceplot import niceplot
 
 class G2:
@@ -142,10 +143,11 @@ class G2:
 
         sucfit = True if (self.pars is not None) else False
 
-        if pars is not None:
-            self.pars = pars
-            self.nmodes = max([int(x[1]) if x.startswith('t') else 0 for x in pars.columns]) +1
-            sucfit = True
+        if pars is not None :
+            if len(pars):
+                self.pars = pars
+                self.nmodes = max([int(x[1]) if x.startswith('t') else 0 for x in pars.columns]) +1
+                sucfit = True
 
         if xl is None:
             if ax is None:
@@ -341,13 +343,20 @@ class G2:
             # add the constraint for b0
             pars.add(pb0)
 
+        re_par = re.compile('[tgb]\d{1}(?=_)')
         for p in self.fitqdep:
             for new_par, par_kw in self.fitqdep[p]['pars'].items():
                 pars.add(new_par, **par_kw)
             for j in range(self.ndat):
                 vn = p + f'_{j-1}'*bool(j)
                 q = self.qv[self.nq[j]]
-                pars[vn].set(expr=self.fitqdep[p]['expr'].replace('q', f'{q:.5f}'))
+                expr = copy(self.fitqdep[p]['expr'])
+                cpars = re_par.findall(expr)
+                for c in cpars:
+                    expr = expr.replace(f'{c}_', self._varnames[c[0]][j][int(c[1])])
+                expr = expr.replace('q', f'{q:.5f}')
+                pars[vn].set(expr=expr)
+
 
         if sum([x.startswith('t') for x in self.fitglobal]) == 0:
             for j in range(self.ndat):
@@ -366,12 +375,17 @@ class G2:
         and define weights for the fit
         '''
         dcf = self.dcf
+        cf = self.cf.copy()
         if dcf is not None:
             excerr = (dcf.filled(0)<=0)
             wgt = dcf.copy()
             wgt = np.ma.masked_where(excerr, wgt)
             if mode == 'semilogx':
                 wgt = np.log10(wgt)
+            elif mode == 'semilogx2':
+                wgt = 1/np.log10(wgt/cf)
+            elif mode == 'semilogx3':
+                wgt = 1/(cf * np.log10(wgt/cf))
             elif (mode == 'equal') or (mode == 'none') or (mode == None):
                 wgt = np.ones_like(wgt)
             elif mode == 'logt':
@@ -434,8 +448,9 @@ class G2:
     def _get_beta_constraint(self, ndat=-1):
         dc = f'_{ndat}' * bool(ndat+1) # counter for fit_global
         dcb = '' if ('beta' in self.fitglobal) or ('beta' in self.fix) else dc
+        dca = '' if ('a' in self.fitglobal) or ('a' in self.fix) else dc
         if self.nmodes > 1:
-            beta_constraint = 'a' + dc + \
+            beta_constraint = 'a' + dca + \
                               ' + beta' + dcb + \
                               ' - 1 - ' + '-'.join([f'b{x}' + dc for x in range(1,self.nmodes)])
         else:

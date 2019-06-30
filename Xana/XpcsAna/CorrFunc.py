@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import copy
 import pandas as pd
+import collections
 
 from ..Decorators import Decorators
 from ..Analist import AnaList
@@ -10,6 +11,22 @@ from ..Xfit.fitg2global import G2
 from ..Xplot.niceplot import niceplot
 from ..misc.resample import resample as resample_func
 from .StaticContrast import staticcontrast
+
+
+def dict_merge(dct, merge_dct):
+    """ Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+        updating only top-level keys, dict_merge recurses down into dicts nested
+        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+        ``dct``.
+        :param dct: dict onto which the merge is executed
+        :param merge_dct: dct merged into dct
+        :return: None
+    """
+    for k, v in merge_dct.items():
+        if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], collections.Mapping):
+            dict_merge(dct[k], merge_dct[k])
+        else:
+            dct[k] = merge_dct[k]
 
 
 class CorrFunc(AnaList):
@@ -33,30 +50,34 @@ class CorrFunc(AnaList):
 
     def __add__(self, cf2):
         cf3 = CorrFunc(self.Xana)
-        cf3.fit_result = copy.deepcopy(self.fit_result)
-        cf3.fit_result.extend(cf2.fit_result)
-        cf3.pars = copy.deepcopy(self.pars)
-        cf3.pars.extend(cf2.pars)
         cf3.corrFunc = copy.deepcopy(self.corrFunc)
         cf3.corrFunc.extend(cf2.corrFunc)
         cf3.corrFuncRescaled = copy.deepcopy(self.corrFuncRescaled)
         cf3.corrFuncRescaled.extend(cf2.corrFuncRescaled)
-        cf3.fit_result = copy.deepcopy(self.fit_result)
-        cf3.fit_result.extend(cf2.fit_result)
-
-        # deal w/ old behavior where fit_config was no list
-        if isinstance(self.fit_config, dict):
-            cf3.fit_config = [copy.deepcopy(self.fit_config),]
-        else:
-            cf3.fit_config = copy.deepcopy(self.fit_config)
-
-        if isinstance(cf2.fit_config, dict):
-            tmp = [copy.deepcopy(cf2.fit_config), ]
-        else:
-            tmp = copy.deepcopy(self.fit_config)
-
-        cf3.fit_config.extend(tmp)
         cf3.db_id = np.append(self.db_id, cf2.db_id)
+
+        try:
+            cf3.fit_result = copy.deepcopy(self.fit_result)
+            cf3.fit_result.extend(cf2.fit_result)
+            cf3.pars = copy.deepcopy(self.pars)
+            cf3.pars.extend(cf2.pars)
+            cf3.fit_result = copy.deepcopy(self.fit_result)
+            cf3.fit_result.extend(cf2.fit_result)
+
+            # deal w/ old behavior where fit_config was no list
+            if isinstance(self.fit_config, dict):
+                cf3.fit_config = [copy.deepcopy(self.fit_config),]
+            else:
+                cf3.fit_config = copy.deepcopy(self.fit_config)
+
+            if isinstance(cf2.fit_config, dict):
+                tmp = [copy.deepcopy(cf2.fit_config), ]
+            else:
+                tmp = copy.deepcopy(self.fit_config)
+
+            cf3.fit_config.extend(tmp)
+        except:
+            pass
         return cf3
 
     def __getstate__(self):
@@ -136,14 +157,16 @@ class CorrFunc(AnaList):
         self.update_markers(ncf, change_marker)
 
         if self.fit_config is None:
-            self.fit_config = dict(fit_kwargs)
-        elif isinstance(self.fit_config, dict):
-            self.fit_config.update(fit_kwargs)
+            self.fit_config = [dict(fit_kwargs),] * ncf
+        elif isinstance(self.fit_config, list):
+            for d in self.fit_config:
+                dict_merge(d, fit_kwargs)
 
         if dofit:
-            self.pars = [[]] * ncf
             self.fit_result = [[]] * ncf
-            self.fit_config = [[]] * ncf
+
+        if dofit or self.pars is None:
+            self.pars = [[]] * ncf
 
         ci = 0
         for j, (ipar,icf) in enumerate(zip(ind_pars,ind_cfs)):
@@ -343,7 +366,7 @@ class CorrFunc(AnaList):
 
     def plot_parameters(self, plot, cmap='jet', ax=None, change_axes=True,
                         cindoff=0, extpar_name='extpar', extpar_vec=None,
-                        color_discrete=True, exclude=None, **kwargs):
+                        color_discrete=True, exclude=None, include=None, **kwargs):
         """Plot Fit parameter (decay rates, kww exponent, etc.)
         """
         npl = len(plot)
@@ -352,6 +375,8 @@ class CorrFunc(AnaList):
         ind_pars = np.arange(npars)
         if exclude is not None:
             ind_pars = np.delete(ind_pars, exclude)
+        elif include is not None:
+            ind_pars = np.array(include)
         npars = ind_pars.size
 
         if ax is None and change_axes:
@@ -371,10 +396,10 @@ class CorrFunc(AnaList):
             mm = max([len(x) if isinstance(x, (list,tuple)) else 1 for x in modes])
         else:
             mm = 1
-            
+
         if change_axes:
             ax_idx = np.arange(len(ax))
-            c_idx = np.repeat(np.arange(mm*npars), 1)
+            c_idx = np.repeat(np.arange(npars), len(ax_idx))
         else:
             ax_idx = np.zeros(npl, dtype=np.int16)
             c_idx = np.arange(npars)
@@ -399,7 +424,7 @@ class CorrFunc(AnaList):
                 pars = self.pars[ind_par]
                 kwargsl = {key: value[i] if isinstance(value, (tuple, list)) else value \
                            for (key, value) in kwargs.items()}
-                res = plot_parameters(pars, p, ax=ax[ax_idx[i]], ci=c_idx[ipar:ipar+mm], cmap=cmap,
+                res = plot_parameters(pars, p, ax=ax[ax_idx[i]], ci=c_idx[ipar], cmap=cmap,
                                       **kwargsl)
                 self.fit_result2[i][ipar] = res[2:4]
                 if not isinstance(res, np.ndarray):
@@ -411,7 +436,6 @@ class CorrFunc(AnaList):
             self.pars2[i] = db_tmp
 
         plt.tight_layout()
-    
 
     @Decorators.input2list
     def get_twotime(self, db_id, twotime_par=None):

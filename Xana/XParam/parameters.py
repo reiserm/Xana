@@ -84,6 +84,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         
 
     textstr = ""
+    markers = ['^', 'v'] if (len(modes)>1) else ['o']
     for ii, i in enumerate(modes):
         if label is None:
             labstr = 'mode {}: {}'.format(i+1, parameter)
@@ -118,8 +119,8 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                 if len(iff)==0 or len(iip)==0:
                     return np.zeros(5)
 
-        color = cmap(ci[ii])
-        ax.errorbar(qv[iip], y[iip], dy[iip], fmt=marker,
+        color = cmap(ci)
+        ax.errorbar(qv[iip], y[iip], dy[iip], fmt=markers[ii],
                     label=labstr, color=color)
 
         if dofit:
@@ -137,11 +138,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
             ax.plot(x, yf, color=color, label=None)
 
         if parameter == 'G':
-            
             if viscosity:
                 textstr += '\neta = {0[0]:.4g} +/- {0[1]:.2g} [cP]'.format(
                     np.array(geteta(*fitpar[0]))*1e3)
-                
         elif parameter == 'f0' and dofit and 't' in res[2].params.keys():
             msd = 1/(2*res[2].params['t'].value)
             dmsd = 2*msd**2*res[2].params['t'].stderr

@@ -74,7 +74,7 @@ class Xdb:
                  'comment':""}
         entry.update(dict(zip(self.meta.columns, self.meta.loc[series_id],)))
         entry = pd.DataFrame(entry, index=[0])
-        self.db = pd.concat([self.db, entry], join='outer', ignore_index=True, copy=False)
+        self.db = pd.concat([self.db, entry], join='outer', ignore_index=True, sort=False, copy=False)
         self.save_db(handle_existing='overwrite')
 
     @Decorators.input2list
@@ -116,7 +116,7 @@ class Xdb:
                 return None
         elif isinstance(dbfile, pd.DataFrame):
             db = dbfile
-        self.db = pd.concat([self.db, db], join='outer', ignore_index=True, copy=False)
+        self.db = pd.concat([self.db, db], join='outer', ignore_index=True, sort=False, copy=False)
 
         if len(self.db[self.db['use'] == False]) and check_duplicates:
             self.discard_entry(

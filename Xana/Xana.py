@@ -6,7 +6,6 @@ from .Xdb import Xdb
 from .misc.xsave import mksavdir, save_result, make_filename
 
 
-
 class Xana(Xdb, Analysis):
 
     def __init__(self, sample='', savdir='./', setupfile=None, **kwargs):
@@ -46,7 +45,3 @@ class Xana(Xdb, Analysis):
             filename = input('Enter filename for setupfile.\t')
 #        savd = copy.deepcopy(vars(self))
         self.setupfile = save_result(self.setup, 'setup', self.savdir, filename, **kwargs)
-        
-
-
-        
