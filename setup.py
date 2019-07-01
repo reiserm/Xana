@@ -31,6 +31,7 @@ setup(
         'emcee',
         'corner',
         'h5py',
+        'ipywidgets',
     ],
     ext_modules=ext,
 )
