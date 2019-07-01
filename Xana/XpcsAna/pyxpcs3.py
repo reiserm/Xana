@@ -205,9 +205,9 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         qv = np.arange(lqv)
 
     if isinstance(data, np.ndarray):
-        nf, dim2, dim1 = np.shape(data)
+        nf, *dim = np.shape(data)
         def get_chunk():
-            return data
+            return (0, data)
     elif isinstance(data, dict):
         nf = data['nimages']
         dim = data['dim']
