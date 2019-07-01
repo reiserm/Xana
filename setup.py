@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import setuptools
 from setuptools import find_packages
-from distutils.core import setup, Extension
+from numpy.distutils.core import setup, Extension
 import os
 
 ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
