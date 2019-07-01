@@ -9,15 +9,14 @@ from time import sleep
 import ipywidgets as widgets
 
 def masker(data, mask1=[]):
-    
 
     if not isinstance(mask1, np.ndarray):
         mask1 = np.ones_like(data)
-    
+
     xs = []
     ys = []
     mask = []
-    
+
     def invert_mask(*args):
         ind = mask1 > 0
         mask1[ind] = 0
@@ -37,7 +36,7 @@ def masker(data, mask1=[]):
         del xs[:]
         del ys[:]
         update_plot()
-        
+
     def mask_roi(*args):
         lx,ly=np.shape(mask1)
         x, y = np.meshgrid(np.arange(lx), np.arange(ly))
@@ -73,17 +72,17 @@ def masker(data, mask1=[]):
         del xs[:]
         del ys[:]
         update_plot()
-        
+
     def above_masking(*args):
         thres = int(mvwid.value)
         mask1[data>=thres]=False
         update_plot()
-        
+
     def below_masking(*args):
         thres = int(mvwid.value)
         mask1[data<=thres]=False
         update_plot()
-        
+
     def onkey(event,line):
         if event.key == 'c':
             cancel_masking()
@@ -107,8 +106,8 @@ def masker(data, mask1=[]):
 
         line.set_data(xs, ys)
         line.figure.canvas.draw_idle()
-        
-    def update_plot(*args):        
+
+    def update_plot(*args):
         line.set_data(xs, ys)
         mask.set_data(mask1.astype(int))
 
@@ -175,12 +174,12 @@ def masker(data, mask1=[]):
         icon='',
     )
     invert_button.on_click(invert_mask)
-    
+
     row2 = widgets.HBox([mask_button,
                          unmask_button,
                          outside_button,
                          invert_button])
-    
+
     savwid = widgets.Text(
         value='example_mask.npy',
         placeholder='type here',
@@ -227,10 +226,8 @@ def masker(data, mask1=[]):
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         ax.imshow(data, interpolation='none', norm=mpl.colors.LogNorm(), aspect='auto')
         mask = plt.imshow(mask1.astype(int), interpolation='none', norm=norm, cmap=cmap, aspect='auto')
-        plt.axis('equal')        
+        plt.axis('equal')
         line, = ax.plot([],[],'.-k')
         cid_m = fig.canvas.mpl_connect('button_press_event', lambda event: onclick(event,line))
         cid_k = fig.canvas.mpl_connect('key_press_event', lambda event: onkey(event,line))
         plt.show()
-    
-    
