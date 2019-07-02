@@ -94,13 +94,16 @@ class Setup:
         return ai
 
     def load_mask(self):
-        self.maskfile = os.path.abspath(self.maskfile)
-        # if self.maskfile.endswith('edf'):
-        #     mask = loadedf(self.maskfile)
-        if self.maskfile.endswith('npy'):
-            mask = np.load(self.maskfile)
+        if isinstance(self.maskfile, str):
+            self.maskfile = os.path.abspath(self.maskfile)
+            # if self.maskfile.endswith('edf'):
+            #     mask = loadedf(self.maskfile)
+            if self.maskfile.endswith('npy'):
+                mask = np.load(self.maskfile)
+            else:
+                print('Mask file not found. Continuing with no pixel masked.')
+                mask = np.ones(self.detector.shape, dtype='bool')
         else:
-            print('Mask file not found. Continuing with no pixel masked.')
             mask = np.ones(self.detector.shape, dtype='bool')
         return mask
 
