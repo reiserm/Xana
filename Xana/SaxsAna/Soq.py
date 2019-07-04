@@ -48,7 +48,7 @@ class Soq(AnaList):
             if color_mode == 0:
                 color_multiplier, color_repeater = len(series_id), 1
             elif color_mode == 1:
-                self.colors = [color]*len(series_id)            
+                self.colors = [color]*len(series_id)
             self.update_colors(cmap, color_multiplier, color_repeater)
         elif color_mode == 2:
             self.colors = [color]*len(series_id)
@@ -65,14 +65,14 @@ class Soq(AnaList):
         if bg is not None:
             del series_id[series_id.index(bg)]
             series_id.insert(bg,0)
-            
+
         output = []
         for i, sid in enumerate(series_id):
             saxsd = self.Xana.get_item(sid)
 
             if 'soq' not in saxsd:
                 Isaxs = saxsd['Isaxs']
-                
+
                 if Isaxs.ndim == 3:
                     Isaxs = self.Xana.arrange_tiles(Isaxs)
 
@@ -125,7 +125,7 @@ class Soq(AnaList):
                 else:
                     I /= normto[1]
                     e /= normto[1]
-                    
+
             ax.errorbar(q, I*A, e*A*Ae, fmt='-', marker=self.markers[i%len(self.markers)],
                       color=self.colors[i], label=legstr, markersize=markersize)
             ax.set_xlabel(xlabel)
@@ -138,14 +138,9 @@ class Soq(AnaList):
             output.append((q,I*A,e*A))
 
         if show_legend:
-            plt.legend(bbox_to_anchor=(1.04,1), borderaxespad=0)
+            ax.legend(bbox_to_anchor=(1.04,1), borderaxespad=0)
             plt.tight_layout(rect=[0,0,0.98,1])
         if shade:
             ax = plt.gca()
             shadeqrois(ax, self.Xana.setup['qv'], self.Xana.setup['dqv'], cmap=cmap_shade)
-
-
-        # return output
-
-        
 
