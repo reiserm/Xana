@@ -131,6 +131,18 @@ class Xdb:
         else:
             return pickle.load(open(self.db.loc[item]['savfile'], 'rb'))
 
+    def export_txt(self, name, item, key):
+        """Export array to txt file.
+
+        name: filename of exported
+        item: db entry to export
+        key: key of loaded dictionary to save
+        """
+
+        data = self.get_item(item)[key]
+        np.savetxt(name, data)
+        print('Data saved as ', name)
+
     @Decorators.input2list
     def rm_db_entry(self, db_id, rmfile=False):
         for i in db_id:
