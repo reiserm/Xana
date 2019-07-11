@@ -9,7 +9,7 @@ from matplotlib import ticker
 
 
 def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None, marker='o',
-                    textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0,
+                    textbox=False, alpha=1, log='', label=None, ci=0, corner_axes=0, mfc=None,
                     format_ticks=True, cmap=None, init={}, fix=None, viscosity=False,
                     fit_report=False, emcee=False, exc=None, excfit=None, excbad=True,
                     weighted=True, xl=None, xlim=[None,None], ylim=[None,None], **kwargs):
@@ -81,10 +81,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         x = np.linspace(np.min(qv[iif]), np.max(qv[iif]), 100)
     else:
         x = np.linspace(xl[0], xl[1], 100)
-        
 
     textstr = ""
-    markers = ['^', 'v'] if (len(modes)>1) else ['o']
+    markers = ['^', 'v'] if (len(modes)<3) else ['o']
     for ii, i in enumerate(modes):
         if label is None:
             labstr = 'mode {}: {}'.format(i+1, parameter)
@@ -120,8 +119,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                     return np.zeros(5)
 
         color = cmap(ci)
-        ax.errorbar(qv[iip], y[iip], dy[iip], fmt=markers[ii],
-                    label=labstr, color=color)
+        marker = markers[i]
+        ax.errorbar(qv[iip], y[iip], dy[iip], fmt=marker,
+                    label=labstr, color=color, mfc=mfc)
 
         if dofit:
             if fit == 'mcmc_line':

@@ -42,11 +42,23 @@ class CorrFunc(AnaList):
         self.twotime = None
         self.g2plotl = None
         self.nq = np.arange(len(self.Xana.setup.qroi))
-        self.db_id = None
+        self.db_id = []
+        self.ncfs = 0
         self.fit_config = None
 
     def __str__(self):
         return 'Corr Func class for g2 displaying.'
+
+    # @property
+    # def db_id(self):
+    #     return self.__db_id
+
+    # @db_id.setter
+    # def db_id(self, values):
+    #     if isinstance(values, np.ndarray):
+    #         self.__db_id = [values, ]
+    #     else:
+    #         self.__db_id = values
 
     def __add__(self, cf2):
         cf3 = CorrFunc(self.Xana)
@@ -54,7 +66,15 @@ class CorrFunc(AnaList):
         cf3.corrFunc.extend(cf2.corrFunc)
         cf3.corrFuncRescaled = copy.deepcopy(self.corrFuncRescaled)
         cf3.corrFuncRescaled.extend(cf2.corrFuncRescaled)
-        cf3.db_id = np.append(self.db_id, cf2.db_id)
+
+        if isinstance(self.db_id, np.ndarray):
+            cf3.db_id = [copy.deepcopy(self.db_id),]
+        else:
+            cf3.db_id = copy.deepcopy(self.db_id)
+        if isinstance(cf2.db_id, np.ndarray):
+            cf3.db_id.append(cf2.db_id)
+        else:
+            cf3.db_id.extend(cf2.db_id)
 
         try:
             cf3.fit_result = copy.deepcopy(self.fit_result)
@@ -73,7 +93,7 @@ class CorrFunc(AnaList):
             if isinstance(cf2.fit_config, dict):
                 tmp = [copy.deepcopy(cf2.fit_config), ]
             else:
-                tmp = copy.deepcopy(self.fit_config)
+                tmp = copy.deepcopy(cf2.fit_config)
 
             cf3.fit_config.extend(tmp)
         except:
@@ -91,12 +111,13 @@ class CorrFunc(AnaList):
 
     @Decorators.input2list
     def get_g2(self, db_id, merge='append', **kwargs):
-        self.db_id = db_id
         self.corrFunc = []
         if merge == 'merge':
             self.merge_g2(db_id, **kwargs)
+            self.db_id.append(db_id)
         elif merge == 'append':
             for sid in db_id:
+                self.db_id.append([sid])
                 try:
                     d = self.Xana.get_item(sid)
                     self.corrFunc.append((np.ma.masked_invalid(d['corf']),
@@ -180,7 +201,7 @@ class CorrFunc(AnaList):
                 g2.plot(marker=self.markers[j % len(self.markers)],
                         ax=ax,
                         colors=self.colors[ci*len(self.nq):(ci+1)*len(self.nq)],
-                        data_label='id {}'.format(self.db_id[j]), pars=self.pars[ipar],
+                        data_label='id {}'.format(self.db_id[j][0]), pars=self.pars[ipar],
                         **kwargs)
                 ci += 1
 
@@ -447,7 +468,7 @@ class CorrFunc(AnaList):
             d = self.Xana.get_item(sid)
             if twotime_par is None:
                 twotime_par = d['twotime_par']
-            try:    
+            try:
                 self.twotime += d['twotime_corf'][twotime_par]
                 i += 1
             except ValueError as e:

@@ -22,7 +22,7 @@ class Xdata(Xfmt):
         self.meta  = []
         self._series = []
         self._series_ids = None
-        
+
     def connect(self, datdir, **kwargs):
         """
         Finds data sets in `datdir` and reads meta data. Can be executed several times to append new data directories.

@@ -143,4 +143,3 @@ class Soq(AnaList):
         if shade:
             ax = plt.gca()
             shadeqrois(ax, self.Xana.setup['qv'], self.Xana.setup['dqv'], cmap=cmap_shade)
-
