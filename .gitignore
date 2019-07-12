@@ -14,8 +14,27 @@
 *.py~
 
 /Doc/_build/
+/Doc/
+.idea/
 /build/
 *.pkl
 *~
 .DS_Store
 *.so
+
+*.ipynb_checkpoints/
+
+Xana/ProcData/agipdMetadata.py
+Xana/SaxsAna/defineqrois.py.orig
+Xana/Xdrop/dropimgood_sel.f90
+Xana/Xdrop/hist_adu_fss.f90
+Xana/Xdrop/hist_adu_rfs.f90
+Xana/Xdrop/hist_adu_rfs2.f90
+Xana/Xdrop/make_drop_adu.sh
+Xana/Xdrop/make_dropletm.sh
+Xana/XpcsAna/.nfs0000000028103f1f000000a5
+Xana/XpcsAna/.nfs000000019107094f000000ae
+Xana/XpcsAna/CorrFunc_conflict-20181113-210123.py
+Xana/XpcsAna/fecorrt3m.cpython-36m-darwin.so.dSYM/
+Xana/XpcsAna/fecorrt3m.cpython-37m-darwin.so.dSYM/
+Xana/XsvsAna/CalcPhotonProbabilities.py.orig
