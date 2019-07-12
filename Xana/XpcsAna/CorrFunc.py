@@ -49,57 +49,6 @@ class CorrFunc(AnaList):
     def __str__(self):
         return 'Corr Func class for g2 displaying.'
 
-    # @property
-    # def db_id(self):
-    #     return self.__db_id
-
-    # @db_id.setter
-    # def db_id(self, values):
-    #     if isinstance(values, np.ndarray):
-    #         self.__db_id = [values, ]
-    #     else:
-    #         self.__db_id = values
-
-    def __add__(self, cf2):
-        cf3 = CorrFunc(self.Xana)
-        cf3.corrFunc = copy.deepcopy(self.corrFunc)
-        cf3.corrFunc.extend(cf2.corrFunc)
-        cf3.corrFuncRescaled = copy.deepcopy(self.corrFuncRescaled)
-        cf3.corrFuncRescaled.extend(cf2.corrFuncRescaled)
-
-        if isinstance(self.db_id, np.ndarray):
-            cf3.db_id = [copy.deepcopy(self.db_id),]
-        else:
-            cf3.db_id = copy.deepcopy(self.db_id)
-        if isinstance(cf2.db_id, np.ndarray):
-            cf3.db_id.append(cf2.db_id)
-        else:
-            cf3.db_id.extend(cf2.db_id)
-
-        try:
-            cf3.fit_result = copy.deepcopy(self.fit_result)
-            cf3.fit_result.extend(cf2.fit_result)
-            cf3.pars = copy.deepcopy(self.pars)
-            cf3.pars.extend(cf2.pars)
-            cf3.fit_result = copy.deepcopy(self.fit_result)
-            cf3.fit_result.extend(cf2.fit_result)
-
-            # deal w/ old behavior where fit_config was no list
-            if isinstance(self.fit_config, dict):
-                cf3.fit_config = [copy.deepcopy(self.fit_config),]
-            else:
-                cf3.fit_config = copy.deepcopy(self.fit_config)
-
-            if isinstance(cf2.fit_config, dict):
-                tmp = [copy.deepcopy(cf2.fit_config), ]
-            else:
-                tmp = copy.deepcopy(cf2.fit_config)
-
-            cf3.fit_config.extend(tmp)
-        except:
-            pass
-        return cf3
-
     def __getstate__(self):
         d = dict(vars(self))
         # d['twotime'] = None
@@ -107,7 +56,32 @@ class CorrFunc(AnaList):
         return d
 
     def __setstate__(self, d):
+        # deal with old type of db_id and fit_config properties
+        if isinstance(d['db_id'], np.ndarray):
+            d['db_id'] = [d['db_id'],]
+        if isinstance(d['fit_config'], dict):
+            d['fit_config'] = [d['fit_config'],]
         self.__dict__.update(d)
+
+    def __add__(self, cf2):
+        cf3 = CorrFunc(self.Xana)
+
+        extend_items = [
+            'corrFunc',
+            'corrFuncRescaled',
+            'db_id',
+            'pars',
+            'fit_result',
+            'fit_config',
+
+        ]
+
+        for item in extend_items:
+            value = copy.deepcopy(getattr(self, item))
+            value.extend(getattr(cf2, item))
+            setattr(cf3, item, value)
+
+        return cf3
 
     @Decorators.input2list
     def get_g2(self, db_id, merge='append', **kwargs):
@@ -129,7 +103,8 @@ class CorrFunc(AnaList):
 
     @Decorators.init_figure()
     def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet', change_marker=False,
-                color_mode=0, color='b', dofit=False, index = None, exclude=None, **kwargs):
+                color_mode=0, color='b', dofit=False, index = None, exclude=None,
+                **kwargs):
 
         fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars', 'fitqdep']
         fit_kwargs = {k:i for k,i in kwargs.items() if k in fit_keys}
@@ -188,6 +163,11 @@ class CorrFunc(AnaList):
 
         if dofit or self.pars is None:
             self.pars = [[]] * ncf
+
+        if len(self.pars) > len(self.db_id):
+            tmp = [np.where(np.diff(x)<0)[0] for x in self.db_id]
+            tmp = [np.split(x, y+1) for x,y in zip(self.db_id,tmp)]
+            self.db_id = [item for sublist in tmp for item in sublist]
 
         ci = 0
         for j, (ipar,icf) in enumerate(zip(ind_pars,ind_cfs)):
