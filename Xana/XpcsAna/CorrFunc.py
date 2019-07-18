@@ -33,18 +33,18 @@ class CorrFunc(AnaList):
 
     def __init__(self, Xana, **kwargs):
         super().__init__(Xana, **kwargs)
-        self.fit_result = None
-        self.pars = None
-        self.corrFunc = None
-        self.corrFuncRescaled = None
-        self.staticContrast = None
-        self.corrFuncChi2 = None
-        self.twotime = None
-        self.g2plotl = None
+        self.fit_result = [None]
+        self.pars = [None]
+        self.corrFunc = [None]
+        self.corrFuncRescaled = [None]
+        self.staticContrast = [None]
+        self.corrFuncChi2 = [None]
+        self.twotime = [None]
+        self.g2plotl = [None]
         self.nq = np.arange(len(self.Xana.setup.qroi))
         self.db_id = []
         self.ncfs = 0
-        self.fit_config = None
+        self.fit_config = []
 
     def __str__(self):
         return 'Corr Func class for g2 displaying.'
@@ -65,7 +65,6 @@ class CorrFunc(AnaList):
 
     def __add__(self, cf2):
         cf3 = CorrFunc(self.Xana)
-
         extend_items = [
             'corrFunc',
             'corrFuncRescaled',
@@ -155,6 +154,8 @@ class CorrFunc(AnaList):
         if self.fit_config is None:
             self.fit_config = [dict(fit_kwargs),] * ncf
         elif isinstance(self.fit_config, list):
+            if len(self.fit_config) == 0:
+                self.fit_config = [dict(fit_kwargs),] * ncf
             for d in self.fit_config:
                 dict_merge(d, fit_kwargs)
 
@@ -317,7 +318,7 @@ class CorrFunc(AnaList):
             dcf = np.ma.masked_where(dcf.filled(-1)<=0, dcf, copy=False)
             cf = np.ma.masked_where(dcf.mask, cf, copy=False)
             dcf = np.ma.masked_where(cf.mask, dcf, copy=False)
-            
+
             cfm, dcfm = np.ma.average(cf, weights=1/dcf**2, returned=1, axis=0)
 
             chi2arr = np.ma.sum((cf - cfm)**2 / cfm**2, 1)
@@ -341,6 +342,7 @@ class CorrFunc(AnaList):
         print('{:<22}{} (total number of images)'.format('', counter))
 
     def merge_g2list(self, resample=False, cutoff=-1, **kwargs):
+        self.db_id = [np.hstack(self.db_id), ]
         for ii, cf_master in enumerate([self.corrFunc, self.corrFuncRescaled]):
             if cf_master is not None:
                 for i, cf in enumerate(cf_master):
@@ -360,6 +362,9 @@ class CorrFunc(AnaList):
                     dcf_tmp = np.hstack((new_t[:, None], new_dcf))
                     dcf_tmp = np.vstack((cf_master[0][0][0, :], dcf_tmp))
 
+                indsort = np.argsort(cf_tmp[1:,0])
+                cf_tmp[1:] = cf_tmp[indsort+1]
+                dcf_tmp[1:] = dcf_tmp[indsort+1]
                 if ii == 0:
                     self.corrFunc = [(cf_tmp, dcf_tmp), ]
                 elif ii == 1:

@@ -65,13 +65,14 @@ class Xdb:
         savname = savfile.split('/')[-1]
         # dbn = self.db.shape[0]
         entry = {'use':True,
-                'sample':self.sample,
-                'analysis':method,
+                 'sample':self.sample,
+                 'analysis':method,
                  'mod':pd.datetime.today(),
                  'savname':savname,
                  'savfile':savfile,
                  'setupfile':self.setupfile,
-                 'comment':""}
+                 'comment':""
+        }
         entry.update(dict(zip(self.meta.columns, self.meta.loc[series_id],)))
         entry = pd.DataFrame(entry, index=[0])
         self.db = pd.concat([self.db, entry], join='outer', ignore_index=True, sort=False, copy=False)
