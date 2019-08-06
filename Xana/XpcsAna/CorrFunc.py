@@ -162,7 +162,7 @@ class CorrFunc(AnaList):
         if dofit:
             self.fit_result = [[]] * ncf
 
-        if dofit or self.pars is None:
+        if dofit or self.pars is None or (len(self.pars)!=ncf) :
             self.pars = [[]] * ncf
 
         if len(self.pars) > len(self.db_id):
@@ -269,7 +269,7 @@ class CorrFunc(AnaList):
 
     def merge_g2(self, in_list, limit=0., chi2sig=3, cutoff=0):
         self.corrFuncChi2 = []
-        
+
         t_exp = np.zeros(len(in_list))
         nframes = t_exp.copy()
         for ii, i in enumerate(in_list):
