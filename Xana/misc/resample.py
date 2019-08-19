@@ -8,7 +8,7 @@ def resample( x, y, dy=None, npoints=100, log=True, method=0):
         mask = (dy<=0) | np.isnan(y)
         y = np.ma.masked_array(y, mask=mask)
         dy = np.ma.masked_array(dy, mask=mask)
-    
+
     if log:
         newx = np.logspace(np.log10(x.min()), np.log10(x.max()), npoints+1)
     else:
@@ -31,9 +31,9 @@ def resample( x, y, dy=None, npoints=100, log=True, method=0):
             dy[ii][tmp>0] = tmp[tmp>0]
         newx[j] = np.ma.average(x[ii],)
         newy[j], newdy[j] = np.ma.average(y[ii], weights=1/dy[ii]**2, axis=0, returned=1)
-    newx = newx[1:]
-    newy = newy[1:]
-    newdy = newdy[1:]
+    # newx = newx[1:]
+    # newy = newy[1:]
+    # newdy = newdy[1:]
     newdy[newdy>0] = np.sqrt(1/newdy[newdy>0])
     return newx, newy, newdy
 

@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import copy
 import pandas as pd
 import collections
@@ -72,7 +74,7 @@ class CorrFunc(AnaList):
             'pars',
             'fit_result',
             'fit_config',
-
+            'corrFuncChi2',
         ]
 
         for item in extend_items:
@@ -87,7 +89,6 @@ class CorrFunc(AnaList):
         self.corrFunc = []
         if merge == 'merge':
             self.merge_g2(db_id, **kwargs)
-            self.db_id.append(db_id)
         elif merge == 'append':
             for sid in db_id:
                 self.db_id.append([sid])
@@ -101,8 +102,9 @@ class CorrFunc(AnaList):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     @Decorators.init_figure()
-    def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet', change_marker=False,
-                color_mode=0, color='b', dofit=False, index = None, exclude=None,
+    def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet',
+                change_marker=False, color_mode=0, color='b', dofit=False,
+                index=None, exclude=None, add_colorbar=False, cblabel=None,
                 **kwargs):
 
         fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars', 'fitqdep']
@@ -122,6 +124,8 @@ class CorrFunc(AnaList):
                 s = slice(index, index+1)
             elif isinstance(index, (list, tuple)):
                 s = slice(index[0], index[1])
+            elif isinstance(index, np.ndarray):
+                s = index
             else:
                 raise ValueError(f'Index of type {type(index)} not supported. User int or list.')
             corrFunc = corrFunc[s]
@@ -139,8 +143,9 @@ class CorrFunc(AnaList):
             self.nq = np.arange(nq)
         else:
             self.nq = nq
+        self.qv = self.Xana.setup.qv[self.nq]
 
-        if color_mode < 2:
+        if color_mode in [0, 1]:
             if color_mode == 0:
                 color_multiplier, color_repeater = self.nq.size, ncf
             elif color_mode == 1:
@@ -149,6 +154,10 @@ class CorrFunc(AnaList):
             self.update_colors(cmap, color_multiplier, color_repeater)
         elif color_mode == 2:
             self.colors = [color]*len(self.nq)*ncf
+        elif color_mode == 'from func' or color_mode == 3:
+            self.colors = [cmap(x) for x in self.qv]
+        elif color_mode == 'from vec' or color_mode == 4:
+            self.colors = [cmap(x) for x in self.qv]
         self.update_markers(ncf, change_marker)
 
         if self.fit_config is None:
@@ -162,8 +171,8 @@ class CorrFunc(AnaList):
         if dofit:
             self.fit_result = [[]] * ncf
 
-        if dofit or self.pars is None or (len(self.pars)!=ncf) :
-            self.pars = [[]] * ncf
+        if dofit or self.pars is None or (len(self.pars)<=max(ind_pars)) :
+            self.pars = [[]] * np.max([ncf, np.max(ind_pars)+1])
 
         if len(self.pars) > len(self.db_id):
             tmp = [np.where(np.diff(x)<0)[0] for x in self.db_id]
@@ -178,13 +187,47 @@ class CorrFunc(AnaList):
                 res = g2.fit(**self.fit_config[j])
                 self.pars[j] = res[0]
                 self.fit_result[j] = res[1]
+                print(f'Fit successful: {res[1][0][0].errorbars}')
             if 'doplot' in kwargs:
                 g2.plot(marker=self.markers[j % len(self.markers)],
                         ax=ax,
                         colors=self.colors[ci*len(self.nq):(ci+1)*len(self.nq)],
-                        data_label='id {}'.format(self.db_id[j][0]), pars=self.pars[ipar],
+                        data_label='id {}'.format(self.db_id[icf][0]), pars=self.pars[ipar],
                         **kwargs)
                 ci += 1
+
+        if add_colorbar:
+            self.add_colorbar(ax, self.qv, cmap=self.colors, discrete=True, label=cblabel)
+
+    @staticmethod
+    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False):
+        vec = np.array(vec)
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes('right', size='5%', pad=0.05)
+
+        change_ticks = False
+        if discrete:
+            ticks = vec
+            norm = mpl.colors.NoNorm()
+            change_ticks = True
+            if isinstance(cmap, str):
+                cmap = plt.get_cmap(cmap, len(vec))
+            elif isinstance(cmap, (list, np.ndarray)):
+                cmap = mpl.colors.ListedColormap(cmap)
+        else:
+            cmap = plt.get_cmap(cmap)
+            ticks = None
+            norm = mpl.colors.Normalize(vmin=vec.min(), vmax=vec.max())
+
+        cb1 = mpl.colorbar.ColorbarBase(cax, norm=norm, cmap=cmap,
+                                        orientation='vertical',)
+
+        cb1.set_label(label)
+        if change_ticks:
+            cb1.set_ticks(np.arange(vec.size))
+            cb1.set_ticklabels(list(map(lambda x: "%.3g" % x, vec)))
+        cb1.ax.invert_yaxis()
+        # cb1.ylabel.set_in_layout(True)
 
     @staticmethod
     def init_pars(names, entry0):
@@ -287,6 +330,7 @@ class CorrFunc(AnaList):
         counter = np.zeros(uq_et.size, dtype=np.int32)
         for i, cnti in enumerate(uq_cnt):
             indall = np.where(uq_inv == i)[0]
+            self.db_id.append(indall)
             for j, ind in enumerate(indall):
                 counter[i] += nframes[ind]
                 item = in_list[ind]

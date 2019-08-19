@@ -58,7 +58,7 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
                 sst[reg][cindex] = matrx[cindex].mean()
                 sl[cindex,:chn] += sst[reg][cindex]
 
-                x = np.dot(matrx[cindex], datreg[reg][cindex]) / lind[cindex]    
+                x = np.dot(matrx[cindex], datreg[reg][cindex]) / lind[cindex]
                 running_mean(corf[cindex,:chn], dcorf[cindex,:chn], x, nk[:chn])
 
                 datreg[reg][cindex] = np.concatenate(
@@ -72,15 +72,15 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
                 correlator2(1,matrx)
 
     def correlator2(reg, matrx):
-        condition = ((reg+1)<srch and (n+1)%2**(reg+1)==0) # if condition is true, move to 
+        condition = ((reg+1)<srch and (n+1)%2**(reg+1)==0) # if condition is true, move to
         kreg = int((n+1)/2**reg)                           # the next register
        # print('\n\ncondition: ', condition)
        # print('kreg: ', kreg)
-            
+
         if 1 < kreg <= chn:
             for cindex in xnq:
                 srr[reg][cindex,:kreg-1] = np.roll(srr[reg][cindex,:kreg-1],1)
-                srr[reg][cindex,0] = srr[reg][cindex,1] + sst[reg][cindex]    
+                srr[reg][cindex,0] = srr[reg][cindex,1] + sst[reg][cindex]
                 sst[reg][cindex] = matrx[cindex].mean()
                 sll[reg][cindex,:kreg-1] += sst[reg][cindex]
 
@@ -138,16 +138,16 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
                 sst[reg][cindex] = matrx[cindex].mean()
                 datreg[reg][cindex] = np.concatenate(
                     (matrx[cindex][:,None], datreg[reg][cindex][:,:chn-1]), axis=1)
-                
+
             verbose1(reg)
             if condition:
                  for cindex in xnq:
-                      matrx[cindex] = (datreg[reg][cindex][:,0] + datreg[reg][cindex][:,1])/2. 
+                      matrx[cindex] = (datreg[reg][cindex][:,0] + datreg[reg][cindex][:,1])/2.
                  reg += 1
                  correlator2(reg, matrx)
 
-                 
-    # finished initializing part             
+
+    # finished initializing part
     tcalc = time()
     chn2 = int(chn/2)
     datregt = []
@@ -173,7 +173,7 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
     for ir in range(srch):
        sll.append(np.zeros((nq,chn), dtype=np.float32))
        srr.append(np.zeros((nq,chn), dtype=np.float32))
-       sst.append(np.zeros(nq)) 
+       sst.append(np.zeros(nq))
 
     #END of declaring and initializing variables####
     n = 0

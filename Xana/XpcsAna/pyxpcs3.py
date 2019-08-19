@@ -281,7 +281,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     #-------------
 
     srch = int(np.ceil(np.log2(nf/chn))) + 1
-    rcr =  int(chn + chn2*(srch-1)) 
+    rcr =  int(chn + chn2*(srch-1))
 
     print('Number of registers is {} with {} total correlation points.'.format(srch, rcr))
 
@@ -296,14 +296,14 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
 
     rcrc = rcr - np.where(lag[sl]>nf)[0].size - 1
     lag *= dt # scale lag-vector with time step
-    
+
     trace = np.empty((nf,lqv))
     tt_vec = np.linspace(0,nf,tt_max_images)*dt
 
     #----multiprocessing----
     # create lists of queues and processes
-    qur = []  
-    qure = []  
+    qur = []
+    qure = []
     pcorr = []
     for i in range(nprocs):
         qur.append(Queue(16))
@@ -313,7 +313,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         q_end = q_sec[i+1]
         pcorr.append(Process(target=mp_corr, args=(i, nf-1, chn, srch, rcr,
                 lind[q_beg:q_end], q_end-q_beg, qur[i], qure[i])))
-        
+
     # start processes
     for i in range(nprocs):
         pcorr[i].start()
@@ -337,7 +337,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
             raise IOError('Chunks have been read in wrong order: chunk index difference is % and not 1.' %
                              chunk_diff)
         last_chunk = c_idx
-        
+
         if saxs is not None:
             chunk = chunk * saxs_imgc # normalize with mean saxs image
 
@@ -356,7 +356,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
                     normfactor[normfactor==0] = 1.
                     tmp_put.append(chunk[:,q0,q1]/normfactor[:,None])
                 elif norm == 'symmetric_whole':
-                    tmp_put.append(chunk[:,q0,q1]/np.mean(chunk[:,lin_mask[0],lin_mask[1]]))
+                    tmp_put.append(chunk[:,q0,q1]/np.mean(chunk[:,lin_mask[0],lin_mask[1]], axis=1)[:,None])
                 elif norm == 'none':
                     tmp_put.append(chunk[:,q0,q1])
                 elif norm == 'corrcoef':
@@ -368,7 +368,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         t0 += chunk_size
 
     progress(1,1)
-        
+
     # read data from output queue
     from_proc = []
     for i in range(nprocs):
@@ -376,7 +376,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         pcorr[i].join()
         qure[i].close()
         qure[i].join_thread()
-        
+
     # get correlation functions and normalization from processes
     corf = from_proc[0][0]
     dcorf = from_proc[0][1]
@@ -408,7 +408,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     dcc[1:,1:] = np.sqrt(dcorf)
     cc[0,1:] = qv
     dcc[0,1:] = qv
-    
+
     if verbose:
         print("\rFinished calculating correlation functions.") 
 

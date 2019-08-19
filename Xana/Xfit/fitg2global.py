@@ -258,7 +258,7 @@ class G2:
             if 'report' in doplot and sucfit:
                 print(lmfit.fit_report(out))
 
-            ax.set_xlabel(r'delay time $\tau$ [s]')
+            ax.set_xlabel(r'$\tau\,[\mathrm{s}]$')
             ax.set_ylabel(r'$g_2(\tau)$')
 
             # niceplot(ax, autoscale=0)
@@ -314,7 +314,7 @@ class G2:
 
         self._init_pars_dataframe(init)
         self._make_varnames()
-        
+
         # setting contrast constraint
         beta_constraint = self._get_beta_constraint(ndat=-1)
         pars['b0'].set(expr=beta_constraint)
