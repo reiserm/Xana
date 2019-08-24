@@ -82,7 +82,7 @@ class Analysis(Xdata):
             ind_arange = np.arange(first,last)
             bins = np.arange(0, nf, chunk_size)
             digitized = np.digitize(ind_arange, bins)
-            chunks = [ind_arange[np.where(digitized==i)] for i in unique(digitized)]
+            chunks = [ind_arange[np.where(digitized==i)] for i in np.unique(digitized)]
 
             if method in ['xpcs', 'xsvs']:
 
