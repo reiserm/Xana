@@ -89,7 +89,7 @@ class G2:
     def fit(self, mode='sig', nmodes=1, fitglobal=[], init={}, fix={}, lmfit_pars={}, fitqdep={}):
         '''
         Function that computes the fits using lmfit's minimizer
-        '''        
+        '''
 
         self.fitglobal = fitglobal
         self.nmodes = nmodes

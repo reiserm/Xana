@@ -52,8 +52,8 @@ class Analysis(Xdata):
             last = (last - 1) % nf + self.meta.loc[sid, 'first']
 
             # update meta database
-            self.meta.loc[sid, 'first'] = first
-            self.meta.loc[sid, 'last'] = last
+            # self.meta.loc[sid, 'first'] = first
+            # self.meta.loc[sid, 'last'] = last
 
             # dict with options and variables passed to the data reader
             read_opt = {'first': first,
