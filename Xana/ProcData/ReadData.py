@@ -477,10 +477,18 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         """
         if verbose:
             print('Loading data in chunks of {} images.'.format(chunk_size))
-        chunks = [np.arange(first[0] + i*chunk_size,
-                            first[0] + min([min([(i + 1) * chunk_size, last[0]]), nimg]),
-                            step[0])
-                  for i in range(np.ceil(nimg / chunk_size).astype(np.int32))]
+
+        # old way
+        # chunks = [np.arange(first[0] + i*chunk_size,
+        #                     first[0] + min([min([(i + 1) * chunk_size, last[0]]), nimg]),
+        #                     step[0])
+        #           for i in range(np.ceil(nimg / chunk_size).astype(np.int32))]
+        # new chunks
+        ind_arange = np.arange(first[0],last[0])
+        bins = np.arange(0, nimg, chunk_size)
+        digitized = np.digitize(ind_arange, bins)
+        chunks = [ind_arange[np.where(digitized==i)] for i in np.unique(digitized)]
+
         return chunks
 
     # --------------------
