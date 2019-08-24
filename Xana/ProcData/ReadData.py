@@ -484,8 +484,8 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
         #                     step[0])
         #           for i in range(np.ceil(nimg / chunk_size).astype(np.int32))]
         # new chunks
-        ind_arange = np.arange(first[0],last[0])
-        bins = np.arange(0, nimg, chunk_size)
+        ind_arange = np.arange(first[0],last[0]+1)
+        bins = np.arange(0, nf, chunk_size)
         digitized = np.digitize(ind_arange, bins)
         chunks = [ind_arange[np.where(digitized==i)] for i in np.unique(digitized)]
 
