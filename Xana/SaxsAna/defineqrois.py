@@ -17,17 +17,17 @@ def getqroi(saxs, setup, qr, phir=None, mirror=False):
 
     qv = qr[:,0]
     dqv = qr[:,1]
-    
+
     if phir is None:
         phiv = [0.]
         dphi = [360.]
     else:
         phiv = phir[:,0]
         dphi = phir[:,1]
-        
+
     phiv = phiv*np.pi/180
     dphi = dphi*np.pi/180
-        
+
     ind = []
     r = []
     ph = []
