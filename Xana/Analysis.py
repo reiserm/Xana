@@ -51,6 +51,11 @@ class Analysis(Xdata):
             last = min([self.meta.loc[sid, 'nframes'], last])
             last = (last - 1) % nf + self.meta.loc[sid, 'first']
 
+            # update meta database
+            self.meta.loc[sid, 'first'] = first
+            self.meta.loc[sid, 'last'] = last
+
+            # dict with options and variables passed to the data reader
             read_opt = {'first': first,
                         'last': last,
                         'dark': dark,
@@ -68,8 +73,16 @@ class Analysis(Xdata):
                         'dim': self.setup.qsec_dim
                         }
 
-            chunks = [np.arange(first + i*chunk_size, min(first + (i + 1)*chunk_size, last))
-                      for i in range(np.ceil((last - first) / chunk_size).astype(np.int32))]
+            # old chunks
+            # chunks = [np.arange(first + i*chunk_size, min(first + (i + 1)*chunk_size, last))
+            #           for i in range(np.ceil((last - first) / chunk_size).astype(np.int32))]
+
+
+            # new chunks
+            ind_arange = np.arange(first,last)
+            bins = np.arange(0, nf, chunk_size)
+            digitized = np.digitize(ind_arange, bins)
+            chunks = [ind_arange[np.where(digitized==i)] for i in unique(digitized)]
 
             if method in ['xpcs', 'xsvs']:
 
