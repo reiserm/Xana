@@ -371,13 +371,13 @@ class Rheo:
                     'dynamic_moduli': 2,
                     'flow_curve': 3,
                 }
-            elif row['datdir'] == './data/':
+            elif 'data' in row['datdir':
                 register = {
                     'all': None,
                     'dynamic_moduli': 1,
                     'flow_curve': 2,
                 }
-            elif row['datdir'] == './p6380/':
+            elif 'p6380' in row['datdir']:
                 register = {
                     'all': None,
                     'dynamic_moduli': 1,
