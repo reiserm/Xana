@@ -371,7 +371,7 @@ class Rheo:
                     'dynamic_moduli': 2,
                     'flow_curve': 3,
                 }
-            elif 'data' in row['datdir':
+            elif 'data' in row['datdir']:
                 register = {
                     'all': None,
                     'dynamic_moduli': 1,
