@@ -11,10 +11,10 @@ class Soq(AnaList):
     """
     Saxs class: Display and analyze Small Angle X-Ray scattering singals.
     """
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def __str__(self):
         return 'Saxs class for displaying saxs signal.'
 
@@ -34,7 +34,7 @@ class Soq(AnaList):
             return mask, setup
         else:
             return self.Xana.mask, self.Xana.setup
-        
+
 
     @Decorators.init_figure()
     @Decorators.input2list
@@ -100,7 +100,7 @@ class Soq(AnaList):
 
             xlabel = r'$q$ [$\mathrm{nm}^{-1}$]' 
             if qexp != None:
-                xlabel = r'$q^{{{}}}$ [$\mathrm{{nm}}^{{-{}}}$]'.format(qexp, qexp)
+                xlabel = r'$q^{{{}}}$ ($\mathrm{{nm}}^{{-{}}}$)'.format(qexp, qexp)
                 q *= q**(qexp-1)
 
             if bg is not None:

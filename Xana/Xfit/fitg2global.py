@@ -7,7 +7,6 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 import re
-from ..Xplot.niceplot import niceplot
 
 class G2:
 
@@ -155,7 +154,7 @@ class G2:
             xl = ax.get_xlim()
             if xl[0] == 0:
                 xl = (np.min(self.t)*0.5,np.max(self.t)*1.5)
-            
+
         xf = np.logspace(np.log10(xl[0]),np.log10(xl[1]), 50)
 
         for ii, iq in enumerate(self.nq):
@@ -258,10 +257,9 @@ class G2:
             if 'report' in doplot and sucfit:
                 print(lmfit.fit_report(out))
 
-            ax.set_xlabel(r'$\tau\,[\mathrm{s}]$')
+            ax.set_xlabel(r'$\tau\,(\mathrm{s})$')
             ax.set_ylabel(r'$g_2(\tau)$')
 
-            # niceplot(ax, autoscale=0)
             ax.set_xlim(*xl)
             if yl is not None:
                 ax.set_ylim(*yl)

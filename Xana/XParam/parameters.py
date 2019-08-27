@@ -45,7 +45,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
         modes = np.array(modes)
         modes -= 1
 
-    if parameter in [0, 'G', 'dispersion']:
+    if parameter in [0, 'G', 'dispersion', 'tau']:
         name = 't'
     elif parameter in [1, 'kww']:
         name = 'g'
@@ -57,9 +57,23 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
 
     kb = 1.381e-23
     m_unit = {
-        'G': 'nm{} s-1'.format(alpha), 'kww': 'nm{}'.format(alpha), 'f0': 'nm{}'.format(alpha)}
-    b_unit = {'G': 's-1', 'kww': '', 'f0': ''}
-    y_label = {'G': r'$\Gamma [s^{-1}]$', 'kww': 'kww', 'f0': 'ergodicity'}
+        'G': 'nm{} s-1'.format(alpha),
+        'kww': 'nm{}'.format(alpha),
+        'f0': 'nm{}'.format(alpha),
+        'tau': 'nm{} s'.format(alpha),
+    }
+    b_unit = {
+        'G': 's-1',
+        'kww': '',
+        'f0': '',
+        'tau': 's'
+    }
+    y_label = {
+        'G': r'$\Gamma (s^{-1})$',
+        'kww': 'kww',
+        'f0': 'ergodicity',
+        'tau': r'$\tau\,(s)$'
+    }
 
     if fit == '' or fit is None:
         dofit = False
@@ -137,10 +151,11 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
 
             ax.plot(x, yf, color=color, label=None)
 
-        if parameter == 'G':
+        if parameter in ['G', 'tau']:
             if viscosity:
+                power = 1 if (parameter=='G') else -1
                 textstr += '\neta = {0[0]:.4g} +/- {0[1]:.2g} [cP]'.format(
-                    np.array(geteta(*fitpar[0]))*1e3)
+                    np.array(geteta(*fitpar[0]))*1e3)**power
         elif parameter == 'f0' and dofit and 't' in res[2].params.keys():
             msd = 1/(2*res[2].params['t'].value)
             dmsd = 2*msd**2*res[2].params['t'].stderr
@@ -167,9 +182,9 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
 
     # set style
     if alpha == 1:
-        x_lab = r'$\mathrm{q} [nm^{-1}]$'
+        x_lab = r'$\mathrm{q} (nm^{-1})$'
     else:
-        x_lab = r'$\mathrm{{q}}^{0} [nm^{{-{0}}}]$'.format(alpha)
+        x_lab = r'$\mathrm{{q}}^{0} (nm^{{-{0}}})$'.format(alpha)
     ax.set_xlabel(x_lab)
     ax.set_ylabel(y_label[parameter])
 
