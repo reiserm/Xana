@@ -252,6 +252,7 @@ class Rheo:
         self.fig = None
         self.params = None
         self.table = None
+        self.interactive = False
 
     @staticmethod
     def read_rheo_data(filename):
@@ -435,19 +436,14 @@ class Rheo:
             df.loc[index] = row
             # self.table.df.loc[index] = row
 
-        legstr = [str(x[0]) for x in h_plot]
-        h = [x[1] for x in h_plot]
-        ax[0].legend(h, legstr, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
+
+        if self.interactive:
+            legstr = [str(x[0]) for x in h_plot]
+            h = [x[1] for x in h_plot]
+            ax[0].legend(h, legstr, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
             mode="expand", borderaxespad=0, ncol=len(legstr))
-        for a in ax:
-            niceplot(a, autoscale=0, labelsize=10, ticksize=8)
-            chldrn = a.get_children()
-            for chld in chldrn:
-                if isinstance(chld, matplotlib.lines.Line2D):
-                    chld.set_markersize(2)
-        plt.tight_layout()
-        plt.show()
-        if self.table is not None:
+            plt.tight_layout()
+            plt.show()
             self.table.df = df
 
     def interact(self, ):
@@ -484,6 +480,8 @@ class Rheo:
 
         def update_table(*args):
             self.table.df.update(self.table.get_changed_df())
+
+        self.interactive = True
 
         self.table = qgrid.show_grid(self.df,
                                        grid_options={
