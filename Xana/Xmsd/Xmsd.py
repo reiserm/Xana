@@ -14,10 +14,10 @@ class MSD:
         self.t = np.ma.masked_invalid(msd[0])
         ind_sort = np.argsort(self.t)
         self.t = self.t[ind_sort]
-
+        
         self.msd = np.ma.masked_invalid(msd[1,ind_sort])
         self.dmsd = np.ma.masked_invalid(msd[2,ind_sort])
-
+        
         # properties
         self.fix = None
 
@@ -66,7 +66,7 @@ class MSD:
         self._get_weights(mode)
         self._fit_weights = self._weights
 
-
+        
         self._minimizer = lmfit.Minimizer(self._residuals, params=self._lmpars,
                                           reduce_fcn=self._reduce_func,
                                           iter_cb=self._iter_cb,
@@ -80,11 +80,11 @@ class MSD:
 
         # convert to numeric data types
         self.pars = self.pars.apply(pd.to_numeric)
-
+        
         self._fit_logarithmic = False
 
         return self.pars, self.fit_result
-
+    
 
     def plot(self, doplot=False, marker='o', ax=None, xl=None, yl=None, colors=None, alpha=1.,
              markersize=3., data_label=None, confint=False, pars=None, **kwargs):
@@ -187,7 +187,9 @@ class MSD:
         """Calculate multi mode g2 funktion
         """
         t = self.t if x is None else x
-        model = 6 * v['d']**2 * (1 - np.exp(-(v['D0']/v['d']**2 * t)**v['a'])) ** (1/v['a']) * (1 + v['Dm']/v['d']**2 * t)
+        model = 6 * v['d']**2 \
+                * (1 - np.exp(-(v['D0']/v['d']**2 * t)**v['a'])) ** (1/v['a']) \
+                * (1 + v['Dm']/v['d']**2 * t) ** (v['a1'])
         if self._fit_logarithmic:
             return np.log10(model)
         else:
@@ -206,7 +208,7 @@ class MSD:
     def _init_parameters(self, init, fix):
         '''Initialize lmfit parameters dictionary
         '''
-
+        
         self._make_varnames()
         self._initial_guess(init)
 
@@ -238,7 +240,7 @@ class MSD:
             wgt = dmsd.copy()
             wgt = np.ma.masked_where(excerr, wgt)
             if mode == 'semilogx':
-                wgt = np.log10(wgt)
+                wgt = np.log10(wgt+1)
             elif mode == 'semilogx2':
                 wgt = 1/np.log10(wgt/msd)
             elif mode == 'semilogx3':
@@ -246,7 +248,7 @@ class MSD:
             elif (mode == 'equal') or (mode == 'none') or (mode == None):
                 wgt = np.ones_like(wgt)
             elif mode == 'logt':
-                wgt = 1/np.log10(self.t)
+                wgt = 1/np.log10(1+self.t)
             elif mode == 't':
                 wgt = 1/self.t
             elif mode == 'sig**2':
@@ -257,9 +259,10 @@ class MSD:
                 wgt = 1/np.log10(wgt)
             elif mode == 'data':
                 wgt = 1/self.msd.copy()
-            elif mode == 'test':
+            elif mode == 'loglog':
                 self._fit_data = np.log10(self._fit_data)
-                wgt = 1/np.log10(wgt)
+                wgt = np.ma.masked_array(np.ones_like(self.msd))
+#                 wgt = np.log10(self.t) / np.log10(wgt)
                 self._fit_logarithmic = True
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
@@ -295,6 +298,9 @@ class MSD:
                     init[vn] = (1e8, 0, None)
                 elif vn == 'a':
                     init[vn] = (1, 0, None)
+                elif vn == 'a1':
+                    init[vn] = (1, 0, None)
+
 
     def _make_varnames(self):
         """Make dict of varnames for easy handling in _calc_model
@@ -302,7 +308,8 @@ class MSD:
         self._varnames = {'d': [],
                           'D0': [],
                           'Dm': [],
-                          'a': []
+                          'a': [],
+                          'a1':[],
                           }
 
     def _write_to_pars(self, out):

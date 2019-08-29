@@ -289,7 +289,7 @@ class G2:
         v = pars.valuesdict()
         model = self._calc_model(v)
 
-        resid = (self._fit_data - model) * np.abs(self._fit_weights)
+        resid = np.sqrt((self._fit_data - model)**2 * np.abs(self._fit_weights)**2)
 
         return np.squeeze(resid.flatten())
 
@@ -387,7 +387,7 @@ class G2:
             elif (mode == 'equal') or (mode == 'none') or (mode == None):
                 wgt = np.ones_like(wgt)
             elif mode == 'logt':
-                wgt = 1/np.log10(self.t)
+                wgt = np.ones_like(cf)*np.log10(self.t)
             elif mode == 't':
                 wgt = 1/self.t
             elif mode == 'sig**2':
@@ -396,8 +396,12 @@ class G2:
                 wgt = 1/wgt
             elif mode == 'logsig':
                 wgt = 1/np.log10(wgt)
+            elif mode == 'logsig+1':
+                wgt = 1/np.log10(wgt+1)
             elif mode == 'data':
                 wgt = 1/self.cf.copy()
+            elif mode == 'test':
+                wgt =  np.log10(self.t[0]/self.t+1) / np.log10(wgt+1)
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
         else:
