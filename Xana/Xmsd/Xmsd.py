@@ -6,6 +6,122 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 import re
+from scipy.interpolate import splev, splrep
+from numpy.fft import fft
+from scipy.special import gamma
+from scipy.signal import savgol_filter
+
+def rescale(y, mn, mx, rng=(0,1)):
+    p = (rng[1]-rng[0])/(mx-mn)
+    return p * (y - mn) + rng[0], p
+
+def rescale_baseline(y, index=None, rng=[0,1], npoints=10):
+    rng[1] = np.max(y)
+    mx = rng[1]
+    if index is None:
+        index = -1
+    mn = np.nanmean(y[-npoints:,index])
+    p = (rng[1]-rng[0])/(mx-mn)
+    return p * (y - mn) + rng[0], p
+
+
+def read_rheo_data(filename):
+    return pd.read_table(filename, sep=';', na_values=' ')
+
+def get_g1(g2):
+    g1 = g2.corrFuncRescaled[0][0].copy()
+    dg1 = g2.corrFuncRescaled[0][1].copy()
+    ind = (slice(1,g1.shape[0]),g2.nq+1)
+    g1[ind] -= 1
+    g1[g1<0] = 0
+    norm = np.asarray(g2.pars[0]['beta'])
+    g1[ind] /= norm
+    dg1[ind] /= norm
+    g1[ind] = np.sqrt(g1[ind])
+    dg1[ind] = .5 / g1[ind] * dg1[ind]
+    return g1, dg1
+
+def get_msd(g1, dg1=None):
+    msd = g1.copy()
+    msd[1:,1:] = -np.log(msd[1:,1:])*6 / msd[0,1:]**2
+    if dg1 is None:
+        return msd
+    else:
+        dmsd = dg1.copy()
+        dmsd[1:,1:] = np.abs(1/g1[1:,1:]*6/g1[0,1:]**2*dg1[1:,1:])
+        return msd, dmsd
+
+def bspline_msd(x, y, plot=False, **kwargs):
+    """Interpolate y=f(x) with Bsplines of degree <degree>
+       and smoothness factor <s>
+    """
+    ind = np.where(~np.isnan(y)&(y>0))
+    x = np.log(x[ind])
+    y = np.log(y[ind])
+    if 'w' in kwargs:
+        kwargs['w'] = np.log(kwargs['w'][ind])
+
+    spl = splrep(x, y, **kwargs)
+    xx = np.linspace(x.min(), x.max(), 200)
+
+    y_i = splev(xx, spl)
+    if plot:
+        fig, ax = plt.subplots()
+        ax.plot(x, y, '-', label='data')
+        ax.plot(xx, y_i, 'b-', lw=4, alpha=0.7, label='BSpline')
+        ax.grid(True)
+        ax.legend(loc='best')
+        ax.legend(loc='lower left', ncol=2)
+        plt.show()
+
+    x = np.ma.masked_invalid(np.exp(xx))
+    y = np.ma.masked_invalid(np.exp(y_i))
+
+    return x, y
+
+def savgol_msd(x, y, plot=False, **kwargs):
+    """Interpolate y=f(x) with Bsplines of degree <degree>
+       and smoothness factor <s>
+    """
+    ind = np.where(~np.isnan(y)&(y>0))
+    x = np.log(x[ind])
+    y = np.log(y[ind])
+    if 'w' in kwargs:
+        kwargs['w'] = kwargs['w'][ind]
+
+    xx = np.linspace(x.min(), x.max(), 200)
+
+    y_i = savgol_filter(y, 7, 4)
+
+    return np.exp(x), np.exp(y_i)
+
+def first_derivative(x,y):
+    dy = np.zeros(y.shape)
+    dy[0:-1] = np.diff(y)/np.diff(x)
+    dy[-1] = (y[-1] - y[-2])/(x[-1] - x[-2])
+    return dy
+
+def calc_gomega(x,y,timestep=1):
+    dy = first_derivative(np.log(x),np.log(y))
+#     dy[np.where(dy<=0)[0][0]:] = dy[np.where(dy<=0)[0][0]-1]
+#     dy = np.log(dy)
+    x = np.log(x)
+    dyfft = fft(dy)
+    gom = 1/dyfft
+    freq = np.fft.fftfreq(x.shape[-1], np.mean(diff(x)))
+    return freq, gom
+
+def calc_viscel_spec(x,y):
+    dy = first_derivative(np.log(x),np.log(y))
+    Gs = 1./(y*gamma(1+dy))
+    return 1/x, Gs
+
+def calc_complex_shear_modulus(x,y):
+    alpha = first_derivative(np.log(x),np.log(y))
+    G = 1./(y*gamma(1+alpha))
+    Gp = G*np.cos(np.pi*alpha/2)
+    Gpp = G*np.sin(np.pi*alpha/2)
+    return 2*np.pi/(x), G, Gp, Gpp
 
 class MSD:
 
@@ -14,10 +130,10 @@ class MSD:
         self.t = np.ma.masked_invalid(msd[0])
         ind_sort = np.argsort(self.t)
         self.t = self.t[ind_sort]
-        
+
         self.msd = np.ma.masked_invalid(msd[1,ind_sort])
         self.dmsd = np.ma.masked_invalid(msd[2,ind_sort])
-        
+
         # properties
         self.fix = None
 
@@ -66,7 +182,7 @@ class MSD:
         self._get_weights(mode)
         self._fit_weights = self._weights
 
-        
+
         self._minimizer = lmfit.Minimizer(self._residuals, params=self._lmpars,
                                           reduce_fcn=self._reduce_func,
                                           iter_cb=self._iter_cb,
@@ -80,11 +196,11 @@ class MSD:
 
         # convert to numeric data types
         self.pars = self.pars.apply(pd.to_numeric)
-        
+
         self._fit_logarithmic = False
 
         return self.pars, self.fit_result
-    
+
 
     def plot(self, doplot=False, marker='o', ax=None, xl=None, yl=None, colors=None, alpha=1.,
              markersize=3., data_label=None, confint=False, pars=None, **kwargs):
@@ -208,7 +324,7 @@ class MSD:
     def _init_parameters(self, init, fix):
         '''Initialize lmfit parameters dictionary
         '''
-        
+
         self._make_varnames()
         self._initial_guess(init)
 
@@ -262,7 +378,6 @@ class MSD:
             elif mode == 'loglog':
                 self._fit_data = np.log10(self._fit_data)
                 wgt = np.ma.masked_array(np.ones_like(self.msd))
-#                 wgt = np.log10(self.t) / np.log10(wgt)
                 self._fit_logarithmic = True
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
