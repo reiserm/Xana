@@ -115,7 +115,7 @@ class Xdata(Xfmt):
         else:
             self.meta = self.meta.append(meta, ignore_index=True)
             self.meta.drop_duplicates(inplace=True)
-            self.meta.reset_index(drop=True, inplace=True)        
+            self.meta.reset_index(drop=True, inplace=True)
 
     def get_series(self, series_id, **kwargs):
         """
@@ -154,6 +154,3 @@ class Xdata(Xfmt):
         :param filename: output filename
         """
         to_h5(self, series_id, filename, **kwargs)
-
-    
-        

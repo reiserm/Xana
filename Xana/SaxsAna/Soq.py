@@ -98,7 +98,7 @@ class Soq(AnaList):
                 I *= q**Iscaling
                 e *= q**Iscaling
 
-            xlabel = r'$q$ [$\mathrm{nm}^{-1}$]' 
+            xlabel = r'$q$ ($\mathrm{nm}^{-1}$)'
             if qexp != None:
                 xlabel = r'$q^{{{}}}$ ($\mathrm{{nm}}^{{-{}}}$)'.format(qexp, qexp)
                 q *= q**(qexp-1)

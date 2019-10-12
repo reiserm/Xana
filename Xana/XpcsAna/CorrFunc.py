@@ -104,7 +104,7 @@ class CorrFunc(AnaList):
     @Decorators.init_figure()
     def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet',
                 change_marker=False, color_mode=0, color='b', dofit=False,
-                index=None, exclude=None, add_colorbar=False, cblabel=None,
+                index=None, exclude=None, add_colorbar=False, cb_kws={},
                 **kwargs):
 
         fit_keys = ['nmodes', 'mode', 'fix', 'init', 'fitglobal', 'lmfit_pars', 'fitqdep']
@@ -121,14 +121,14 @@ class CorrFunc(AnaList):
         ind_pars = ind_cfs.copy()
         if index is not None:
             if isinstance(index, (int, np.integer)):
-                s = slice(index, index+1)
+                s = [index]
             elif isinstance(index, (list, tuple)):
-                s = slice(index[0], index[1])
+                s = np.int32(index)
             elif isinstance(index, np.ndarray):
                 s = index
             else:
                 raise ValueError(f'Index of type {type(index)} not supported. User int or list.')
-            corrFunc = corrFunc[s]
+            corrFunc = [corrFunc[si] for si in s]
             ind_pars = ind_pars[s]
             ind_cfs = np.arange(len(corrFunc))
         elif index is None and exclude is not None:
@@ -196,14 +196,29 @@ class CorrFunc(AnaList):
                         **kwargs)
                 ci += 1
 
+                handles = ax.get_lines()[1::2]
+                if 'legi' in kwargs['doplot']:
+                    labels = [f'index: {si}' for si in s]
+                elif 'legu' in kwargs['doplot']:
+                    labels = kwargs.pop('user_labels', [])
+                    if len(labels) == 0:
+                        print('no user labels found')
+                else:
+                    labels = []
+                handles = handles[:len(labels)]
+                if len(handles):
+                    ax.legend(handles, labels, loc=0)
+
         if add_colorbar:
-            self.add_colorbar(ax, self.qv, cmap=self.colors, discrete=True, label=cblabel)
+            self.add_colorbar(ax, self.qv, cmap=self.colors, discrete=True, **cb_kws)
 
     @staticmethod
-    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False):
+    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False, tick_indices=None, shrink=1., fraction=.15):
+        if tick_indices is None:
+            tick_indices = np.arange(len(vec))
         vec = np.array(vec)
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes('right', size='5%', pad=0.05)
+        # divider = make_axes_locatable(ax)
+        # cax = divider.append_axes('right', size='5%', pad=0.05)
 
         change_ticks = False
         if discrete:
@@ -216,18 +231,20 @@ class CorrFunc(AnaList):
                 cmap = mpl.colors.ListedColormap(cmap)
         else:
             cmap = plt.get_cmap(cmap)
-            ticks = None
+            ticks = none
             norm = mpl.colors.Normalize(vmin=vec.min(), vmax=vec.max())
 
+        cax = mpl.colorbar.make_axes(ax, shrink=shrink, fraction=fraction)[0]
         cb1 = mpl.colorbar.ColorbarBase(cax, norm=norm, cmap=cmap,
                                         orientation='vertical',)
 
         cb1.set_label(label)
         if change_ticks:
-            cb1.set_ticks(np.arange(vec.size))
-            cb1.set_ticklabels(list(map(lambda x: "%.3g" % x, vec)))
+            cb1.set_ticks(tick_indices)
+            cb1.set_ticklabels(list(map(lambda x: "%.3f" % x, vec[tick_indices])))
         cb1.ax.invert_yaxis()
-        # cb1.ylabel.set_in_layout(True)
+        cb1.ax.set_in_layout(True)
+        # cax.yaxis.label.set_in_layout(true)
 
     @staticmethod
     def init_pars(names, entry0):

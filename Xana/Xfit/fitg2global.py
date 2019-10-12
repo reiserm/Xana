@@ -47,6 +47,9 @@ class G2:
 
         self._minimizer = None
 
+        # plot handles
+        self.plot_handles = None
+
     @property
     def nmodes(self):
         return self.__nmodes
@@ -244,6 +247,8 @@ class G2:
                     for child in p.get_children():
                         child.set_color(color)
 
+            self.plot_handles = pl
+
             if 'g1' in doplot:
                 ax.set_xscale('linear')
                 ax.set_yscale('log')
@@ -289,7 +294,7 @@ class G2:
         v = pars.valuesdict()
         model = self._calc_model(v)
 
-        resid = np.sqrt((self._fit_data - model)**2 * np.abs(self._fit_weights)**2)
+        resid = np.sqrt((self._fit_data - model)**2 * self._fit_weights**2)
 
         return np.squeeze(resid.flatten())
 

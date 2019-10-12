@@ -28,13 +28,13 @@ def rescale_baseline(y, index=None, rng=[0,1], npoints=10):
 def read_rheo_data(filename):
     return pd.read_table(filename, sep=';', na_values=' ')
 
-def get_g1(g2):
-    g1 = g2.corrFuncRescaled[0][0].copy()
-    dg1 = g2.corrFuncRescaled[0][1].copy()
+def get_g1(g2, index=0):
+    g1 = g2.corrFuncRescaled[index][0].copy()
+    dg1 = g2.corrFuncRescaled[index][1].copy()
     ind = (slice(1,g1.shape[0]),g2.nq+1)
     g1[ind] -= 1
     g1[g1<0] = 0
-    norm = np.asarray(g2.pars[0]['beta'])
+    norm = np.asarray(g2.pars[index].loc[0, 'beta'])
     g1[ind] /= norm
     dg1[ind] /= norm
     g1[ind] = np.sqrt(g1[ind])
@@ -108,7 +108,7 @@ def calc_gomega(x,y,timestep=1):
     x = np.log(x)
     dyfft = fft(dy)
     gom = 1/dyfft
-    freq = np.fft.fftfreq(x.shape[-1], np.mean(diff(x)))
+    freq = np.fft.fftfreq(x.shape[-1], np.mean(np.diff(x)))
     return freq, gom
 
 def calc_viscel_spec(x,y):
@@ -264,7 +264,7 @@ class MSD:
             if 'data' in doplot:
                 pl.append(ax.errorbar(self.t.filled(np.nan), self.msd.filled(np.nan), yerr=self.dmsd.filled(np.nan),
                                           linestyle='', marker=marker, label=labstr_data,
-                                          alpha=alpha, markersize=markersize)[0])
+                                          alpha=alpha, markersize=markersize))
 
             if colors is None:
                 if 'data' in doplot:
@@ -317,7 +317,7 @@ class MSD:
         v = pars.valuesdict()
         model = self._calc_model(v)
 
-        resid = (self._fit_data - model) * np.abs(self._fit_weights)
+        resid = np.sqrt((self._fit_data - model)**2 * np.abs(self._fit_weights)**2)
         return resid
 
 

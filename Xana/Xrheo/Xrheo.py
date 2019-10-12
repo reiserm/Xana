@@ -9,7 +9,7 @@ import lmfit
 from Xana.Xfit.fit_basic import fit_basic
 import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box, Text
-from IPython.display import display
+from IPython.display import display, clear_output
 import qgrid
 
 class ColeCole:
@@ -190,7 +190,7 @@ class Maxwell:
         self.params = out.params
         self.dofit = True
 
-    def plot(self, ax, cc_cutoff=False):
+    def plot(self, ax, cc_cutoff=False, omega_max=np.inf):
 
         d = self.d
         fill_style = {0: 'none', 1: 'full'}
@@ -202,7 +202,8 @@ class Maxwell:
         for yni in yn:
             x = d[xn].values
             y = d[yni].values
-            pl, = ax.plot(x, y, 'o-', fillstyle=fill_style[fc], color=color)
+            ind = np.where(x<omega_max)
+            pl, = ax.plot(x[ind], y[ind], 'o-', fillstyle=fill_style[fc], color=color, markersize=1)
             if fc == 0:
                 color = pl.get_color()
                 fc = 1
@@ -267,17 +268,21 @@ class Rheo:
         return fname
 
     @staticmethod
-    def plot_dynamic_viscosity(d, ax):
+    def plot_dynamic_viscosity(d, ax, **kwargs):
         x = 'omega in rad/s'
         y = '|Eta*| in Pas'
-        pl, = ax.plot(d[x].values, d[y].values, marker='o', )
+        xvals = d[x].values
+        yvals = d[y].values
+        omega_max = kwargs.get('omega_max', np.inf)
+        ind = np.where(xvals < omega_max)
+        pl, = ax.plot(xvals[ind], yvals[ind], marker='o', )
         ax.set_xscale('log')
         ax.set_xlabel(x)
         ax.set_ylabel(y)
         return pl
 
     @staticmethod
-    def plot_flow_curve_tau(d, ax):
+    def plot_flow_curve_tau(d, ax, **kwargs):
         x = 'GP in 1/s'
         y = 'Tau in Pa'
         ax.plot(d[x].values, d[y].values, marker='o', )
@@ -285,7 +290,7 @@ class Rheo:
         ax.set_ylabel(y)
 
     @staticmethod
-    def plot_flow_curve_eta(d, ax, rngx=(0.02, 0.2), rngy=(0,100)):
+    def plot_flow_curve_eta(d, ax, rngx=(0.02, 0.2), rngy=(0,100), **kwargs):
         xn = 'GP in 1/s'
         yn = 'Eta in Pas'
         x = d[xn].values
@@ -308,7 +313,7 @@ class Rheo:
         return eta, deta
 
     @staticmethod
-    def plot_viscosity_aging(d, ax):
+    def plot_viscosity_aging(d, ax, **kwargs):
         x = 't_seg in s'
         y = '|Eta*| in Pas'
         ax.plot(d[x].values, d[y].values, marker='o', )
@@ -316,7 +321,7 @@ class Rheo:
         ax.set_ylabel(y)
 
     @staticmethod
-    def plot_temperature(d, ax):
+    def plot_temperature(d, ax, **kwargs):
         x = 't in s'
         y = 'T in °C'
         ax.plot(d[x].values, d[y].values, marker='o', )
@@ -335,11 +340,15 @@ class Rheo:
         if self.ax is None:
             ncols = 1 if self.nplots <= 1 else 2
             nrows = (self.nplots + 1) // 2
-            self.fig, ax = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 3))
+            self.fig, ax = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 3), constrained_layout=True)
+            with self.output:
+                clear_output(wait=True)
+                display(self.fig)
             self.ax = ax.flatten() if isinstance(ax, np.ndarray) else [ax, ]
         else:
             for axi in self.ax:
                 axi.clear()
+
 
     def add_columns(self, columns):
         for c in columns[::-1]:
@@ -355,8 +364,9 @@ class Rheo:
             row[f'{p}'] = params[p].value
             row[f'd_{p}'] = params[p].stderr
 
-    def plot(self, df=None, dofit=True, cole_omega_max=30, maxwell_omega_max=40, g0range=[0,200], fitg0=False,
-             defaultQ=1, gpmax=np.inf):
+    def plot(self, df=None, dofit=True, cole_omega_max=30,
+             maxwell_omega_max=40, g0range=[0,200], fitg0=False, defaultQ=1,
+             gpmax=np.inf, plot_kws={}):
 
         if df is None:
             df = self.df
@@ -396,7 +406,7 @@ class Rheo:
                     if dofit:
                         mw.fit()
                         self.set_rowparams(row, mw.params)
-                    mw.plot(ax[ax_index], cole_omega_max)
+                    mw.plot(ax[ax_index], cole_omega_max, **plot_kws)
                     ax_index += 1
 
                 if pn == 'cole-cole' and pv:
@@ -405,31 +415,31 @@ class Rheo:
                     if dofit:
                         cc.fit(fitg0, g0range)
                         self.set_rowparams(row, cc.params)
-                    cc.plot(ax[ax_index])
+                    cc.plot(ax[ax_index], **plot_kws)
                     h_plot.append((index, cc.pl_dat))
                     ax_index += 1
 
                 if pn == 'dynamic viscosity' and pv:
                     d = self.read_rheo_data(self.dname(row, register['dynamic_moduli']))
-                    self.plot_dynamic_viscosity(d, ax[ax_index])
+                    self.plot_dynamic_viscosity(d, ax[ax_index], **plot_kws)
                     ax_index += 1
 
                 if pn == 'temperature' and pv:
                     d = self.read_rheo_data(self.dname(row, register['all']))
-                    self.plot_temperature(d, ax[ax_index])
+                    self.plot_temperature(d, ax[ax_index], **plot_kws)
                     ax_index += 1
 
                 if pn == 'flow curve eta' and pv:
                     d = self.read_rheo_data(self.dname(row, register['flow_curve']))
                     rng = [x.value for x in self.fc_box.children]
-                    eta, deta = self.plot_flow_curve_eta(d, ax[ax_index], rng[:2], rng[2:])
+                    eta, deta = self.plot_flow_curve_eta(d, ax[ax_index], rng[:2], rng[2:], **plot_kws)
                     row['eta0'] = eta
                     row['d_eta0'] = deta
                     ax_index += 1
 
                 if pn == 'flow curve tau' and pv:
                     d = self.read_rheo_data(self.dname(row, register['flow_curve']))
-                    self.plot_flow_curve_tau(d, ax[ax_index])
+                    self.plot_flow_curve_tau(d, ax[ax_index], **plot_kws)
                     ax_index += 1
 
             self.add_columns(row.index)
@@ -442,7 +452,6 @@ class Rheo:
             h = [x[1] for x in h_plot]
             ax[0].legend(h, legstr, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
             mode="expand", borderaxespad=0, ncol=len(legstr))
-            plt.tight_layout()
             plt.show()
             self.table.df = df
 
@@ -452,15 +461,19 @@ class Rheo:
             for b in togPlot:
                 self.plots[b.description] = b.value
             self.init_figure()
-            self.plot(self.table.get_changed_df(),
-                           dofit=tb_plotfit.value,
-                           cole_omega_max=ft_cc.value,
-                           maxwell_omega_max=ft_mw.value,
-                           g0range=frs_g0fit.value,
-                           fitg0=tb_fitg0.value,
-                           defaultQ=ft_quality.value,
-                           gpmax=ft_gpmax.value
-                           )
+            with self.output:
+                clear_output(wait=True)
+                self.plot(self.table.get_changed_df(),
+                              dofit=tb_plotfit.value,
+                              cole_omega_max=ft_cc.value,
+                              maxwell_omega_max=ft_mw.value,
+                              g0range=frs_g0fit.value,
+                              fitg0=tb_fitg0.value,
+                              defaultQ=ft_quality.value,
+                              gpmax=ft_gpmax.value
+                              )
+                display(self.fig)
+
             # self.df = df
 
         def write_df(*args):
@@ -646,13 +659,10 @@ class Rheo:
         self.mw_box = widgets.HBox([ft_mw, ft_quality])
         self.fc_box = widgets.HBox([fls_fc_gpmin, fls_fc_gpmax, fls_fc_etamin, fls_fc_etamax])
 
-        # output = widgets.Output()
 
-        # display(output)
-        # with output:
-        display(btable)
+        self.output = widgets.Output(layout=Layout(height='600px', width = '800px', border='solid'))
         gui = widgets.VBox([widgets.HBox([b_plot, t_save, b_save, b_resetplot, tb_plotfit, b_wpars,]),
-                            plotl, self.mw_box, self.cc_box, self.fc_box] )
-        display(gui)
-
+                        plotl, self.mw_box, self.cc_box, self.fc_box] )
+        main_window = widgets.VBox([btable, gui, self.output])
+        display(main_window)
 
