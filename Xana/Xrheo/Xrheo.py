@@ -14,27 +14,40 @@ import qgrid
 
 class ColeCole:
 
-    def __init__(self, d, omega_max=np.inf, gpmax=np.inf):
+    def __init__(self, d, row, dofit=False, omega_max=np.inf, gpmax=np.inf):
         self.d = d
+        self.dofit = dofit
         self.omega_max = omega_max
         self.gpmax = gpmax
-        self.params = None
+        self.fitg0 = False
+        self.params = row
         self.pl_data = None
         self.pl_fit = None
-        self.dofit = False
-        self.fitg0 = False
+        self.ax = None
+        self.xl = None
+        self.normfactor = 1.
 
     @property
     def params(self):
         return self.__params
 
     @params.setter
-    def params(self, p):
-        if p is None:
+    def params(self, vals):
+        if isinstance(vals, lmfit.parameter.Parameters):
+            p = vals
+        elif vals is None or self.dofit:
             p = lmfit.Parameters()
             p.add('gosc', value=0, min=0)
             p.add('gmax', value=2, vary=0)
-
+        elif isinstance(vals, (pd.DataFrame, pd.Series)):
+            p = lmfit.Parameters()
+            p.add('gosc', value=vals['gosc'], vary=False)
+            p.add('gmax', value=vals['gmax'],vary=False)
+            p.add('g0', value=vals['g0'],vary=False)
+            p.add('gslp', value=vals['gslp'],vary=False)
+            tmp = vals[['g0','gslp']].values
+            if not np.isnan(tmp[0]):
+                self.fitg0 = True
         self.__params = p
 
     @staticmethod
@@ -48,7 +61,7 @@ class ColeCole:
             v = pars.valuesdict()
             fit = ColeCole._fit_func(x, v['gosc'])
             resid = (data - fit)
-            resid /= data
+            # resid /= data
             return resid
 
         d = self.d
@@ -59,12 +72,12 @@ class ColeCole:
 
         gp = d[y[0]].values
         gpp = d[y[1]].values
-        maxind = np.argmax(gpp[d[x] < self.gpmax])
+        maxind = np.argmax(gp[d[x] < self.gpmax])
 
-        gpp_max = gpp[maxind]
-        self.params['gosc'].set(2*gpp_max)
-        self.params['gmax'].set(gpp_max, vary=0)
-        ind = (gp/gpp_max) < omega_max
+        gp_max = gp[maxind]
+        self.params['gosc'].set(2*gp_max)
+        self.params['gmax'].set(gp_max, vary=0)
+        ind = d[x] < omega_max
 
         out = lmfit.minimize(residuals, self.params, args=(gp[ind],),
                              kws={'data': gpp[ind],}, nan_policy='omit')
@@ -95,61 +108,84 @@ class ColeCole:
             self.params['gslp'].stderr = p['b'].value
             self.fitg0 = True
 
-    def plot(self, ax):
+    def plot(self, ax, xl=[0.01,500], normto='gosc', **kwargs):
 
         d = self.d
+        self.ax = ax
+        self.xl = xl
         # omega_max = self.omega_max
 
         x = 'omega in rad/s'
         y = ["G' in Pa", "G'' in Pa"]
 
-        ind = d[x] < 90
+        ind = np.where((d[x] < 90) & (d[x]>xl[0]) & (d[x]<xl[1]))[0]
+        self.xl = [d[x][ind[0]], d[x][ind[-1]]]
 
         gp = d[y[0]].values[ind]
         gpp = d[y[1]].values[ind]
-        gpp_max = self.params['gmax'].value
+        norm = 1.
+        if isinstance(normto, str):
+            if normto in self.params:
+                norm = self.params[normto].value
+                self.normfactor = norm
 
-        self.pl_dat, = ax.plot(gp / gpp_max, gpp / gpp_max, 'o')
+        self.pl_dat, = ax.plot(gp / norm, gpp / norm,  'o', markersize=3)
 
         ax.set_ylabel("G'' in Pa")
         ax.set_xlabel("G' in Pa")
-
-        if self.dofit:
-            textstr = "$G_{{osc}}$ = {:.2g} +/- {:.2g} Pa".format(
-                self.params['gosc'].value, self.params['gosc'].stderr)
-            xf = np.linspace(0, self.params['gosc'].value, 200)
-            yf = ColeCole._fit_func(xf, self.params['gosc'])
-            self.pl_fit, = ax.plot(xf / gpp_max, yf / gpp_max, label=textstr, color=self.pl_dat.get_color())
-            if self.fitg0:
-                xf = np.linspace(gpp_max, 3*gpp_max, 200)
-                yf = self.params['gslp'].value * (xf  - self.params['g0'].value)
-                textstr = "$G_{{0}}$ = {:.2g} +/- {:.2g} Pa".format(
-                    self.params['g0'].value, self.params['g0'].stderr)
-                ax.plot(xf / gpp_max, yf / gpp_max, label=textstr, color=self.pl_dat.get_color())
-                # ax.legend()
         ax.set_ylim([0, 1.5])
         ax.set_xlim([0, 3])
 
+        if self.dofit:
+            self.plot_fit(fitg0=self.fitg0)
+
+    def plot_fit(self, xl=None, fitg0=True):
+        ax = self.ax
+        norm = self.normfactor
+        # textstr = "$G_{{osc}}$ = {:.2g} +/- {:.2g} Pa".format(
+        #     self.params['gosc'].value, self.params['gosc'].stderr)
+        xf = np.linspace(0, self.params['gosc'].value, 200)
+        yf = ColeCole._fit_func(xf, self.params['gosc'])
+        self.pl_fit, = ax.plot(xf / norm, yf / norm, label=None,
+                               color=self.pl_dat.get_color())
+        if fitg0:
+            xf = np.linspace(norm, 3*norm, 200)
+            yf = self.params['gslp'].value * (xf  - self.params['g0'].value)
+            # textstr = "$G_{{0}}$ = {:.2g} +/- {:.2g} Pa".format(
+            #     self.params['g0'].value, self.params['g0'].stderr)
+            ax.plot(xf / norm, yf / norm, label=None,
+                    color=self.pl_dat.get_color())
+            # ax.legend()
+
 class Maxwell:
 
-    def __init__(self, d, omega_max=np.inf):
+    def __init__(self, d, row, dofit=False, omega_max=np.inf):
         self.d = d
+        self.dofit = dofit
         self.omega_max = omega_max
-        self.params = None
+        self.params = row
         self.pl_dat = None
         self.pl_fit = None
-        self.dofit = False
+        self.ax = None
+        self.xl = None
 
     @property
     def params(self):
         return self.__params
 
     @params.setter
-    def params(self, p):
-        if p is None:
+    def params(self, vals):
+        if isinstance(vals, lmfit.parameter.Parameters):
+            p = vals
+        elif vals is None or self.dofit:
             p = lmfit.Parameters()
             p.add('eta', value=1, min=0)
             p.add('lmbd', value=10, min=0)
+            p.add('gp', value=0.1, expr='eta/lmbd')
+        elif isinstance(vals, (pd.DataFrame, pd.Series)):
+            p = lmfit.Parameters()
+            p.add('eta', value=vals['eta'], vary=False)
+            p.add('lmbd', value=vals['lmbd'],vary=False)
             p.add('gp', value=0.1, expr='eta/lmbd')
         self.__params = p
 
@@ -190,8 +226,10 @@ class Maxwell:
         self.params = out.params
         self.dofit = True
 
-    def plot(self, ax, cc_cutoff=False, omega_max=np.inf):
+    def plot(self, ax, omega_max=np.inf, xl=[0.01,500], **kwargs):
 
+        self.ax = ax
+        self.xl = xl
         d = self.d
         fill_style = {0: 'none', 1: 'full'}
 
@@ -199,32 +237,34 @@ class Maxwell:
         yn = ["G' in Pa", "G'' in Pa"]
         fc = 0
         color = None
+        x = d[xn].values
+        ind = np.where((x>xl[0]) & (x<xl[1]) & (x<omega_max))
+        self.xl = [x[ind[0][0]], x[ind[0][-1]]]
         for yni in yn:
-            x = d[xn].values
             y = d[yni].values
-            ind = np.where(x<omega_max)
-            pl, = ax.plot(x[ind], y[ind], 'o-', fillstyle=fill_style[fc], color=color, markersize=1)
+            pl, = ax.plot(x[ind], y[ind], 'o-', fillstyle=fill_style[fc], color=color, markersize=3)
             if fc == 0:
                 color = pl.get_color()
                 fc = 1
 
-        ax.set_xlabel(xn)
-        ax.set_ylabel("G', G'' in Pa")
+        ax.set_xlabel('$\\omega\\, (\\mathrm{{rad/s}})$')
+        ax.set_ylabel("$G',\\, G''\\, (\\mathrm{{Pa}})$")
 
         ax.set_xscale('log')
         ax.set_yscale('log')
 
-        # if cc_cutoff:
-        #     lim = ax.get_ylim()
-        #     ax.vlines(cc_cutoff, lim[0], lim[1], color=pl.get_color(), linestyles='dashed')
-
         if self.dofit:
-            xf = np.logspace(0, 2, 200)
-            p = self.params
-            gpf = Maxwell._mw_gp(xf, p['eta'].value, p['lmbd'].value)
-            gppf = Maxwell._mw_gpp(xf, p['eta'].value, p['lmbd'].value)
-            ax.plot(xf, gpf, '-', color=pl.get_color())
-            ax.plot(xf, gppf, '-', color=pl.get_color())
+            self.plot_fit()
+
+    def plot_fit(self, xl=None):
+        if xl is None:
+            xl = self.xl
+        xf = np.logspace(np.log10(xl[0]), np.log10(xl[1]), 200)
+        p = self.params
+        gpf = Maxwell._mw_gp(xf, p['eta'].value, p['lmbd'].value)
+        gppf = Maxwell._mw_gpp(xf, p['eta'].value, p['lmbd'].value)
+        self.ax.plot(xf, gpf, '-', color=self.ax.get_lines()[-1].get_color())
+        self.ax.plot(xf, gppf, '-', color=self.ax.get_lines()[-1].get_color())
 
 
 class Rheo:
@@ -366,7 +406,7 @@ class Rheo:
 
     def plot(self, df=None, dofit=True, cole_omega_max=30,
              maxwell_omega_max=40, g0range=[0,200], fitg0=False, defaultQ=1,
-             gpmax=np.inf, plot_kws={}):
+             gpmax=np.inf, plot_fit=False, plot_kws={}):
 
         if df is None:
             df = self.df
@@ -402,20 +442,25 @@ class Rheo:
 
                 if pn == 'dynamic moduli' and pv:
                     d = self.read_rheo_data(self.dname(row, register['dynamic_moduli']))
-                    mw = Maxwell(d, maxwell_omega_max)
+                    mw = Maxwell(d, row, dofit=dofit, omega_max=maxwell_omega_max)
                     if dofit:
                         mw.fit()
                         self.set_rowparams(row, mw.params)
-                    mw.plot(ax[ax_index], cole_omega_max, **plot_kws)
+                    mw.plot(ax[ax_index], **plot_kws)
+                    if plot_fit:
+                        mw.plot_fit()
                     ax_index += 1
 
                 if pn == 'cole-cole' and pv:
                     d = self.read_rheo_data(self.dname(row, register['dynamic_moduli']))
-                    cc = ColeCole(d, cole_omega_max, gpmax)
+                    cc = ColeCole(d, row, dofit=dofit, omega_max=cole_omega_max,
+                                  gpmax=gpmax)
                     if dofit:
                         cc.fit(fitg0, g0range)
                         self.set_rowparams(row, cc.params)
                     cc.plot(ax[ax_index], **plot_kws)
+                    if plot_fit:
+                        cc.plot_fit(fitg0=fitg0)
                     h_plot.append((index, cc.pl_dat))
                     ax_index += 1
 
@@ -431,7 +476,10 @@ class Rheo:
 
                 if pn == 'flow curve eta' and pv:
                     d = self.read_rheo_data(self.dname(row, register['flow_curve']))
-                    rng = [x.value for x in self.fc_box.children]
+                    if self.interactive:
+                        rng = [x.value for x in self.fc_box.children]
+                    else:
+                        rng = [0,np.inf, 0, np.inf]
                     eta, deta = self.plot_flow_curve_eta(d, ax[ax_index], rng[:2], rng[2:], **plot_kws)
                     row['eta0'] = eta
                     row['d_eta0'] = deta
@@ -591,14 +639,14 @@ class Rheo:
 
         # Widgets Cole-Cole Plot
         ft_cc = widgets.FloatText(
-            value=1.5,
-            description=r'Cole-Cole: $G_p/G_{max}$',
+            value=50,
+            description=r'CC: $\omega_{max}$',
             disabled=False,
             layout=Layout(width='15%')
         )
         ft_gpmax = widgets.FloatText(
             value=90,
-            description=r'$\omega_{max}$ for plot',
+            description=r"$G'_{max}$",
             disabled=False,
             layout=Layout(width='15%')
         )

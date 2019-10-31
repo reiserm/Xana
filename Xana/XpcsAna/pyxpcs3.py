@@ -106,12 +106,12 @@ def avr_better( saxs, ctr, mask ):
     mean_saxs = np.zeros(max_n+1, np.float32)
     new_saxs = np.zeros_like(saxs, np.float32)
     radi = np.zeros((max_n,2), np.float32)
-    
+
     for i in range(max_n):
         ind = np.where((n==i) & (mask==1))
         if ind[0].size:
             mean_saxs[i] = np.mean(saxs[ind])
-            
+
     for i in range(dim1):
         for j in range(dim2):
             if q[i,j] > 0:
