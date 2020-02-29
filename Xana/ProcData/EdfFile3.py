@@ -58,12 +58,12 @@
         {
         ; Exemple Header
         HeaderID = EH:000001:000000:000000    ; automatically generated
-        ByteOrder = LowByteFirst              ; 
+        ByteOrder = LowByteFirst              ;
         DataType = FloatValue                 ; 4 bytes per pixel
         Size = 4000000                        ; size of data section
         Dim_1= 1000                           ; x coordinates
         Dim_2 = 1000                          ; y coordinates
-        
+
         (padded with spaces to complete 1024 bytes)
         }
     - There are some fields in the header that are required for this implementation. If any of

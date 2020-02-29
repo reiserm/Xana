@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 import re
+from scipy.special import gamma
 
 class G2:
 
@@ -370,6 +371,7 @@ class G2:
                     pars[vc].set(expr=f'{vs} + {vs}'+'_dtmp')
 
         # print(pars)
+        pars._asteval.symtable['gamma'] = gamma
         self._lmpars = pars
 
     def _get_weights(self, mode):

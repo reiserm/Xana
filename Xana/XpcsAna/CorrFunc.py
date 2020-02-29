@@ -213,38 +213,53 @@ class CorrFunc(AnaList):
             self.add_colorbar(ax, self.qv, cmap=self.colors, discrete=True, **cb_kws)
 
     @staticmethod
-    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False, tick_indices=None, shrink=1., fraction=.15):
-        if tick_indices is None:
-            tick_indices = np.arange(len(vec))
-        vec = np.array(vec)
+    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False, tick_step=1,
+                     qscale=0, location='right', show_offset=False, **kwargs):
+
+        ncolors = len(vec)
+        tick_indices = np.arange(0, len(vec), tick_step)
+        vec = np.array(vec)[tick_indices]
+        vec *= 10**qscale
         # divider = make_axes_locatable(ax)
         # cax = divider.append_axes('right', size='5%', pad=0.05)
 
         change_ticks = False
         if discrete:
-            ticks = vec
             norm = mpl.colors.NoNorm()
             change_ticks = True
             if isinstance(cmap, str):
-                cmap = plt.get_cmap(cmap, len(vec))
+                cmap = plt.get_cmap(cmap, ncolors)
             elif isinstance(cmap, (list, np.ndarray)):
                 cmap = mpl.colors.ListedColormap(cmap)
         else:
             cmap = plt.get_cmap(cmap)
-            ticks = none
             norm = mpl.colors.Normalize(vmin=vec.min(), vmax=vec.max())
 
-        cax = mpl.colorbar.make_axes(ax, shrink=shrink, fraction=fraction)[0]
-        cb1 = mpl.colorbar.ColorbarBase(cax, norm=norm, cmap=cmap,
-                                        orientation='vertical',)
 
-        cb1.set_label(label)
+        if location == 'right':
+            orientation = 'vertical'
+        elif location == 'top':
+            orientation = 'horizontal'
+
+        cax = mpl.colorbar.make_axes(ax, location=location, **kwargs)[0]
+        cb = mpl.colorbar.ColorbarBase(cax, norm=norm, cmap=cmap,
+                                       orientation=orientation)
+
+        # set up color bar ticks
+        if location == 'top':
+            cax.xaxis.set_ticks_position('top')
+            cax.xaxis.set_label_position('top')
+
+        cb.set_label(label)
         if change_ticks:
-            cb1.set_ticks(tick_indices)
-            cb1.set_ticklabels(list(map(lambda x: "%.3f" % x, vec[tick_indices])))
-        cb1.ax.invert_yaxis()
-        cb1.ax.set_in_layout(True)
-        # cax.yaxis.label.set_in_layout(true)
+            cb.set_ticks(tick_indices)
+            cb.set_ticklabels(list(map(lambda x: "%.{}f".format(3-qscale) % x, vec)))
+            if qscale and show_offset:
+                cb.ax.text(1.,1.04, r'$\times 10^{{-{}}}$'.format(qscale),
+                            transform=cb.ax.transAxes)
+        cb.ax.invert_yaxis()
+        cb.ax.set_in_layout(True)
+
 
     @staticmethod
     def init_pars(names, entry0):
@@ -521,7 +536,7 @@ class CorrFunc(AnaList):
                 print('Could not average %d error message was\n\t%s' % (int(sid), e))
         self.twotime /= i
 
-    @Decorators.init_figure()
+
     @Decorators.input2list
     def plot_twotime(self, db_id, clim=(None, None), ax=None, interpolation='gaussian', \
                      twotime_par=None):

@@ -11,6 +11,7 @@ import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box, Text
 from IPython.display import display, clear_output
 import qgrid
+from Xana.misc.logind import gen_logind
 
 class ColeCole:
 
@@ -168,6 +169,7 @@ class Maxwell:
         self.pl_fit = None
         self.ax = None
         self.xl = None
+        self.plot_ind = [1, 1]
 
     @property
     def params(self):
@@ -226,7 +228,8 @@ class Maxwell:
         self.params = out.params
         self.dofit = True
 
-    def plot(self, ax, omega_max=np.inf, xl=[0.01,500], **kwargs):
+    def plot(self, ax, omega_max=np.inf, xl=[0.01,500], npoints=100, logspace=False,
+             markersize=3, linestyle='', plot_gp=True, plot_gpp=True, **kwargs):
 
         self.ax = ax
         self.xl = xl
@@ -235,14 +238,22 @@ class Maxwell:
 
         xn = 'omega in rad/s'
         yn = ["G' in Pa", "G'' in Pa"]
+        self.plot_ind = np.array([plot_gp, plot_gpp], dtype='int8')
+        yn = [yn[i] for i,xi in enumerate(self.plot_ind) if xi]
+
         fc = 0
         color = None
         x = d[xn].values
-        ind = np.where((x>xl[0]) & (x<xl[1]) & (x<omega_max))
-        self.xl = [x[ind[0][0]], x[ind[0][-1]]]
+        ind = np.where((x>xl[0]) & (x<xl[1]) & (x<omega_max))[0]
+        if logspace:
+            ind = ind[gen_logind(len(ind), min([npoints,len(ind)]))]
+        else:
+            ind = ind[np.unique(np.linspace(0,len(ind)-1,npoints).astype(np.int))]
+        self.xl = [x[ind[0]], x[ind[-1]]]
+
         for yni in yn:
             y = d[yni].values
-            pl, = ax.plot(x[ind], y[ind], 'o-', fillstyle=fill_style[fc], color=color, markersize=3)
+            pl, = ax.plot(x[ind], y[ind], 'o', linestyle=linestyle, fillstyle=fill_style[fc], color=color, markersize=markersize)
             if fc == 0:
                 color = pl.get_color()
                 fc = 1
@@ -263,8 +274,12 @@ class Maxwell:
         p = self.params
         gpf = Maxwell._mw_gp(xf, p['eta'].value, p['lmbd'].value)
         gppf = Maxwell._mw_gpp(xf, p['eta'].value, p['lmbd'].value)
-        self.ax.plot(xf, gpf, '-', color=self.ax.get_lines()[-1].get_color())
-        self.ax.plot(xf, gppf, '-', color=self.ax.get_lines()[-1].get_color())
+        if self.plot_ind[0]:
+            self.ax.plot(xf, gpf, '-',
+                         color=self.ax.get_lines()[-1].get_color())
+        if self.plot_ind[1]:
+            self.ax.plot(xf, gppf, '-',
+                         color=self.ax.get_lines()[-1].get_color())
 
 
 class Rheo:
@@ -294,6 +309,7 @@ class Rheo:
         self.params = None
         self.table = None
         self.interactive = False
+        self.data = {}
 
     @staticmethod
     def read_rheo_data(filename):
@@ -361,10 +377,10 @@ class Rheo:
         ax.set_ylabel(y)
 
     @staticmethod
-    def plot_temperature(d, ax, **kwargs):
+    def plot_temperature(d, ax, marker='o', **kwargs):
         x = 't in s'
         y = 'T in °C'
-        ax.plot(d[x].values, d[y].values, marker='o', )
+        ax.plot(d[x].values, d[y].values, marker=marker, **kwargs)
         ax.set_xlabel(x)
         ax.set_ylabel(y)
 
@@ -404,7 +420,7 @@ class Rheo:
             row[f'{p}'] = params[p].value
             row[f'd_{p}'] = params[p].stderr
 
-    def plot(self, df=None, dofit=True, cole_omega_max=30,
+    def plot(self, df=None, dofit=True, doplot=True, cole_omega_max=30,
              maxwell_omega_max=40, g0range=[0,200], fitg0=False, defaultQ=1,
              gpmax=np.inf, plot_fit=False, plot_kws={}):
 
@@ -413,6 +429,7 @@ class Rheo:
 
         ax = self.ax
         h_plot = []
+        self.data = {pn:{} for pn in self.plots.keys()}
         for index, row in df[df['plot']].iterrows():
 
             if '18' in row['datdir']:
@@ -446,7 +463,8 @@ class Rheo:
                     if dofit:
                         mw.fit()
                         self.set_rowparams(row, mw.params)
-                    mw.plot(ax[ax_index], **plot_kws)
+                    if doplot:
+                        mw.plot(ax[ax_index], **plot_kws)
                     if plot_fit:
                         mw.plot_fit()
                     ax_index += 1
@@ -458,7 +476,8 @@ class Rheo:
                     if dofit:
                         cc.fit(fitg0, g0range)
                         self.set_rowparams(row, cc.params)
-                    cc.plot(ax[ax_index], **plot_kws)
+                    if doplot:
+                        cc.plot(ax[ax_index], **plot_kws)
                     if plot_fit:
                         cc.plot_fit(fitg0=fitg0)
                     h_plot.append((index, cc.pl_dat))
@@ -490,6 +509,10 @@ class Rheo:
                     self.plot_flow_curve_tau(d, ax[ax_index], **plot_kws)
                     ax_index += 1
 
+                # write data to dictionary
+                if pv:
+                    self.data[pn][index] = d
+
             self.add_columns(row.index)
             df.loc[index] = row
             # self.table.df.loc[index] = row
@@ -502,6 +525,30 @@ class Rheo:
             mode="expand", borderaxespad=0, ncol=len(legstr))
             plt.show()
             self.table.df = df
+
+    def get_gp(self, omega=10, key=None):
+
+        """Get G' and G'' for a fixed frequency.
+        """
+
+        gpn = "G' in Pa"
+        gppn = "G'' in Pa"
+        omn = "omega in rad/s"
+        data = self.data['dynamic moduli']
+        indices = data.keys()
+        npoints = len(indices)
+
+        out = np.zeros((npoints, 3))
+
+        for n, index in enumerate(indices):
+            dati = data[index]
+            ind = np.abs(dati[omn]-omega).idxmin()
+            out[n] = dati.loc[ind, [omn, gpn, gppn]]
+
+            if key is not None:
+                out[n,0] = self.df.loc[index, key]
+
+        return out
 
     def interact(self, ):
 

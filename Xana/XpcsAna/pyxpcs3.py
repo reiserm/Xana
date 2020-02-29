@@ -140,7 +140,7 @@ def calculate_twotime_correlation_function(ttdata, tt_max_images=5000):
         print('Reducing two-time correlation data from {} to {} images by rebinning.'.format(nf,tt_max_images))
         ttdata = np.mean(ttdata[:nfnew].reshape(ttchunk,-1,lind, order='F'), 0)
 
-    lind2 = lind // 16 
+    lind2 = lind // 16
     l = np.zeros(5)
     y=[]
     v=[]
@@ -410,7 +410,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     dcc[0,1:] = qv
 
     if verbose:
-        print("\rFinished calculating correlation functions.") 
+        print("\rFinished calculating correlation functions.")
 
     del corf, dcorf, rcr, srch, lag, from_proc
 

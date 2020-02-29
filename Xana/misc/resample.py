@@ -4,10 +4,21 @@ def resample( x, y, dy=None, npoints=100, log=True, method=0):
     """Resample data.
     """
     x = np.ma.masked_where(np.isnan(x), x)
+    y = np.ma.masked_where(np.isnan(y), y)
+
+    if y.ndim == 1:
+        y = np.expand_dims(y, 1)
+        if dy is not None:
+            dy = np.expand_dims(dy, 1)
+
     if dy is not None:
         mask = (dy<=0) | np.isnan(y)
         y = np.ma.masked_array(y, mask=mask)
         dy = np.ma.masked_array(dy, mask=mask)
+        returned = True
+    else:
+        returned = False
+        dy = np.ones_like(y)
 
     if log:
         newx = np.logspace(np.log10(x.min()), np.log10(x.max()), npoints+1)
@@ -35,6 +46,9 @@ def resample( x, y, dy=None, npoints=100, log=True, method=0):
     # newy = newy[1:]
     # newdy = newdy[1:]
     newdy[newdy>0] = np.sqrt(1/newdy[newdy>0])
-    return newx, newy, newdy
+    if returned:
+        return newx, newy, newdy
+    else:
+        return newx, newy
 
 
