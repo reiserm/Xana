@@ -16,6 +16,7 @@ setup(
     author = 'Mario Reiser',
     author_email = 'mario.mkel@gmail.com',
     url = 'https://github.com/reiserm/Xana',
+    download_url = 'https://github.com/reiserm/Xana/archive/v0.0.8-alpha.tar.gz',
     keywords = ['data analysis', 'XPCS', 'XSVS', 'SAXS',],
     python_requires ='>= 3.6',
     install_requires = [
