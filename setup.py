@@ -32,16 +32,15 @@ setup(
         'ipywidgets',
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',      
-        'Intended Audience :: Scientists',    
-        'Topic :: Data Analysis :: Coherent X-ray Scattering',
-        'License :: OSI Approved :: MIT License',   
-        'Programming Language :: Python :: 3',      
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Scientists',
+        'Topic :: Scientific/Engineering :: Physics',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'long_description = file: README.md'
   ],
     ext_modules=ext,
-  
 )
 
