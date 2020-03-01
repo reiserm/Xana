@@ -3,12 +3,14 @@ import setuptools
 from setuptools import find_packages
 from numpy.distutils.core import setup, Extension
 import os
+from distutils.command.sdist import sdist
 
 ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
                  sources=['Xana/XpcsAna/fecorrt3m.f90'],
                  f2py_options=['--verbose'])]
 
 setup(
+    cmdclass={'sdist': sdist},
     name = 'Xana',
     version = '0.0.8',
     packages=setuptools.find_packages(),
