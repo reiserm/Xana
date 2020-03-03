@@ -1,34 +1,38 @@
 # Xana - README
 
-## Install
+## Installation
 
-You will need a Fortran compiler like `gfortran`. During installation `f2py`
-(now part of `numpy`) is used to build python modules from fortran routines.
+You need a Fortran compiler as `f2py` (now part of `numpy`) is used during
+installation to build python modules from fortran routines. If the installation
+fails due to a missing compiler see point 3.
 
-1. If a Fortran compiler is not already installed, install Gfortran:
+1. Install Xana using pip:
+    ```sh
+    pip install Xana
+    ```
+
+2. Install Xana from github:
+   ```sh
+   git clone https://github.com/reiserm/Xana.git
+   cd Xana
+   pip install .
+   ```
+
+3. If a Fortran compiler is not already installed, try
    * Linux: `apt install gfortran`
-   * Mac: `brew install gcc`
+   * MacOSX: `brew install gcc`
    * On Windows it is a little more complicated. A possible way to install a
      FORTRAN compiler is given
      [here](https://www.scivision.co/windows-gcc-gfortran-cmake-make-install/)
      or
      [here](https://www.scivision.dev/f2py-running-fortran-code-in-python-on-windows/).
      
-2. Download the Xana source code from gitlab
-   ```sh
-   git clone https://git.xfel.eu/gitlab/reiserm/Xana.git
-   ```
-3. On OSX: if building the module fails, it might help to set the following environment variables:
+4. Additional remarks on the installation on OSX: if building the module fails, it might help to set the following environment variables:
    ```sh
    unset LDFLAGS
    unset SHELL
    ```
    
-4. Install Xana
-   ```sh
-   cd Xana
-   pip install .
-   ```
    
    
 ## Example Notebook
