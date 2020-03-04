@@ -5,6 +5,11 @@ from numpy.distutils.core import setup, Extension
 import os
 from distutils.command.sdist import sdist
 
+# load the description from the README.md file
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+# setup f2py
 ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
                  sources=['Xana/XpcsAna/fecorrt3m.f90'],
                  f2py_options=['--verbose'])]
@@ -20,6 +25,9 @@ setup(
     url = 'https://github.com/reiserm/Xana',
     download_url = 'https://github.com/reiserm/Xana/archive/v0.0.8-alpha.tar.gz',
     keywords = ['data analysis', 'XPCS', 'XSVS', 'SAXS',],
+    description="Analysis software for XPCS, XSVS and SAXS data."
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     python_requires ='>= 3.6',
     install_requires = [
         'numpy',
