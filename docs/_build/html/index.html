@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to Xana’s documentation! &#8212; Xana v0.0.8 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-xana-s-documentation">
+<h1>Welcome to Xana’s documentation!<a class="headerlink" href="#welcome-to-xana-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>## This is a Test</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="module-Xana.Xana">
+<span id="xana"></span><h1>Xana<a class="headerlink" href="#module-Xana.Xana" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Xana.Xana.Xana">
+<em class="property">class </em><code class="sig-prename descclassname">Xana.Xana.</code><code class="sig-name descname">Xana</code><span class="sig-paren">(</span><em class="sig-param">sample=''</em>, <em class="sig-param">savdir='./'</em>, <em class="sig-param">setupfile=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Xana/Xana.html#Xana"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Xana.Xana.Xana" title="Permalink to this definition">¶</a></dt>
+<dd><p>Xana class to perform XPCS, XSVS and SAXS data analysis.</p>
+<dl class="method">
+<dt id="Xana.Xana.Xana.mksavdir">
+<code class="sig-name descname">mksavdir</code><span class="sig-paren">(</span><em class="sig-param">savdir</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Xana/Xana.html#Xana.mksavdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Xana.Xana.Xana.mksavdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create directory for saving results.</p>
+<dl>
+<dt>Args:</dt><dd><p>savdir (str): name of the directory for saving the results.
+**kwargs: kwargs can be <cite>savhome</cite> and <cite>handle_existing</cite>. The former is the</p>
+<blockquote>
+<div><p>directory in which savdir will be created. The latter sets the default
+behavior to use existing directories, raise and error or overwrite
+files.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Xana.Xana.sample">
+<code class="sig-name descname">sample</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Xana.Xana.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>str: sample name appearing in the database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Xana.Xana.savdir">
+<code class="sig-name descname">savdir</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Xana.Xana.savdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>str: directory to save results in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Xana.Xana.setupfile">
+<code class="sig-name descname">setupfile</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Xana.Xana.setupfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>str: setupfile to load at the beginning, can also be loaded with loadsetup method.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Xana.Setup">
+<span id="xana-setup"></span><h1>Xana.Setup<a class="headerlink" href="#module-Xana.Setup" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Xana.Setup.Setup">
+<em class="property">class </em><code class="sig-prename descclassname">Xana.Setup.</code><code class="sig-name descname">Setup</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Xana/Setup.html#Setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Xana.Setup.Setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Xana Setup class containing the experimental parameters.</p>
+<dl class="method">
+<dt id="Xana.Setup.Setup.detector">
+<em class="property">property </em><code class="sig-name descname">detector</code><a class="headerlink" href="#Xana.Setup.Setup.detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>detector used</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Setup.Setup.mask">
+<code class="sig-name descname">mask</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Setup.Setup.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>np.ndarray: mask array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Setup.Setup.maskfile">
+<code class="sig-name descname">maskfile</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Setup.Setup.maskfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>str: path to the maskfile</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Xana.Setup.Setup.wavelength">
+<code class="sig-name descname">wavelength</code><em class="property"> = None</em><a class="headerlink" href="#Xana.Setup.Setup.wavelength" title="Permalink to this definition">¶</a></dt>
+<dd><p>float: X-ray wavelength in Angstrom</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Xana</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Mario Reiser.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

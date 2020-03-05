@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Xana.Xana &#8212; Xana v0.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Xana.Xana</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">.Analysis</span> <span class="kn">import</span> <span class="n">Analysis</span>
+<span class="kn">from</span> <span class="nn">.Setup</span> <span class="kn">import</span> <span class="n">Setup</span>
+<span class="kn">from</span> <span class="nn">.Xdb</span> <span class="kn">import</span> <span class="n">Xdb</span>
+<span class="kn">from</span> <span class="nn">.misc.xsave</span> <span class="kn">import</span> <span class="n">mksavdir</span><span class="p">,</span> <span class="n">save_result</span><span class="p">,</span> <span class="n">make_filename</span>
+
+
+<div class="viewcode-block" id="Xana"><a class="viewcode-back" href="../../index.html#Xana.Xana.Xana">[docs]</a><span class="k">class</span> <span class="nc">Xana</span><span class="p">(</span><span class="n">Xdb</span><span class="p">,</span> <span class="n">Analysis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Xana class to perform XPCS, XSVS and SAXS data analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">savdir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">setupfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;__init__ of Xana.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            \*\*kwargs: kwargs passed to initialize the database (Xdb), the</span>
+<span class="sd">                setup (Setup) and the Analysis class (Analysis).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">=</span> <span class="n">savdir</span> <span class="c1">#: str: directory to save results in.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span> <span class="c1">#: str: sample name appearing in the database.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="n">setupfile</span>
+        <span class="sd">&quot;&quot;&quot;str: setupfile to load at the beginning, can also be loaded with loadsetup method.&quot;&quot;&quot;</span>
+
+        <span class="n">Xdb</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">Setup</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadsetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">)</span>
+        <span class="n">Analysis</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Xana.mksavdir"><a class="viewcode-back" href="../../index.html#Xana.Xana.Xana.mksavdir">[docs]</a>    <span class="k">def</span> <span class="nf">mksavdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">savdir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create directory for saving results.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            savdir (str): name of the directory for saving the results.</span>
+<span class="sd">            \*\*kwargs: kwargs can be `savhome` and `handle_existing`. The former is the</span>
+<span class="sd">                directory in which savdir will be created. The latter sets the default</span>
+<span class="sd">                behavior to use existing directories, raise and error or overwrite</span>
+<span class="sd">                files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span> <span class="o">=</span> <span class="n">mksavdir</span><span class="p">(</span><span class="n">savdir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">savdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="o">+</span><span class="s1">&#39;Analysis_db.pkl&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_db</span><span class="p">(</span><span class="n">handle_existing</span><span class="o">=</span><span class="s1">&#39;overwrite&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">loadsetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No setup defined.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">make_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;setupfile&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="n">fname</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="n">fname</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded setupfile:</span><span class="se">\n\t</span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No setup defined.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">savesetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter filename for setupfile.</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="c1">#        savd = copy.deepcopy(vars(self))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupfile</span> <span class="o">=</span> <span class="n">save_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">savdir</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Xana</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Mario Reiser.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
