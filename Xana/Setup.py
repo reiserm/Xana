@@ -18,7 +18,7 @@ class Setup:
         """str: path to the maskfile"""
         self.mask = self.load_mask() #: np.ndarray: mask array
         self.wavelength = None #: float: X-ray wavelength in Angstrom
-        self.distance = None
+        self.distance = None #: float: detector sample distance in meter
         self.center = None
         self.ai = None
         self.qv_init = None
