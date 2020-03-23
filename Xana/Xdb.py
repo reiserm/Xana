@@ -9,7 +9,7 @@ from .misc.xsave import save_result, make_filename
 
 class Xdb:
     """Data base class for handling analysis results and making them accessible through the
-       data interpretation modules.
+       data interpretation modules. test
     """
 
     def __init__(self, dbfile=None, db=None, **kwargs):
