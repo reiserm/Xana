@@ -1,26 +1,35 @@
-Welcome to Xana's documentation!
-================================
+====
+Xana
+====
 
 This is the Xana documentation written by Clemen and Mario.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Installation:
-
-   SomeStuff
-
-
-.. .. toctree::
-   :maxdepth: 2
-   :caption: Examples:
-
-..   XPCS_Example
+This is the main page
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API:
+   :maxdepth: 1
+   :hidden:
+   :caption: Getting Started
 
-   api
+   readme.rst
+   SomeStuff.rst
+   
+
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Examples and Tutorials
+
+   XPCS_Example
+
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: User Interface
+
+   api.rst
 
 
 Indices and tables

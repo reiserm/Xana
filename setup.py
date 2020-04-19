@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import setuptools
 from setuptools import find_packages
 from numpy.distutils.core import setup, Extension
@@ -33,7 +34,6 @@ setup(
         'numpy',
         'pandas',
         'lmfit',
-        'numpy',
         'pyfai',
         'cbf',
         'emcee',
@@ -49,7 +49,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-  ],
+    ],
     ext_modules=ext,
 )
 

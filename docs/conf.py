@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('..'))
 sys.setrecursionlimit(1500) 
 
 import sphinx_rtd_theme
@@ -35,9 +35,11 @@ release = 'v0.0.8'
 extensions = [
     'sphinxcontrib.napoleon',
     'sphinx.ext.autodoc',
-    'sphinx.ext.todo', 
+    'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx_rtd_theme',
+    'nbsphinx',
+    'm2r',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
