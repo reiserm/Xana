@@ -22,7 +22,7 @@ fails due to a missing compiler see point 3.
    * Linux: `apt install gfortran`
    * MacOSX: `brew install gcc`
    * On Windows it is a little more complicated. A possible way to install a
-     FORTRAN compiler is given
+     FORTRAN compiler is shown
      [here](https://www.scivision.co/windows-gcc-gfortran-cmake-make-install/)
      or
      [here](https://www.scivision.dev/f2py-running-fortran-code-in-python-on-windows/).
