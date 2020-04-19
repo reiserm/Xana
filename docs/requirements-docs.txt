@@ -3,3 +3,4 @@ numpy
 sphinxcontrib-napoleon
 nbsphinx
 m2r
+IPython
