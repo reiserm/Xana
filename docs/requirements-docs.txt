@@ -1,3 +1,4 @@
 #requirements-docs.txt file 
 numpy
 sphinxcontrib-napoleon
+nbsphinx
