@@ -14,6 +14,7 @@ class Xana(Xdb, Analysis):
         """__init__ of Xana.
 
         Args:
+            sample (str): sample name (optional).
             **kwargs: kwargs passed to initialize the database (Xdb), the
                 setup (Setup) and the Analysis class (Analysis).
         """
@@ -35,7 +36,7 @@ class Xana(Xdb, Analysis):
 
         Args:
             savdir (str): name of the directory for saving the results.
-            **kwargs: \*\*kwargs can be `savhome` and `handle_existing`. The former is the
+            **kwargs: kwargs can be `savhome` and `handle_existing`. The former is the
                 directory in which savdir will be created. The latter sets the default
                 behavior to use existing directories, raise and error or overwrite
                 files.

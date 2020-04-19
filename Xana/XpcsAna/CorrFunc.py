@@ -253,7 +253,7 @@ class CorrFunc(AnaList):
         cb.set_label(label)
         if change_ticks:
             cb.set_ticks(tick_indices)
-            cb.set_ticklabels(list(map(lambda x: "%.{}f".format(3-qscale) % x, vec)))
+            cb.set_ticklabels(list(map(lambda x: "$%.{}f$".format(3-qscale) % x, vec)))
             if qscale and show_offset:
                 cb.ax.text(1.,1.04, r'$\times 10^{{-{}}}$'.format(qscale),
                             transform=cb.ax.transAxes)

@@ -51,13 +51,13 @@ def getqroi(saxs, setup, qr, phir=None, mirror=False):
     return ind, r
 
 def flatten_init(inp):
-    
+
     def convert(s):
         if np.issubdtype(type(s[0]), np.number):
             return (np.array([s[0]]), s[1])
         else:
             return s
-    
+
     def get_stack(p):
         p = convert(p)
         return np.hstack((p[0],np.ones(len(p[0]))*p[1])).reshape(-1,2, order='F')
@@ -71,12 +71,12 @@ def flatten_init(inp):
             rois = np.vstack((rois,stack))
         i += 1
     return rois
-        
+
 def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)], 
                 plot=False, d=250, mirror=False, **kwargs):
 
     # check_dimension(setup, Isaxs)
-    
+
     if qv_init is None:
         try:
             qv_init = setup.qv_init
@@ -91,7 +91,7 @@ def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)],
         setup.phiv_init = phiv_init
 
     phiv_init[:,0] -= phiv_init[:,1]/2
-    
+
     qroi, radii = getqroi(Isaxs, setup, qv_init,
                           phir=phiv_init, mirror=mirror)
 
@@ -103,7 +103,7 @@ def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)],
     setup.gproi = np.array([len(x[0]) for x in qroi], dtype=int)
     setup.qroi = qroi
     setup.qv = setup.qv[:len(setup.qroi)]
-        
+
     xmin = min([x[0].min() for x in setup.qroi])
     ymin = min([x[1].min() for x in setup.qroi])
     xmax = max([x[0].max() for x in setup.qroi])

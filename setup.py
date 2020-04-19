@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import setuptools
 from setuptools import find_packages
 from numpy.distutils.core import setup, Extension
@@ -25,15 +26,19 @@ setup(
     url = 'https://github.com/reiserm/Xana',
     download_url = 'https://github.com/reiserm/Xana/archive/v0.0.8-alpha.tar.gz',
     keywords = ['data analysis', 'XPCS', 'XSVS', 'SAXS',],
+<<<<<<< HEAD
     description="Analysis software for XPCS, XSVS and SAXS data.",
     long_description=long_description,
+=======
+    description = "Analysis software for XPCS, XSVS and SAXS data.",
+    long_description = long_description,
+>>>>>>> documentation
     long_description_content_type="text/markdown",
     python_requires ='>= 3.6',
     install_requires = [
         'numpy',
         'pandas',
         'lmfit',
-        'numpy',
         'pyfai',
         'cbf',
         'emcee',
@@ -49,7 +54,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-  ],
+    ],
     ext_modules=ext,
 )
 
