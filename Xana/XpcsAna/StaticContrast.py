@@ -7,7 +7,7 @@ from ..Decorators import Decorators
 from ..Xplot.niceplot import niceplot
 
 @Decorators.init_figure((2,2),(9,8))
-def staticcontrast(obj, nq=None, ax=None, data='original', cmap='jet',
+def staticcontrast(obj, nq=None, ax=None, data='original', cmap='magma',
                 change_marker=False, color_mode=1, t_max=np.inf, trace=True,
                 markersize=3, **kwargs):
 

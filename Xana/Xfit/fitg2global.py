@@ -142,7 +142,7 @@ class G2:
         return self.pars, self.fit_result
 
     def plot(self, doplot=False, marker='o', ax=None, xl=None, yl=None, colors=None, alpha=1.,
-             markersize=3., data_label=None, confint=False, pars=None, **kwargs):
+             markersize=6, markeredgecolor='w', data_label=None, confint=False, pars=None, **kwargs):
 
         sucfit = True if (self.pars is not None) else False
 
@@ -228,10 +228,10 @@ class G2:
                 if self.dcf is not None:
                     pl.append(ax.errorbar(self.t.filled(np.nan), self.cf[iq].filled(np.nan), yerr=self.dcf[iq].filled(np.nan),
                                           linestyle='', marker=marker, label=labstr_data,
-                                          alpha=alpha, markersize=markersize))
+                                          alpha=alpha, markersize=markersize, mec=markeredgecolor, markeredgewidth=1))
                 else:
                     pl.append(ax.plot(self.t, self.cf[iq], marker, label=labstr_data,
-                                      alpha=alpha, markersize=markersize))
+                                      alpha=alpha, markersize=markersize, mec=markeredgecolor, markeredgewidth=1))
 
             if colors is None:
                 if 'data' in doplot:

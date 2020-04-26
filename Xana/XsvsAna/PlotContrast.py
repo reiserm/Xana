@@ -191,7 +191,7 @@ def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, forma
    
     if ind_avr:
         ax.legend(loc='best')
-    niceplot(ax, autoscale=True, grid=False, lfs=lfs)
+    # niceplot(ax, autoscale=True, grid=False, lfs=lfs)
 
 # def plot_poisson_gamma(obj, idx, nq, dofit=True):
 #     """Show the photon statistics by plotting the Poisson-Gamma distribution

@@ -75,7 +75,7 @@ class PhotonProbs(object):
             plt.loglog(kb,pb[:,ik],'o')
             idx = (self.Beta['Fit'][:,0]==n)&(self.Beta['Fit'][:,1]==ik)
             plt.loglog(kb,FitPoissonGamma.PoissonGamma(kb,ik,self.Beta['Fit'][idx,2]**(-1)))
-        niceplot.niceplot('plot_poissongamma')
+        # niceplot.niceplot('plot_poissongamma')
         plt.show()
 
     def plot_jfunction(self, method, k, errf=1.):
@@ -85,7 +85,7 @@ class PhotonProbs(object):
         err = self.jfunc[method + str(k)][:,2]
         pl = plt.errorbar(t, beta, err*errf, marker='o', label='J {}, k={}'.format(method,k))
         plt.legend(loc='best')
-        niceplot.niceplot('plot_jfunction')
+        # niceplot.niceplot('plot_jfunction')
         plt.show()
 
     def make_jfunctions(self):

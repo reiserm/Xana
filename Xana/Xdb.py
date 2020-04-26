@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pickle
 import pandas as pd
+from datetime import datetime
 
 from .Decorators import Decorators
 from .misc.xsave import save_result, make_filename
@@ -67,13 +68,14 @@ class Xdb:
         entry = {'use':True,
                  'sample':self.sample,
                  'analysis':method,
-                 'mod':pd.datetime.today(),
+                 'mod':datetime.today(),
                  'savname':savname,
                  'savfile':savfile,
                  'setupfile':self.setupfile,
                  'comment':""
         }
-        entry.update(dict(zip(self.meta.columns, self.meta.loc[series_id],)))
+        entry.update(dict(zip(self._meta_save.columns,
+                              self._meta_save.loc[series_id],)))
         entry = pd.DataFrame(entry, index=[0])
         self.db = pd.concat([self.db, entry], join='outer', ignore_index=True, sort=False, copy=False)
         self.save_db(handle_existing='overwrite')

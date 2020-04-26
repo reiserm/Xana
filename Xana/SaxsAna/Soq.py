@@ -53,7 +53,7 @@ class Soq(AnaList):
         elif color_mode == 2:
             self.colors = [color]*len(series_id)
 
-        niceplot(ax)
+        # niceplot(ax)
 
         ncorrections = sum([bool(normto),bool(bg)])
 

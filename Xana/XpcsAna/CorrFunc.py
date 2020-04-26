@@ -102,7 +102,7 @@ class CorrFunc(AnaList):
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     @Decorators.init_figure()
-    def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='jet',
+    def plot_g2(self, nq=None, ax=None, data='rescaled', cmap='magma',
                 change_marker=False, color_mode=0, color='b', dofit=False,
                 index=None, exclude=None, add_colorbar=False, cb_kws={},
                 **kwargs):
@@ -213,7 +213,7 @@ class CorrFunc(AnaList):
             self.add_colorbar(ax, self.qv, cmap=self.colors, discrete=True, **cb_kws)
 
     @staticmethod
-    def add_colorbar(ax, vec, label=None, cmap='jet', discrete=False, tick_step=1,
+    def add_colorbar(ax, vec, label=None, cmap='magma', discrete=False, tick_step=1,
                      qscale=0, location='right', show_offset=False, **kwargs):
 
         ncolors = len(vec)
@@ -446,7 +446,7 @@ class CorrFunc(AnaList):
                 elif ii == 1:
                     self.corrFuncRescaled = [(cf_tmp, dcf_tmp), ]
 
-    def plot_parameters(self, plot, cmap='jet', ax=None, change_axes=True,
+    def plot_parameters(self, plot, cmap='tab10', ax=None, change_axes=True,
                         cindoff=0, extpar_name='extpar', extpar_vec=None,
                         color_discrete=True, exclude=None, include=None, **kwargs):
         """Plot Fit parameter (decay rates, kww exponent, etc.)
@@ -549,7 +549,7 @@ class CorrFunc(AnaList):
         ax.set_title(
             r'q = {:.2g}$\mathrm{{nm}}^{{-1}}$'.format(corfd['qv'][corfd['twotime_par']]))
         tt = corfd['twotime_xy']
-        im = ax.imshow(self.twotime, cmap=plt.get_cmap('jet'), origin='lower',
+        im = ax.imshow(self.twotime, cmap=plt.get_cmap('magma'), origin='lower',
                        interpolation=interpolation, extent=[
                            tt[0], tt[-1], tt[0], tt[-1]],
                        vmin=vmin, vmax=vmax)
@@ -557,7 +557,7 @@ class CorrFunc(AnaList):
         ax.set_ylabel(r'$t_2$ [s]',)
         cl = plt.colorbar(im, ax=ax)
         cl.ax.set_ylabel('correlation', fontsize=12)
-        niceplot(ax, autoscale=False, grid=False)
+        # niceplot(ax, autoscale=False, grid=False)
 
     @Decorators.init_figure()
     @Decorators.input2list
@@ -582,9 +582,9 @@ class CorrFunc(AnaList):
 
         ax.set_ylabel('photons per pixel')
         ax.set_xlabel('time in [s]')
-        niceplot(ax, autoscale=0)
+        # niceplot(ax, autoscale=0)
         axtop.set_xlabel('frame number')
-        niceplot(axtop, autoscale=False, grid=False)
+        # niceplot(axtop, autoscale=False, grid=False)
         if 'x' in log:
             ax.set_xscale('log')
         if 'y' in log:

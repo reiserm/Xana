@@ -116,10 +116,9 @@ def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)],
     setup.qsec_mask = setup.mask[qsec[0][0]:qsec_dim[0]+qsec[0][0], qsec[0][1]:qsec_dim[1]+qsec[0][1]]
     setup.qsec_center = (setup.center[0]-qsec[0][1], setup.center[1]-qsec[0][0])
     setup.qsec_ai = setup.update_ai(setup.qsec_center)
-    
+
     print('Added the following Q-values [nm-1]:\n{}'.format(setup.qv))
 
     if plot:
         plotqrois(Isaxs, setup, method=plot, d=d, shade=True, mirror=mirror,
                   **kwargs)
-        

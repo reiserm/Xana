@@ -5,7 +5,7 @@ import matplotlib
 
 class AnaList:
     
-    def __init__(self, Xana, cmap='jet'):
+    def __init__(self, Xana, cmap='magma'):
 
         self.Xana = Xana
         self.colors = None

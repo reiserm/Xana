@@ -20,6 +20,7 @@ class Xdata(Xfmt):
         self._masters = []
         self._headers = []
         self.meta  = []
+        self._meta_save = None
         self._series = []
         self._series_ids = None
 

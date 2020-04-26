@@ -52,7 +52,7 @@ def xsvs(obj, series_id, first=0, last=None, filename="", method='full', nbins=1
             if attr in obj.xdata.meta.columns:
                 item = obj.xdata.meta.loc[sid,attr]
                 if attr == 'pulseLength':
-                    t_e += item * 1e15           
+                    t_e += item * 1e15
                 else:
                     t_e += item
 

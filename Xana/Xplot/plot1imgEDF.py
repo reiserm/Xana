@@ -65,9 +65,9 @@ def plot1imgEDF(run, datdir, imgn, ffmask=0, rgn=0, exp=0, qroi=0, cb=0, norm=No
     ax.set_yticklabels('')
     ax.tick_params('both', length=0, width=0, which='major')
     if cb:
-        im = ax.imshow(img, vmin=cb[0], vmax=cb[1], cmap=plt.get_cmap('jet'), norm=norm)
+        im = ax.imshow(img, vmin=cb[0], vmax=cb[1], cmap=plt.get_cmap('magma'), norm=norm)
     else:
-        im = ax.imshow(img, cmap=plt.get_cmap('jet'), norm=norm)
+        im = ax.imshow(img, cmap=plt.get_cmap('magma'), norm=norm)
     plt.colorbar(im)      
     textstr = get_text(img, run, imgn, exp, gp)
     props = dict(boxstyle='round', facecolor='white')

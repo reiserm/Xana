@@ -39,6 +39,7 @@ setup(
         'emcee',
         'corner',
         'h5py',
+        'seaborn',
         'ipywidgets',
     ],
     classifiers=[

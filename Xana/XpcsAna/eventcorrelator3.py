@@ -1,22 +1,28 @@
 from time import time
+import warnings
 import numpy as np
 import sys
-from .fecorrt3m import fecorrt3m
 from scipy.ndimage import gaussian_filter
 from ..misc.progressbar import progress
 from .xpcsmethods import cftomt, mat2evt
 
+try:
+    from .fecorrt3m import fecorrt3m
+except ImportError:
+    warnings.warn("Could not load fortran module fecorrt3m module. \
+    Probably not built.")
+
 #---MAIN FUNCTION---
 def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
                     twotime_par=-1, **kwargs):
-    ''' 
+    '''
     Event correlator
     '''
     time0 = time()
     lqv = len(qroi)
     rlqv = range(lqv)
     twotime_par = np.array(twotime_par)
-    
+
     if qv is None:
         qv = np.arange(lqv)
 

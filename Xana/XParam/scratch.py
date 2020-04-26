@@ -140,6 +140,6 @@ ax[1].set_xlabel(r'$\mathrm{q}^2$ [$\mathrm{nm}^{-2}]$')
 ax[1].set_ylabel(r'contrast')
 for axi in ax:
     axi.legend(loc='best')
-    niceplot(axi)
+    # niceplot(axi)
 plt.tight_layout()
 plt.savefig('um2018/cfpars1.eps')

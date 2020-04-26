@@ -471,8 +471,8 @@ def read_data(datafiles, detector=None, last=None, first=None, step=[1, 1, 1], q
     # Nested Functions only invoked by read_data()
     # ---------------------------------------------
     def make_chunks():
-        """ 
-        if data should be read in chunks, this functions createas a list of 
+        """
+        if data should be read in chunks, this functions createas a list of
         chunked image indices
         """
         if verbose:

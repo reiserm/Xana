@@ -100,7 +100,7 @@ class VisbFunc(AnaList):
         return None
 
     def quicklook(self, plot='default', idx=None, nq=None, ax=None, color_mode=0, change_marker=0,
-                  cmap='jet', *args, **kwargs):
+                  cmap='magma', *args, **kwargs):
         """Plot overview of photon probabilities and speckle contrast
         """
         if plot == 'default':
@@ -139,7 +139,7 @@ class VisbFunc(AnaList):
         plt.tight_layout()
     
     @Decorators.init_figure()
-    def plot_g2(self, nq=None, err=True, ax=None, nmodes=1, data='original', cmap='jet',
+    def plot_g2(self, nq=None, err=True, ax=None, nmodes=1, data='original', cmap='magma',
                     change_marker=False, color_mode=0, dofit=True, **kwargs):
         
         if data == 'original' or self.corrFuncRescaled is None:
@@ -226,9 +226,9 @@ class VisbFunc(AnaList):
 
         ax.set_ylabel('photons per pixel')
         ax.set_xlabel('time in [s]')
-        niceplot(ax, autoscale=0)
+        # niceplot(ax, autoscale=0)
         axtop.set_xlabel('frame number')
-        niceplot(axtop, autoscale=False, grid=False)
+        # niceplot(axtop, autoscale=False, grid=False)
         if 'logx' in log:
             ax.set_xscale('log')
         if 'logy' in log:

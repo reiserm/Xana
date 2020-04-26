@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import copy
 import multiprocessing as mp
 from multiprocessing.managers import SyncManager
 from queue import PriorityQueue
@@ -41,6 +42,10 @@ class Analysis(Xdata):
                       (method, sid, self.datdir))
                 print('Using {} processes to read data.'.format(nread_procs))
 
+            # copy the metadata
+            self._meta_save = copy.copy(self.meta)
+
+
             # if dark is not None:
             #     if type(dark) == int:
             #         print('Loading DB entry {} as dark.'.format(dark))
@@ -50,6 +55,9 @@ class Analysis(Xdata):
             first = first % nf + self.meta.loc[sid, 'first']
             last = min([self.meta.loc[sid, 'nframes'], last])
             last = (last - 1) % nf + self.meta.loc[sid, 'first']
+            self._meta_save.loc[sid, ['first', 'last', 'nframes']] = (first,
+                                                                     last,
+                                                                     last-first+1)
 
             # update meta database
             # self.meta.loc[sid, 'first'] = first
