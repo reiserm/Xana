@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="418" height="60" viewBox="0, 0, 418, 60">
+  <defs>
+    <filter id="Shadow_1">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#000000"/>
+      <feComposite in2="offsetblur" operator="in"/>
+    </filter>
+    <linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="46.752" y1="9.646" x2="46.351" y2="50.731" gradientTransform="matrix(1, -0.001, 0.001, 1, 0, 0)">
+      <stop offset="0" stop-color="#929292"/>
+      <stop offset="1" stop-color="#515151"/>
+    </linearGradient>
+    <filter id="Shadow_2">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#000000"/>
+      <feComposite in2="offsetblur" operator="in"/>
+    </filter>
+    <linearGradient id="Gradient_2" gradientUnits="userSpaceOnUse" x1="153.355" y1="9.533" x2="153.355" y2="50.792" gradientTransform="matrix(1, -0.001, 0.001, 1, 0, 0)">
+      <stop offset="0" stop-color="#0080FF"/>
+      <stop offset="1" stop-color="#163182"/>
+    </linearGradient>
+    <filter id="Shadow_3">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#000000"/>
+      <feComposite in2="offsetblur" operator="in"/>
+    </filter>
+    <linearGradient id="Gradient_3" gradientUnits="userSpaceOnUse" x1="260.017" y1="9.646" x2="260.017" y2="50.905" gradientTransform="matrix(1, -0.001, 0.001, 1, 0, 0)">
+      <stop offset="0" stop-color="#FF4437"/>
+      <stop offset="1" stop-color="#AB1500"/>
+    </linearGradient>
+    <filter id="Shadow_4">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#000000"/>
+      <feComposite in2="offsetblur" operator="in"/>
+    </filter>
+    <linearGradient id="Gradient_4" gradientUnits="userSpaceOnUse" x1="368.961" y1="9.761" x2="368.961" y2="51.02" gradientTransform="matrix(1, -0.001, 0.001, 1, 0, 0)">
+      <stop offset="0" stop-color="#FF9937"/>
+      <stop offset="1" stop-color="#AB5500"/>
+    </linearGradient>
+  </defs>
+  <g id="Layer_1">
+    <g>
+      <g>
+        <path d="M73.783,8.842 C79.832,8.835 84.699,14.758 84.706,22.026 L84.723,37.894 C84.731,45.162 79.877,51.094 73.827,51.101 L19.668,51.158 C13.618,51.165 8.752,45.242 8.744,37.974 L8.727,22.106 C8.72,14.838 13.574,8.906 19.623,8.899 L73.783,8.842 z" filter="url(#Shadow_1)" fill="rgba(0,0,0,0.65)"/>
+        <path d="M19.624,9.399 L73.783,9.342 C79.532,9.336 84.199,15.015 84.206,22.026 L84.223,37.894 C84.23,44.906 79.576,50.595 73.827,50.601 L19.667,50.658 C13.918,50.664 9.252,44.985 9.244,37.974 L9.227,22.106 C9.22,15.094 13.875,9.405 19.624,9.399 z" fill="url(#Gradient_1)"/>
+        <path d="M19.624,9.399 L73.783,9.342 C79.532,9.336 84.199,15.015 84.206,22.026 L84.223,37.894 C84.23,44.906 79.576,50.595 73.827,50.601 L19.667,50.658 C13.918,50.664 9.252,44.985 9.244,37.974 L9.227,22.106 C9.22,15.094 13.875,9.405 19.624,9.399 z" fill-opacity="0" stroke="#383838" stroke-width="1"/>
+      </g>
+      <text transform="matrix(1, -0.001, 0.001, 1, 47.685, 30)">
+        <tspan x="-27.015" y="-3.5" font-family="Helvetica" font-size="12" fill="#EEEEEE">Scattering </tspan>
+        <tspan x="-12.674" y="11.5" font-family="Helvetica" font-size="12" fill="#EEEEEE">Data</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <path d="M180.444,8.842 C186.494,8.835 191.36,14.758 191.368,22.026 L191.385,37.894 C191.393,45.162 186.539,51.094 180.489,51.101 L126.33,51.158 C120.28,51.165 115.414,45.242 115.406,37.974 L115.389,22.106 C115.382,14.838 120.235,8.906 126.285,8.899 L180.444,8.842 z" filter="url(#Shadow_2)" fill="rgba(0,0,0,0.65)"/>
+        <path d="M126.285,9.399 L180.445,9.342 C186.194,9.336 190.861,15.015 190.868,22.026 L190.885,37.894 C190.892,44.906 186.238,50.595 180.489,50.601 L126.329,50.658 C120.58,50.664 115.913,44.985 115.906,37.974 L115.889,22.106 C115.882,15.094 120.536,9.405 126.285,9.399 z" fill="url(#Gradient_2)"/>
+        <path d="M126.285,9.399 L180.445,9.342 C186.194,9.336 190.861,15.015 190.868,22.026 L190.885,37.894 C190.892,44.906 186.238,50.595 180.489,50.601 L126.329,50.658 C120.58,50.664 115.913,44.985 115.906,37.974 L115.889,22.106 C115.882,15.094 120.536,9.405 126.285,9.399 z" fill-opacity="0" stroke="#383838" stroke-width="1"/>
+      </g>
+      <text transform="matrix(1, -0.001, 0.001, 1, 153.387, 30.149)">
+        <tspan x="-12.674" y="-3.5" font-family="Helvetica" font-size="12" fill="#EEEEEE">Data </tspan>
+        <tspan x="-29.681" y="11.5" font-family="Helvetica" font-size="12" fill="#EEEEEE">Processing</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <path d="M287.106,8.842 C293.156,8.835 298.022,14.758 298.03,22.026 L298.047,37.894 C298.054,45.162 293.201,51.094 287.151,51.101 L232.992,51.158 C226.942,51.165 222.076,45.242 222.068,37.974 L222.051,22.106 C222.043,14.838 226.897,8.906 232.947,8.899 L287.106,8.842 z" filter="url(#Shadow_3)" fill="rgba(0,0,0,0.65)"/>
+        <path d="M232.947,9.399 L287.107,9.342 C292.856,9.336 297.522,15.015 297.53,22.026 L297.547,37.894 C297.554,44.906 292.899,50.595 287.15,50.601 L232.991,50.658 C227.242,50.664 222.575,44.985 222.568,37.974 L222.551,22.106 C222.544,15.094 227.198,9.405 232.947,9.399 z" fill="url(#Gradient_3)"/>
+        <path d="M232.947,9.399 L287.107,9.342 C292.856,9.336 297.522,15.015 297.53,22.026 L297.547,37.894 C297.554,44.906 292.899,50.595 287.15,50.601 L232.991,50.658 C227.242,50.664 222.575,44.985 222.568,37.974 L222.551,22.106 C222.544,15.094 227.198,9.405 232.947,9.399 z" fill-opacity="0" stroke="#383838" stroke-width="1"/>
+      </g>
+      <text transform="matrix(1, -0.001, 0.001, 1, 260.049, 30)">
+        <tspan x="-25.685" y="2.521" font-family="Helvetica" font-size="12" fill="#EEEEEE">Database</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <path d="M397.698,8.84 C404.09,8.833 409.248,14.75 409.256,22.023 L409.272,37.891 C409.28,45.165 404.135,51.092 397.743,51.099 L340.287,51.16 C333.895,51.167 328.737,45.25 328.73,37.977 L328.713,22.109 C328.705,14.835 333.85,8.908 340.242,8.901 L397.698,8.84 z" filter="url(#Shadow_4)" fill="rgba(0,0,0,0.65)"/>
+        <path d="M340.243,9.401 L397.699,9.34 C403.798,9.334 408.748,15.012 408.756,22.024 L408.773,37.892 C408.78,44.903 403.842,50.593 397.743,50.599 L340.286,50.66 C334.187,50.666 329.237,44.988 329.23,37.976 L329.213,22.108 C329.205,15.097 334.144,9.407 340.243,9.401 z" fill="url(#Gradient_4)"/>
+        <path d="M340.243,9.401 L397.699,9.34 C403.798,9.334 408.748,15.012 408.756,22.024 L408.773,37.892 C408.78,44.903 403.842,50.593 397.743,50.599 L340.286,50.66 C334.187,50.666 329.237,44.988 329.23,37.976 L329.213,22.108 C329.205,15.097 334.144,9.407 340.243,9.401 z" fill-opacity="0" stroke="#383838" stroke-width="1"/>
+      </g>
+      <text transform="matrix(1, -0.001, 0.001, 1, 368.993, 30)">
+        <tspan x="-12.674" y="-4.407" font-family="Helvetica" font-size="12" fill="#EEEEEE">Data </tspan>
+        <tspan x="-35.355" y="10.593" font-family="Helvetica" font-size="12" fill="#EEEEEE">Interpretation</tspan>
+      </text>
+    </g>
+    <g>
+      <path d="M90.953,29.562 L100.159,29.562" fill-opacity="0" stroke="#000000" stroke-width="1"/>
+      <path d="M100.159,32.562 L108.159,29.562 L100.159,26.562 z" fill="#000000" fill-opacity="1" stroke="#000000" stroke-width="1" stroke-opacity="1"/>
+    </g>
+    <g>
+      <path d="M197.615,29.562 L206.821,29.562" fill-opacity="0" stroke="#000000" stroke-width="1"/>
+      <path d="M206.821,32.562 L214.821,29.562 L206.821,26.562 z" fill="#000000" fill-opacity="1" stroke="#000000" stroke-width="1" stroke-opacity="1"/>
+    </g>
+    <g>
+      <path d="M304.277,30 L313.483,30" fill-opacity="0" stroke="#000000" stroke-width="1"/>
+      <path d="M313.483,33 L321.483,30 L313.483,27 z" fill="#000000" fill-opacity="1" stroke="#000000" stroke-width="1" stroke-opacity="1"/>
+    </g>
+  </g>
+</svg>
