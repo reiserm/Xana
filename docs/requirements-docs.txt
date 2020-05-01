@@ -1,6 +1,7 @@
 #requirements-docs.txt file 
 numpy
 matplotlib
+pandas
 sphinxcontrib-napoleon
 nbsphinx
 m2r
