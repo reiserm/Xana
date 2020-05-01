@@ -35,7 +35,8 @@ based on the database.
    :caption: Getting Started
 
    readme.rst
-   modules.rst
+   getting-started
+   modules
    
 
 

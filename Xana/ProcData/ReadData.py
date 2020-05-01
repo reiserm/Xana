@@ -185,9 +185,9 @@ class dataset:
             # store mean intensity of frames in first list element
             if self.mask is not None:
                 ind = (..., *self.mask)
-                m = [arr[ind].mean(1)]
+                m = [arr[ind].mean(1),]
             else:
-                m = [arr.mean((1, 2))]
+                m = [arr.mean((1, 2)),]
 
             # extend the dstream list by the intensities in the pixels
             # in the previously defined qrois

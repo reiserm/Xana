@@ -63,8 +63,8 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
 
     #----multiprocessing----
     # create lists of queues and processes
-    qur = []  
-    qure = []  
+    qur = []
+    qure = []
     pcorr = []
     for i in range(nprocs):
         qur.append(Queue(16))
@@ -72,9 +72,9 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
     for i in range(nprocs):
         q_beg = q_sec[i]
         q_end = q_sec[i+1]
-        pcorr.append(Process(target=mp_prob, args=(method, nbins, nf-1,
+        pcorr.append(Process(target=mp_prob, args=(method, nbins, nf,
                 lind[q_beg:q_end], q_end-q_beg, qur[i], qure[i])))
-        
+
     # start processes
     for i in range(nprocs):
         pcorr[i].start()
@@ -84,9 +84,9 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
     tcalc_cum = 0
     t0 = 0
     last_chunk = -1
-    while t0 < nf - 1:
+    while t0 < nf:
         progress(t0,nf)
-        
+
         c_idx, chunk = get_chunk()
         chunk_size = chunk.shape[0]
         idx = slice(t0,t0+chunk_size)
@@ -96,7 +96,7 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
             raise IOError('Chunks have been read in wrong order: chunk index difference is % and not 1.' %
                              chunk_diff)
         last_chunk = c_idx
-       
+
         for jj,(i,j) in enumerate(zip(q_sec[:-1], q_sec[1:])):
             tmp_put = []
             for qi in range(i,j):
@@ -118,7 +118,7 @@ def pyxsvs( data, qroi, nbins=15, t_e=1., qv=None, method='full', nprocs=1,
         pcorr[i].join()
         qure[i].close()
         qure[i].join_thread()
-        
+
     # concatenate data from different processes
     p = from_proc[0][0]
     tcalc_cum = from_proc[0][1]

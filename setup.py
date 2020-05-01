@@ -51,6 +51,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    # ext_modules=ext,
+    ext_modules=ext,
 )
 

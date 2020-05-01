@@ -30,7 +30,7 @@ class Analysis(Xdata):
 
     @Decorators.input2list
     def analyze(self, series_id, method, first=0, last=np.inf, handle_existing='next',
-                nread_procs=4, chunk_size=200, verbose=True, dark=None,
+                nread_procs=1, chunk_size=200, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
 
         if not self.setup.wavelength:
@@ -43,8 +43,8 @@ class Analysis(Xdata):
                 print('Using {} processes to read data.'.format(nread_procs))
 
             # copy the metadata
-            self._meta_save = copy.copy(self.meta)
-
+            self._meta_save = copy.deepcopy(self.meta)
+            rois = copy.deepcopy(self.setup.qroi)
 
             # if dark is not None:
             #     if type(dark) == int:
@@ -52,20 +52,20 @@ class Analysis(Xdata):
             #         dark = self.xana.get_item(dark)['Isaxs']
 
             nf = self.meta.loc[sid, 'nframes']
-            first = first % nf + self.meta.loc[sid, 'first']
-            last = min([self.meta.loc[sid, 'nframes'], last])
-            last = (last - 1) % nf + self.meta.loc[sid, 'first']
-            self._meta_save.loc[sid, ['first', 'last', 'nframes']] = (first,
-                                                                     last,
-                                                                     last-first+1)
+            first_proc = first % nf + self.meta.loc[sid, 'first']
+            last_proc = min([self.meta.loc[sid, 'nframes'], last])
+            last_proc = (last_proc - 1) % nf + self.meta.loc[sid, 'first']
+            self._meta_save.loc[sid, ['first', 'last', 'nframes']] = (first_proc,
+                                                                     last_proc,
+                                                                     last_proc - first_proc + 1)
 
             # update meta database
             # self.meta.loc[sid, 'first'] = first
             # self.meta.loc[sid, 'last'] = last
 
             # dict with options and variables passed to the data reader
-            read_opt = {'first': first,
-                        'last': last,
+            read_opt = {'first': first_proc,
+                        'last': last_proc,
                         'dark': dark,
                         'verbose': False,
                         'dtype': dtype,
@@ -77,7 +77,7 @@ class Analysis(Xdata):
             saxs_dict = read_opt.copy()
             read_opt.update(read_kwargs)
 
-            proc_dat = {'nimages': last - first + 1,
+            proc_dat = {'nimages': self._meta_save.loc[sid, 'nframes'],
                         'dim': self.setup.qsec_dim
                         }
 
@@ -87,7 +87,7 @@ class Analysis(Xdata):
 
 
             # new chunks
-            ind_arange = np.arange(first,last+1)
+            ind_arange = np.arange(first_proc,last_proc+1)
             bins = np.arange(0, nf, chunk_size)
             digitized = np.digitize(ind_arange, bins)
             chunks = [ind_arange[np.where(digitized==i)] for i in np.unique(digitized)]
@@ -129,7 +129,7 @@ class Analysis(Xdata):
                 saxs = kwargs.pop('saxs', 'compute')
                 Isaxs = self.get_xpcs_args(sid, saxs, saxs_dict)
                 dt = self.get_delay_time(sid)
-                savd = Xpcs.pyxpcs(proc_dat, self.setup.qroi, dt=dt, qv=self.setup.qv,
+                savd = Xpcs.pyxpcs(proc_dat, rois, dt=dt, qv=self.setup.qv,
                                    saxs=Isaxs, mask=self.setup.mask, ctr=self.setup.center,
                                    qsec=self.setup.qsec[0], **kwargs)
 
@@ -137,18 +137,18 @@ class Analysis(Xdata):
                 dt = self.get_delay_time(sid)
                 evt_dict = dict(method='events',
                                 verbose=True,
-                                qroi=self.setup.qroi,
+                                qroi=rois,
                                 dtype=np.uint32,
                 )
                 read_opt.update(evt_dict)
                 evt = self.get_series(sid, **read_opt)
-                savd = Xpcs.eventcorrelator(evt[1:], self.setup.qroi, self.setup.qv,
+                savd = Xpcs.eventcorrelator(evt[1:], rois, self.setup.qv,
                                             dt, method='events', **kwargs)
 
             elif method == 'xsvs':
 
                 t_e = self.get_xsvs_args(sid,)
-                savd = Xsvs.pyxsvs(proc_dat, self.setup.qroi, t_e=t_e,
+                savd = Xsvs.pyxsvs(proc_dat, rois, t_e=t_e,
                                    qv=self.setup.qv, qsec=self.setup.qsec[0],
                                    **kwargs)
 
@@ -168,6 +168,7 @@ class Analysis(Xdata):
                 # stopping processes
                 for ip in range(nread_procs):
                     procs[ip].join()
+
                 # closing queues
                 # dataQ.close()
                 # dataQ.join_thread()

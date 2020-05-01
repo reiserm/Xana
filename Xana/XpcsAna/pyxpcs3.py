@@ -192,7 +192,7 @@ def calculate_twotime_correlation_function(ttdata, tt_max_images=5000):
 #---MAIN FUNCTION---#
 #####################
 def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_par=-1,
-            qsec=(0,0), norm='symmetric_whole', nprocs=1, verbose=True, chn=16,
+            qsec=(0,0), norm='symmetric_whole', nprocs=8, verbose=True, chn=16,
             tt_max_images=5000):
     """Calculate g2 correlation functions with a given dataset or chunks of a data set.
     """
