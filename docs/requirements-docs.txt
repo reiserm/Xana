@@ -2,6 +2,11 @@
 numpy
 matplotlib
 pandas
+emcee
+corner
+h5py
+seaborn
+ipywidgets
 sphinxcontrib-napoleon
 nbsphinx
 m2r
