@@ -7,6 +7,7 @@ corner
 h5py
 seaborn
 lmfit
+cbf
 ipywidgets
 sphinxcontrib-napoleon
 nbsphinx
