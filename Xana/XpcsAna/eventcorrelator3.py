@@ -9,7 +9,7 @@ from .xpcsmethods import cftomt, mat2evt
 try:
     from .fecorrt3m import fecorrt3m
 except ImportError:
-    warnings.warn("Could not load fortran module fecorrt3m module. \
+    warnings.warn("Could not load fortran module fecorrt3m. \
     Probably not built.")
 
 #---MAIN FUNCTION---
