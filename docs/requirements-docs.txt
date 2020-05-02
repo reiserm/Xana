@@ -6,6 +6,7 @@ emcee
 corner
 h5py
 seaborn
+lmfit
 ipywidgets
 sphinxcontrib-napoleon
 nbsphinx
