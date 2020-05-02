@@ -18,7 +18,7 @@ ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
 setup(
     cmdclass={'sdist': sdist},
     name = 'Xana',
-    version = '0.0.8',
+    version = '0.0.9',
     packages=setuptools.find_packages(),
     license = 'MIT',
     author = 'Mario Reiser',
