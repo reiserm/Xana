@@ -537,6 +537,7 @@ class CorrFunc(AnaList):
         self.twotime /= i
 
 
+    @Decorators.init_figure()
     @Decorators.input2list
     def plot_twotime(self, db_id, clim=(None, None), ax=None, interpolation='gaussian', \
                      twotime_par=None):

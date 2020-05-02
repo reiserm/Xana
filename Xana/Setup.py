@@ -13,7 +13,7 @@ class Setup:
         The class is initialized when creating a Xana object and contains all
         parameters or attributes describing the experimental setup.
         """
-        self.detector = kwargs.pop('detector', None) #: detector used
+        self.detector = kwargs.pop('detector', 'eiger500k') #: detector used
         self.maskfile = kwargs.pop('maskfile', None)
         """str: path to the maskfile"""
         self.mask = self.load_mask() #: np.ndarray: mask array

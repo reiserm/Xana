@@ -31,6 +31,7 @@ class Xana(Xdb, Analysis):
             self.loadsetup(self.setupfile)
         Analysis.__init__(self, **kwargs)
 
+
     def mksavdir(self, savdir, *args, **kwargs):
         """Create directory for saving results.
 
