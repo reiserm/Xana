@@ -8,6 +8,7 @@ h5py
 seaborn
 lmfit
 cbf
+pyFAI
 ipywidgets
 sphinxcontrib-napoleon
 nbsphinx
