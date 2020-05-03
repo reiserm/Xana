@@ -54,3 +54,5 @@ metadata = dict(
     ],
     ext_modules=ext,
 )
+
+setup(**metadata)
