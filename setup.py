@@ -19,7 +19,7 @@ def install_package():
     metadata = dict(
         cmdclass = cmdclass,
         name = 'Xana',
-        version = '0.0.10',
+        version = '0.0.11',
         packages = setuptools.find_packages(),
         license = 'MIT',
         author = 'Mario Reiser',
