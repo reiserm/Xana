@@ -10,22 +10,26 @@ from distutils.command.sdist import sdist
 
 def install_package():
 
-    # load the description from the README.md file
-    with open("README.md", "r") as fh:
-        long_description = fh.read()
+    try:
+        # load the description from the README.md file
+        with open("README.md", "r") as fh:
+            long_description = fh.read()
+    except FileNotFoundError:
+        print("Did not find README.md")
+        long_description = ""
 
 
     cmdclass = {'sdist': sdist}
     metadata = dict(
         cmdclass = cmdclass,
         name = 'Xana',
-        version = '0.0.11',
+        version = '0.0.12',
         packages = setuptools.find_packages(),
         license = 'MIT',
         author = 'Mario Reiser',
         author_email = 'mario.mkel@gmail.com',
         url = 'https://github.com/reiserm/Xana',
-        download_url = "https://pypi.python.org/pypi/Xana",
+        download_url = "https://github.com/reiserm/Xana/archive/v0.0.12-alpha.tar.gz",
         keywords = ['data analysis', 'XPCS', 'XSVS', 'SAXS',],
         description="Analysis software for XPCS, XSVS and SAXS data.",
         long_description = long_description,
