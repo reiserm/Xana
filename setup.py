@@ -63,13 +63,17 @@ def install_package():
 
     if build_ext:
 
-        from numpy.distutils.core import setup, Extension
-        # setup f2py
-        ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
-                    sources=['Xana/XpcsAna/fecorrt3m.f90'],
-                    f2py_options=['--verbose'])]
+        try:
+            from numpy.distutils.core import setup, Extension
+            # setup f2py
+            ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
+                        sources=['Xana/XpcsAna/fecorrt3m.f90'],
+                        f2py_options=['--verbose'])]
 
-        metadata['ext_modules'] = ext
+            metadata['ext_modules'] = ext
+        except ModuleNotFoundError:
+            print('Failed building fortran extensions.')
+            from setuptools import setup
 
     else:
         from setuptools import setup
