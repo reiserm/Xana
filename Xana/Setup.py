@@ -5,21 +5,22 @@ import numpy as np
 
 
 class Setup:
-    """Xana Setup class containing the experimental parameters.
-    """
-    def __init__(self, **kwargs):
-        """Init function of the Xana.Setup class.
+    """Setup class containing information on the experimental parameters.
 
-        The class is initialized when creating a Xana object and contains all
-        parameters or attributes describing the experimental setup.
-        """
-        self.detector = kwargs.pop('detector', 'eiger500k') #: detector used
-        self.maskfile = kwargs.pop('maskfile', None)
-        """str: path to the maskfile"""
-        self.mask = self.load_mask() #: np.ndarray: mask array
-        self.wavelength = None #: float: X-ray wavelength in Angstrom
-        self.distance = None
-        self.center = None
+    Args:
+        detector (str, optional): detector used for the measurement. Defaults
+            to `'eiger500k'`.
+        maskfile (str, optional): Mask to load in `.npy` format. Defaults
+            to None.
+    """
+
+    def __init__(self, detector='eiger500k', maskfile=None):
+        self.detector = detector #: detector name.
+        self.maskfile = maskfile #: str: maskfile.
+        self.mask = self.load_mask() #: np.ndarray: mask array.
+        self.wavelength = None #: float: X-ray wavelength in Angstrom.
+        self.distance = None #: float: sample-detector distance.
+        self.center = None #: tuple: position of the direct beam in pixels.
         self.ai = None
         self.qv_init = None
         self.phiv_init = None

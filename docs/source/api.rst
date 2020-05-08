@@ -1,11 +1,18 @@
 API
 ===
 
-.. autoclass:: Xana.Xana
-    :members:
+.. currentmodule:: Xana
 
-.. automodule:: Xana.Setup
+.. autosummary::
+   Xana
+   Setup
+   Xdb
+
+.. autoclass:: Xana
    :members:
 
-.. automodule:: Xana.Xdb
+.. autoclass:: Setup
+   :members:
+
+.. autoclass:: Xdb
    :members:

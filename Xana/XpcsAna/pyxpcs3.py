@@ -43,8 +43,8 @@ def vartrc(ttc):
         #ydata=diag(ttc,it)
         #xdata=arange(1,len(ydata)+1)
         #p1,success=leastsq(errfuncc,pc0,args=(xdata,ydata))
-        #vtmp.append(var(ydata/(p1[0]+p1[1]*xdata)))              
-        vtmp.append(np.var(np.diag(ttc,it)))         
+        #vtmp.append(var(ydata/(p1[0]+p1[1]*xdata)))
+        vtmp.append(np.var(np.diag(ttc,it)))
     return vtmp
 
 def recurf(ll):
@@ -58,7 +58,7 @@ def recurf(ll):
         recurf(ll+1)
     else:
         l[ll+1] += 1
-    l[ll]=0  
+    l[ll]=0
 
 def avr(saxs, ctr=-1, mask=None):
     """Old version of normalization function
@@ -68,7 +68,7 @@ def avr(saxs, ctr=-1, mask=None):
     if mask is None:
         mask = np.ones((dim1,dim2))
     saxs = saxs*mask
-    
+
     if ctr == -1:
         return np.ones((dim1,dim2))*np.mean(saxs)
     cx,cy = ctr
@@ -118,7 +118,7 @@ def avr_better( saxs, ctr, mask ):
                 par = int(q[i,j])
                 f1 = q[i,j] - par
                 if mean_saxs[par+1]>0 and mean_saxs[par]>0 :
-                    new_saxs[i,j] = mean_saxs[par+1]*f1 + mean_saxs[par]*(1-f1) 
+                    new_saxs[i,j] = mean_saxs[par+1]*f1 + mean_saxs[par]*(1-f1)
                 if mean_saxs[par+1]>0 and mean_saxs[par]==0 :
                     new_saxs[i,j] = mean_saxs[par+1]
                 if mean_saxs[par+1]==0 and mean_saxs[par]>0 :
@@ -131,7 +131,6 @@ def calculate_twotime_correlation_function(ttdata, tt_max_images=5000):
     """
     global l, v, y
 
-    print("Start calculating TRC and Chi4...")
 
     nf, lind = ttdata.shape
     if nf > tt_max_images: # two-time correlation function is calculated for max tt_max_images
@@ -178,7 +177,7 @@ def calculate_twotime_correlation_function(ttdata, tt_max_images=5000):
     #p0=[0,1]
     #it=range(len(ttcf[1:,0]))
     #p1=zeros((len(ttcf[1:,0]),len(p0)+1))
-    #p1[:,0]=(asfarray(it)+1.0)*dt 
+    #p1[:,0]=(asfarray(it)+1.0)*dt
     #xdata=ttcf[0,:]
     #for i in it:
     #    ydata=ttcf[i+1,:]
@@ -191,11 +190,14 @@ def calculate_twotime_correlation_function(ttdata, tt_max_images=5000):
 #####################
 #---MAIN FUNCTION---#
 #####################
-def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_par=-1,
-            qsec=(0,0), norm='symmetric_whole', nprocs=8, verbose=True, chn=16,
+def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=None, ctr=(0,0), twotime_par=-1,
+            qsec=(0,0), norm='symmetric_whole', nprocs=1, verbose=True, chn=16,
             tt_max_images=5000):
     """Calculate g2 correlation functions with a given dataset or chunks of a data set.
     """
+
+    USE_MP = True if nprocs > 1 else False
+
     time0 = time()
     chn2 = int(chn/2)
     lqv = len(qroi)
@@ -209,23 +211,32 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
         def get_chunk():
             return (0, data)
     elif isinstance(data, dict):
+        USE_MP = True # make sure that the correlator runs in the background
         nf = data['nimages']
         dim = data['dim']
         def get_chunk():
             return data['dataQ'].get()
+    else:
+        raise ValueError(f"Cannot process data of type {type(data)}")
 
     if verbose:
         print('Number of images is:', nf)
         print('shape of image section is:', dim)
 
-    if isinstance(mask, np.ndarray):
-        mask = mask[qsec[0]:qsec[0]+dim[0],qsec[1]:qsec[1]+dim[1]]
-        if saxs is not None and saxs.shape!=mask.shape:
-            saxs = saxs[qsec[0]:qsec[0]+dim[0],qsec[1]:qsec[1]+dim[1]]
+    if not isinstance(mask, np.ndarray):
+        mask = np.ones(dim, 'int8')
+
+    mask = mask[qsec[0]:qsec[0]+dim[0],qsec[1]:qsec[1]+dim[1]]
+    if saxs is not None and saxs.shape!=mask.shape:
+        saxs = saxs[qsec[0]:qsec[0]+dim[0],qsec[1]:qsec[1]+dim[1]]
+
+
 
    # normalize with average saxs image
     if saxs is not None:
-        print('Start computing SAXS for normalization.')
+        if verbose:
+            print('Start computing SAXS for normalization.')
+
         dim2, dim1 = np.shape(saxs)
         saxs_img = saxs.copy()
         ctr = (ctr[0]-qsec[1],ctr[1]-qsec[0])
@@ -239,11 +250,12 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
             saxs_imgc[q0,q1] = np.mean(saxs_img[q0,q1])/saxs_img[q0,q1]
 
         # saxs_imgc[np.where(np.isinf(saxs_imgc))] = 1.0
-        print('Done')
 
         if verbose:
+            print('Done')
             print('Shape of saxs_img:',  np.shape(saxs_img))
             print('Sum of saxs_img:', np.sum(saxs_img))
+
     if verbose:
         print('Number of ROIs: ', lqv)
 
@@ -272,7 +284,9 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     q_sec = np.unique(q_sec)
     del tmp_pix
     nprocs = len(q_sec) - 1
-    print('Using {} processes.'.format(nprocs))
+
+    if verbose:
+        print('Using {} processes.'.format(nprocs))
 
     #----twotime----
     # writing data for two time correlatino function calculation to tttdata
@@ -283,7 +297,8 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     srch = int(np.ceil(np.log2(nf/chn))) + 1
     rcr =  int(chn + chn2*(srch-1))
 
-    print('Number of registers is {} with {} total correlation points.'.format(srch, rcr))
+    if verbose:
+         print('Number of registers is {} with {} total correlation points.'.format(srch, rcr))
 
     lag = np.zeros(rcr, dtype=np.float32)    # initialize lag time vector
 
@@ -301,22 +316,25 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     tt_vec = np.linspace(0,nf,tt_max_images)*dt
 
     #----multiprocessing----
-    # create lists of queues and processes
-    qur = []
-    qure = []
-    pcorr = []
-    for i in range(nprocs):
-        qur.append(Queue(16))
-        qure.append(Queue(1))
-    for i in range(nprocs):
-        q_beg = q_sec[i]
-        q_end = q_sec[i+1]
-        pcorr.append(Process(target=mp_corr, args=(i, nf-1, chn, srch, rcr,
-                lind[q_beg:q_end], q_end-q_beg, qur[i], qure[i])))
+    if USE_MP:
+        # create lists of queues and processes
+        qur = []
+        qure = []
+        pcorr = []
+        for i in range(nprocs):
+            qur.append(Queue(16))
+            qure.append(Queue(1))
+        for i in range(nprocs):
+            q_beg = q_sec[i]
+            q_end = q_sec[i+1]
+            pcorr.append(Process(target=mp_corr,
+                                 args=(nf-1, chn, srch, rcr, lind[q_beg:q_end], q_end-q_beg),
+                                 kwargs=(dict(quc=qur[i], quce=qure[i])))
+            )
 
-    # start processes
-    for i in range(nprocs):
-        pcorr[i].start()
+        # start processes
+        for i in range(nprocs):
+            pcorr[i].start()
     #-----------------------
 
     # start processing data
@@ -329,6 +347,7 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
 
         c_idx, chunk = get_chunk()
         chunk_size = chunk.shape[0]
+        print(chunk.shape)
         idx = slice(t0,t0+chunk_size)
         # matr[matr<0] = 0
 
@@ -363,19 +382,28 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
                     tmp_mat = chunk[:,q0,q1]/trace[idx,qi,None]
                     tmp_put.append((tmp_mat-tmp_mat.mean(-1)[:,None])
                                    /np.sqrt(np.var(tmp_mat,-1))[:,None])
-            qur[jj].put(tmp_put)
+            if USE_MP:
+                qur[jj].put(tmp_put)
+            else:
+                # introduce from_proc list to be consistent with multiprocessing
+                # version of the code
+                from_proc = []
+                print(lind[i:j], j-i)
+                from_proc.append(mp_corr(nf-1, chn, srch, rcr, lind[i:j], j-i,
+                                         data=tmp_put, use_mp=False))
 
         t0 += chunk_size
 
     progress(1,1)
 
     # read data from output queue
-    from_proc = []
-    for i in range(nprocs):
-        from_proc.append(qure[i].get())
-        pcorr[i].join()
-        qure[i].close()
-        qure[i].join_thread()
+    if USE_MP:
+        from_proc = []
+        for i in range(nprocs):
+            from_proc.append(qure[i].get())
+            pcorr[i].join()
+            qure[i].close()
+            qure[i].join_thread()
 
     # get correlation functions and normalization from processes
     corf = from_proc[0][0]
@@ -418,6 +446,8 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=1., ctr=(0,0), twotime_p
     #----twotime and chi4----
     tcalc_cumtrc0 = time()
     if twotime_par != -1:
+        if verbose:
+             print("Start calculating TRC and Chi4...")
         ttcf, chi4 = calculate_twotime_correlation_function(ttdata, tt_max_images)
     else:
         ttcf = chi4 = 0

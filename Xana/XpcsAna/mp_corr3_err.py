@@ -1,8 +1,9 @@
 import numpy as np
 from time import time
 
+def mp_corr(nf, chn, srch, rcr, lind, nq, quc=None, quce=None, data=None, use_mp=True):
+    """Multi-tau correlator."""
 
-def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
     def verbose0(reg):
         return
         # some output for testing purposes
@@ -22,7 +23,7 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
         print('nk: ', nk)
         print('corf: ', corf)
         print('datreg: ', datreg[reg])
-    
+
     def running_mean( m, s, x, k):
         mt = 1.*m
         m += (x-m)/k
@@ -178,7 +179,10 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
     #END of declaring and initializing variables####
     n = 0
     while n < nf:
-        chunk = quc.get()
+        if use_mp:
+            chunk = quc.get()
+        else:
+            chunk = data
         chunk_size = chunk[0].shape[0]
         ni = 0
         while ni < chunk_size:
@@ -187,14 +191,16 @@ def mp_corr(iproc, nf, chn, srch, rcr, lind, nq, quc, quce):
             ni += 1
             n += 1
 
-
     # print('corf: ', corf)
     # print('\nsr: ', sr)
     # print('\nsl: ', sl)
     # print('\nnk: ',nk)
-    
-    #END OF MAIN LOOP put results to output queue
-    quc.close()
-    quc.join_thread()
+
     tcalc = time() - tcalc
-    quce.put([corf.T, dcorf.T, nk, sr.T, sl.T, tcalc])
+    if use_mp:
+        #END OF MAIN LOOP put results to output queue
+        quc.close()
+        quc.join_thread()
+        quce.put([corf.T, dcorf.T, nk, sr.T, sl.T, tcalc])
+    else:
+        return corf.T, dcorf.T, nk, sr.T, sl.T, tcalc

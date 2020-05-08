@@ -8,29 +8,41 @@ from .misc.xsave import mksavdir, save_result, make_filename
 
 class Xana(Xdb, Analysis):
     """Xana class to perform XPCS, XSVS and SAXS data analysis.
+
+    Args:
+        sample (str, optional): sample name.
+        savdir (str, optional): directory to save results.
+        setupfile (str, optional): setupfile to load.
+        maskfile (str, optional): maskfile to load in `'.npy'` format.
+        detector (str, optional): detector used for the measurement.
+        dbfile (str, optional): database file.
+        fmtstr (str, optional): Specify the format to load data.
     """
 
-    def __init__(self, sample='', savdir='./', setupfile=None, **kwargs):
-        """__init__ of Xana.
+    def __init__(self, sample='', savdir='./', setupfile=None, maskfile=None,
+                 detector='eiger500k', dbfile=None, datdir=None, fmtstr=None):
 
-        Args:
-            sample (str): sample name (optional).
-            **kwargs: kwargs passed to initialize the database (Xdb), the
-                setup (Setup) and the Analysis class (Analysis).
-        """
-
-        self.savdir = savdir #: str: directory to save results in.
-        self.sample = sample #: str: sample name appearing in the database.
+        self.savdir = savdir
+        self.sample = sample
         self.setupfile = setupfile
-        """str: setupfile to load at the beginning, can also be loaded with loadsetup method."""
 
-        Xdb.__init__(self, **kwargs)
+        Xdb.__init__(self, dbfile=dbfile)
         if self.setupfile is None:
-            self.setup = Setup(**kwargs)
+            self.setup = Setup(maskfile=maskfile, detector=detector)
         else:
             self.loadsetup(self.setupfile)
-        Analysis.__init__(self, **kwargs)
+        Analysis.__init__(self, datdir=datdir, fmtstr=fmtstr)
 
+    def __str__(self):
+        return ('Xana Instance\n' +
+                "savdir: {}\n" +
+                "sample name: {}\n" +
+                "database file: {}\n" +
+                'setup file: {}\n').format(self.savdir, self.sample,
+                                           self.dbfile, self.setupfile)
+
+    def __repr__(self):
+        return self.__str__()
 
     def mksavdir(self, savdir, *args, **kwargs):
         """Create directory for saving results.

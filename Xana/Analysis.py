@@ -24,9 +24,8 @@ def Manager():
 
 class Analysis(Xdata):
 
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
+    def __init__(self, datdir=None, fmtstr=None):
+        super().__init__(datdir=fmtstr, fmtstr=fmtstr)
 
     @Decorators.input2list
     def analyze(self, series_id, method, first=0, last=np.inf, handle_existing='next',
@@ -129,9 +128,11 @@ class Analysis(Xdata):
                 saxs = kwargs.pop('saxs', 'compute')
                 Isaxs = self.get_xpcs_args(sid, saxs, saxs_dict)
                 dt = self.get_delay_time(sid)
+
+                nprocs = max([2, kwargs.pop('nprocs', 2)])
                 savd = Xpcs.pyxpcs(proc_dat, rois, dt=dt, qv=self.setup.qv,
                                    saxs=Isaxs, mask=self.setup.mask, ctr=self.setup.center,
-                                   qsec=self.setup.qsec[0], **kwargs)
+                                   qsec=self.setup.qsec[0], nprocs=nprocs, **kwargs)
 
             elif method == 'xpcs_evt':
                 dt = self.get_delay_time(sid)

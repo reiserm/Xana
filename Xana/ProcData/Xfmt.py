@@ -8,12 +8,26 @@ class Xfmt:
     dfferent data types.
     """
 
-    def __init__(self, fmtstr=''):
+    def __init__(self, fmtstr=None):
+
+        supprted = [
+            'id10_eiger_single_edf',
+            'pilatus_single_cbf',
+            'p10_eiger_h5',
+            'xcs_cspad_h5',
+            'converted_h5',
+            'lambda_nxs',
+            'id02_eiger_single_edf',
+            'id02_eiger_multi_edf',
+            'spb_agipd',
+        ]
 
         self.fmtstr = fmtstr
         kernel = {}
-        if fmtstr == '':
-            warnings.warn('Format string is empty. Specify valid data format to load data.')
+        if fmtstr == '' or fmtstr is None:
+            pass
+        elif isinstance(fmtstr, str) and fmtstr not in supprted:
+            warnings.warn(f'Format {fmtstr} is not supported. Cannot load data.')
         else:
             if fmtstr == 'id10_eiger_single_edf':
                 kernel = self.__init_id10_eiger_single_edf()

@@ -13,9 +13,9 @@ class Xdata(Xfmt):
     paths defined in Xfmt kernel.
     '''
 
-    def __init__(self, **kwargs):
-        super().__init__(kwargs.pop('fmtstr', ''))
-        self.datdir = kwargs.pop('datdir', '')
+    def __init__(self, datdir=None, fmtstr=None):
+        super().__init__(fmtstr)
+        self.datdir = datdir
         self._files = None
         self._masters = []
         self._headers = []
@@ -35,7 +35,8 @@ class Xdata(Xfmt):
             warnings.warn('Data directory does not exist. Use valid data directory.')
             return
         self.datdir = os.path.abspath(datdir) + '/'
-        if 'agipd' not in self.fmtstr:
+
+        if isinstance(self.fmtstr, str) and 'agipd' not in self.fmtstr:
             self._get_files(self.datdir)
             self._get_masters()
             self._get_headers()

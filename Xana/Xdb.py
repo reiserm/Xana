@@ -13,23 +13,12 @@ class Xdb:
        data interpretation modules.
     """
 
-    def __init__(self, dbfile=None, db=None, **kwargs):
-        self.db = db
+    def __init__(self, dbfile=None):
+        self.db = None
         self.dbfile = dbfile
         if dbfile is not None:
             self.load_db(dbfile)
         self.savdir = None
-
-    def __str__(self):
-        return ('Xana Instance\n' +
-                "savdir: {}\n" +
-                "sample name: {}\n" +
-                "database file: {}\n" +
-                'setup file: {}\n').format(self.savdir, self.sample,
-                                           self.dbfile, self.setupfile)
-
-    def __repr__(self):
-        return self.__str__()
 
     # Data Base
     def load_db(self, dbfile=None, init=False, **kwargs):
