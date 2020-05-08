@@ -347,7 +347,6 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=None, ctr=(0,0), twotime
 
         c_idx, chunk = get_chunk()
         chunk_size = chunk.shape[0]
-        print(chunk.shape)
         idx = slice(t0,t0+chunk_size)
         # matr[matr<0] = 0
 
@@ -388,7 +387,6 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=None, ctr=(0,0), twotime
                 # introduce from_proc list to be consistent with multiprocessing
                 # version of the code
                 from_proc = []
-                print(lind[i:j], j-i)
                 from_proc.append(mp_corr(nf-1, chn, srch, rcr, lind[i:j], j-i,
                                          data=tmp_put, use_mp=False))
 
