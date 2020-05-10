@@ -31,12 +31,7 @@ def make_filename(obj, attr=None, filename=None):
 
 
 def mksavdir(sample_name=None, savhome='./', handle_existing='use'):
-    """
-    Create a directory for saving results.\n
-    Usage is: mksavdir(sample_name, savhome, handling_existing)\n
-    handling_existig\n
-    'use'\tuse same direcotry\n
-    'next'\tadd counter
+    """Create a directory for saving results.
     """
     savhome = os.path.abspath(savhome) + '/'
     if sample_name is None:

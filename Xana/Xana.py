@@ -9,18 +9,46 @@ from .misc.xsave import mksavdir, save_result, make_filename
 class Xana(Xdb, Analysis):
     """Xana class to perform XPCS, XSVS and SAXS data analysis.
 
+    Note:
+        Different kwargs are necessary for data loading, processing and interpretation.
+
+        * Data loading: :code:`fmtstr` has to be provided.
+        * Data processing: additionally, :code:`detector` and :code:`setupfile` have to be provided.
+        * Data interpretation: :code:`setupfile` and :code:`dbfile` should be passed.
+
+        In principle, the setupfile and the database file can also be loaded afterwards.
+
     Args:
-        sample (str, optional): sample name.
+        sample (str, optional): sample name that appears in the database.
+        setupfile (str, optional): setupfile created previously by the
+            :code:`Xana.savesetup` method storing the setup parameters.
+        maskfile (str, optional): maskfile to load in :code:`.npy` format. Good pixels
+            are set to 1, bad ones to 0.
+        fmtstr (str, optional): Specify the format to load data. Valid options are:
+
+            +-----------------------+----------+------------+
+            | fmtstr                | beamline | facility   |
+            +=======================+==========+============+
+            |id10_eiger_single_edf  | ID10     | ESRF       |
+            +-----------------------+----------+------------+
+            |p10_eiger_h5           | P10      | PETRA-III  |
+            +-----------------------+----------+------------+
+            |lambda_nxs             | P10      | PETRA-III  |
+            +-----------------------+----------+------------+
+            |id02_eiger_single_edf  | ID02     | ESRF       |
+            +-----------------------+----------+------------+
+            |id02_eiger_multi_edf   | ID02     | ESRF       |
+            +-----------------------+----------+------------+
+
+        detector (str, optional): detector used for the measurement. Options are:
+            :code:`'eiger500k'`, :code:`'eiger1m'`, :code:`'agipd1m'`.
+
         savdir (str, optional): directory to save results.
-        setupfile (str, optional): setupfile to load.
-        maskfile (str, optional): maskfile to load in `'.npy'` format.
-        detector (str, optional): detector used for the measurement.
         dbfile (str, optional): database file.
-        fmtstr (str, optional): Specify the format to load data.
     """
 
-    def __init__(self, sample='', savdir='./', setupfile=None, maskfile=None,
-                 detector='eiger500k', dbfile=None, datdir=None, fmtstr=None):
+    def __init__(self, sample='', setupfile=None, maskfile=None, fmtstr=None,
+                 detector='eiger500k', savdir='./', dbfile=None, datdir=None):
 
         self.savdir = savdir
         self.sample = sample
@@ -44,18 +72,15 @@ class Xana(Xdb, Analysis):
     def __repr__(self):
         return self.__str__()
 
-    def mksavdir(self, savdir, *args, **kwargs):
-        """Create directory for saving results.
+    def mksavdir(self, name, basepath='./'):
+        """Create directory for saving output.
 
         Args:
-            savdir (str): name of the directory for saving the results.
-            **kwargs: kwargs can be `savhome` and `handle_existing`. The former is the
-                directory in which savdir will be created. The latter sets the default
-                behavior to use existing directories, raise and error or overwrite
-                files.
+            name (str): name of the directory for saving the results.
+            basepath (str, optional): parent path to the directory. Defaults to `'./'`.
         """
 
-        self.savdir = mksavdir(savdir, *args, **kwargs)
+        self.savdir = mksavdir(name, basepath)
         self.setup.savdir = self.savdir
         self.dbfile = self.savdir+'Analysis_db.pkl'
         self.load_db(handle_existing='overwrite')

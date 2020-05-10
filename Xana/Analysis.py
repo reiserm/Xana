@@ -23,6 +23,8 @@ def Manager():
 
 
 class Analysis(Xdata):
+    """Main class to compute the data analysis.
+    """
 
     def __init__(self, datdir=None, fmtstr=None):
         super().__init__(datdir=fmtstr, fmtstr=fmtstr)
@@ -31,6 +33,39 @@ class Analysis(Xdata):
     def analyze(self, series_id, method, first=0, last=np.inf, handle_existing='next',
                 nread_procs=1, chunk_size=200, verbose=True, dark=None,
                 dtype=np.float32, filename='', read_kwargs={}, **kwargs):
+        """Perform the analysis.
+
+        Args:
+            series_id (int): Index of the dataset in the :code:`Xana.meta` table.
+            method (str): Which analysis should be performed. Currently the options are:
+
+                +----------+-------------------------+
+                | method   |    analysis             |
+                +==========+=========================+
+                | saxs     | azimuthal intensity     |
+                +----------+-------------------------+
+                | xpcs     | correlation functions   |
+                +----------+-------------------------+
+                | xpcs_evt | event correlator        |
+                +----------+-------------------------+
+                | xsvs     | photon probabilities    |
+                +----------+-------------------------+
+
+            first (int, optional): Index of the first image to analyze. Defaults 0.
+            last (int, optional): Index of the last image to analyze. Defaults :code:`nf-1`
+                where :code:`nf` is the number of images of the series.
+            handle_existing (str, optional): how to treat existing files. Defaults to :code:`next`
+                meaning that for each saved file a new filename is created with a counter.
+            nread_procs (int, optional): How many processes are spawned to read the data.
+                Defaults to 1.
+            chunk_size (int, optional): Load the data in chunks of this many images.
+            verbose (bool, optional): Print more detailed output if True (default).
+            read_kwargs (dict, optional): Additional kwargs passed to the data reader.
+            **kwargs: Additional kwargs are passed to the particular analysis routine depending
+                on the value of :code:`method`.
+
+        """
+
 
         if not self.setup.wavelength:
             raise ValueError('Setup is not defined properly. Cannot perform analysis.')
@@ -126,8 +161,8 @@ class Analysis(Xdata):
 
             if method == 'xpcs':
                 saxs = kwargs.pop('saxs', 'compute')
-                Isaxs = self.get_xpcs_args(sid, saxs, saxs_dict)
-                dt = self.get_delay_time(sid)
+                Isaxs = self._get_xpcs_args(sid, saxs, saxs_dict)
+                dt = self._get_delay_time(sid)
 
                 nprocs = max([2, kwargs.pop('nprocs', 2)])
                 savd = Xpcs.pyxpcs(proc_dat, rois, dt=dt, qv=self.setup.qv,
@@ -135,7 +170,7 @@ class Analysis(Xdata):
                                    qsec=self.setup.qsec[0], nprocs=nprocs, **kwargs)
 
             elif method == 'xpcs_evt':
-                dt = self.get_delay_time(sid)
+                dt = self._get_delay_time(sid)
                 evt_dict = dict(method='events',
                                 verbose=True,
                                 qroi=rois,
@@ -148,7 +183,7 @@ class Analysis(Xdata):
 
             elif method == 'xsvs':
 
-                t_e = self.get_xsvs_args(sid,)
+                t_e = self._get_xsvs_args(sid,)
                 savd = Xsvs.pyxsvs(proc_dat, rois, t_e=t_e,
                                    qv=self.setup.qv, qsec=self.setup.qsec[0],
                                    **kwargs)
@@ -183,7 +218,7 @@ class Analysis(Xdata):
 
             self.add_db_entry(sid, savfile, method)
 
-    def get_xpcs_args(self, sid, saxs, read_opt):
+    def _get_xpcs_args(self, sid, saxs, read_opt):
         ''' Get Saxs and delay time for XPCS analysis.
         '''
         if saxs == 'compute':
@@ -198,7 +233,7 @@ class Analysis(Xdata):
             Isaxs = saxs
         return Isaxs
 
-    def get_delay_time(self, sid):
+    def _get_delay_time(self, sid):
         dt = 0
         for attr in ['t_delay', 't_exposure', 't_readout', 't_latency', 'rate',
                      'pulseLength']:
@@ -214,7 +249,7 @@ class Analysis(Xdata):
                         break
         return dt
 
-    def get_xsvs_args(self, sid):
+    def _get_xsvs_args(self, sid):
         ''' Get exposure time for XSVS analysis
         '''
         t_e = 0

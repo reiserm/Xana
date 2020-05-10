@@ -9,8 +9,8 @@ class Setup:
 
     Args:
         detector (str, optional): detector used for the measurement. Defaults
-            to `'eiger500k'`.
-        maskfile (str, optional): Mask to load in `.npy` format. Defaults
+            to :code:`'eiger500k'`.
+        maskfile (str, optional): Mask to load in :code:`.npy` format. Defaults
             to None.
     """
 
@@ -62,9 +62,9 @@ class Setup:
 
         self.detector = d.pop('detector', None)
         self.__dict__.update(d)
-        self.ai = self.update_ai()
+        self.ai = self._update_ai()
         if d['qsec'] is not None:
-            self.qsec_ai = self.update_ai(self.qsec_center)
+            self.qsec_ai = self._update_ai(self.qsec_center)
         else:
             self.qsec_ai = None
 
@@ -88,9 +88,9 @@ class Setup:
                 inp = np.array(inp).astype('float32')
             setup[k] = inp
         self.__dict__.update(setup)
-        self.ai = self.update_ai()
+        self.ai = self._update_ai()
 
-    def update_ai(self, center=None, nbins=1000):
+    def _update_ai(self, center=None, nbins=1000):
 
         if center is None:
             center = self.center
@@ -113,7 +113,4 @@ class Setup:
         else:
             mask = np.ones(self.detector.shape, dtype='bool')
         return mask
-
-    def from_dict(self):
-        pass
 

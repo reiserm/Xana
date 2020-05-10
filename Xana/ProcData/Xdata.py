@@ -8,9 +8,7 @@ from ..misc.makemask import masker
 import warnings
 
 class Xdata(Xfmt):
-    '''
-    Class to get meta information on datasets based on data directory, headers and
-    paths defined in Xfmt kernel.
+    '''Class to get metadata information on datasets.
     '''
 
     def __init__(self, datdir=None, fmtstr=None):
@@ -24,12 +22,11 @@ class Xdata(Xfmt):
         self._series = []
         self._series_ids = None
 
-    def connect(self, datdir, **kwargs):
-        """
-        Finds data sets in `datdir` and reads meta data. Can be executed several times to append new data directories.
-        :param datdir: data directory that contains data files
-        :param kwargs:
-        :return: None
+    def connect(self, datdir):
+        """Finds datasets in the directory given by :code:`datdir`.
+
+        Args:
+            datdir (str): data directory that contains data files.
         """
         if not os.path.isdir(datdir):
             warnings.warn('Data directory does not exist. Use valid data directory.')
@@ -120,11 +117,15 @@ class Xdata(Xfmt):
             self.meta.reset_index(drop=True, inplace=True)
 
     def get_series(self, series_id, **kwargs):
-        """
-        Reads data series.
-        :param series_id: ID of series to analyze in Xdata.meta dataframe.
-        :param kwargs: are passed to load_data_func in ProcData module.
-        :return: np.ndarray if method is `full` or tuple of average images and variance if method is `average`.
+        """Reads data.
+
+        Args:
+            series_id (int): index of the dataset in the :code:`Xana.meta` table.
+            **kwargs: arguments passed to the data loader.
+
+        Returns:
+            np.ndarray: if method is :code:`full` or tuple of average images and variance
+            if method is :code:`average`.
         """
         if 'subset' in self.meta:
             nf = self.meta.loc[series_id, 'nframes']
@@ -137,10 +138,15 @@ class Xdata(Xfmt):
         return self.load_data_func(self._series[series_id], xdata=self, **kwargs)
 
     def get_image(self, series_id, imgn=0, **kwargs):
-        """
-        Returns single image of dataset.
-        :param imgn: Index of image starting with 0
-        :param series_id: ID of series to analyze in Xdata.meta dataframe.
+        """Returns a single image of a dataset.
+
+        Args:
+            series_id (int): Index of the dataset in the :code:`Xana.meta` table.
+            imgn (int, optional): Index of image starting with 0. Defaults 0.
+            **kwargs: arguments passed to the data loader.
+
+        Returns:
+            np.ndarray: The 2D image. Shape depends on the detector.
         """
         return self.load_data_func(self._series[series_id], xdata=self, first=(imgn,),
                                    last=(imgn+1,), **kwargs)[0]
@@ -150,9 +156,12 @@ class Xdata(Xfmt):
         masker(Isaxs, mask)
 
     def to_h5(self, series_id, filename, **kwargs):
-        """
-        Convert series to h5. Built in to convert single edf series from ID10 or ID02.
-        :param series_id: ID of series to analyze in Xdata.meta dataframe.
-        :param filename: output filename
+        """Convert dataset to h5.
+
+        Built in to convert single edf series from ID10 or ID02.
+
+        Args:
+            series_id (int): Index of the dataset in the :code:`Xana.meta` table.
+            filename (str): Filename of the HDF5 file.
         """
         to_h5(self, series_id, filename, **kwargs)
