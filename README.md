@@ -32,7 +32,8 @@ to a missing compiler see point 3.
      
 4. Additional remarks on the installation on OSX: 
 
-   * If installing Xana fails, it might help to unset the following environment variables: `unset LDFLAGS` and `unset SHELL` then `pip install Xana`.
+   * If installing Xana fails, it might help to unset the following environment
+     variables: `unset LDFLAGS` and `unset SHELL` then `pip install Xana`.
    
 # Example Data
 

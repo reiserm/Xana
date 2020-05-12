@@ -13,4 +13,5 @@ ipywidgets
 sphinxcontrib-napoleon
 nbsphinx
 m2r
+sphinx_click
 IPython
