@@ -40,7 +40,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx',
-    'sphinx_click.ext',
     # 'sphinx_rtd_theme',
     'nbsphinx',
     'm2r',
