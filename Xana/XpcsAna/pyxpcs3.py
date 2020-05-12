@@ -343,7 +343,8 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=None, ctr=(0,0), twotime
     last_chunk = -1
     lin_mask = np.where(mask)
     while t0 < nf - 1:
-        progress(t0,nf)
+        if verbose:
+            progress(t0,nf)
 
         c_idx, chunk = get_chunk()
         chunk_size = chunk.shape[0]
@@ -392,7 +393,8 @@ def pyxpcs( data, qroi, dt=1., qv=None, saxs=None, mask=None, ctr=(0,0), twotime
 
         t0 += chunk_size
 
-    progress(1,1)
+    if verbose:
+        progress(1,1)
 
     # read data from output queue
     if USE_MP:
