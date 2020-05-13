@@ -22,7 +22,7 @@ class Xdata(Xfmt):
         self._series = []
         self._series_ids = None
 
-    def connect(self, datdir):
+    def connect(self, datdir, addfirstnlast=True, checksubseries=True, nframesfromfiles=False):
         """Finds datasets in the directory given by :code:`datdir`.
 
         Args:
@@ -38,7 +38,7 @@ class Xdata(Xfmt):
             self._get_masters()
             self._get_headers()
             self._files2series()
-        self._get_meta(**kwargs)
+        self._get_meta(addfirstnlast, checksubseries, nframesfromfiles)
 
     def _get_files(self, datdir,):
         check_suffix = re.compile(self.suffix)

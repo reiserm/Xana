@@ -9,8 +9,9 @@ from .xpcsmethods import cftomt, mat2evt
 try:
     from .fecorrt3m import fecorrt3m
 except ImportError:
-    warnings.warn("Could not load fortran module fecorrt3m. \
-    Probably not built.")
+    pass
+    # warnings.warn("Could not load fortran module fecorrt3m. \
+    # Probably not built.")
 
 #---MAIN FUNCTION---
 def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
