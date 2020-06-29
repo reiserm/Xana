@@ -24,6 +24,8 @@
 
 *.ipynb_checkpoints/
 
+.venv
+
 Xana/ProcData/agipdMetadata.py
 Xana/SaxsAna/defineqrois.py.orig
 Xana/Xdrop/dropimgood_sel.f90
