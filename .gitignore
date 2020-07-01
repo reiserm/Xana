@@ -7,6 +7,9 @@
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
 
+# pep 517/518/pyproject.toml metadata
+/pip-wheel-metadata/
+
 
 # example images
 *.edf.gz
@@ -21,6 +24,8 @@
 *~
 .DS_Store
 # *.so
+
+/.vscode/
 
 *.ipynb_checkpoints/
 
