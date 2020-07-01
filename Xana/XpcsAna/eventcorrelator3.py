@@ -9,9 +9,10 @@ from .xpcsmethods import cftomt, mat2evt
 try:
     from .fecorrt3m import fecorrt3m
 except ImportError:
-    pass
-    # warnings.warn("Could not load fortran module fecorrt3m. \
-    # Probably not built.")
+    warnings.warn(
+        "Could not load fortran module fecorrt3m. "
+        "Probably not built."
+    )
 
 #---MAIN FUNCTION---
 def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
@@ -94,7 +95,7 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         del x
         cfmt.append(cftomt(cc[1:,[0,roii+1]],err2=z[1:,roii+1]))
         trace.append(s)
-        
+
         if roii in twotime_par:
             ttcf[roii] = cor.copy()
         del cor
@@ -108,7 +109,7 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         corf[1:,i+1] = cfmt[i][:,1]
         dcorf[1:,i+1] = cfmt[i][:,2]
 
-    trace = np.squeeze(np.array(trace)).T        
+    trace = np.squeeze(np.array(trace)).T
 
     corfd = {'corf':corf,
              'dcorf':dcorf,
