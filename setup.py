@@ -2,8 +2,7 @@ import logging
 from distutils.command.sdist import sdist
 
 import setuptools
-from numpy.distutils.core import Extension
-from setuptools import setup
+from numpy.distutils.core import Extension, setup
 
 
 logging.basicConfig(level=logging.INFO)
