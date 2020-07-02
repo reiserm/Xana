@@ -5,9 +5,9 @@ name: Python package
 
 on:
   push:
-    branches: [ master ]
+    branches: [ setup-changes ]
   pull_request:
-    branches: [ master ]
+    branches: [ setup-changes ]
 
 jobs:
   build:
