@@ -36,17 +36,17 @@ setup(
     ext_modules=ext_modules,
     cmdclass={'sdist': sdist},
     install_requires=[
-        'cbf>=1.1',
+        'cbf>=1.0',
         'corner>=2.0',
         'emcee>=3.0',
-        'h5py>=2.10',
-        'ipywidgets>=7.5',
+        'h5py>=2.0',
+        'ipywidgets',
         'lmfit>=1.0',
-        'matplotlib>=3.2',
+        'matplotlib',
         'numpy>=1.19',
         'pandas>=1.0',
         'pyfai>=0.19',
-        'seaborn>=0.10'
+        'seaborn'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
