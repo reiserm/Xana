@@ -26,7 +26,7 @@
 
 Xana/ProcData/agipdMetadata.py
 Xana/SaxsAna/defineqrois.py.orig
-Xana/Xdrop/dropimgood_sel.f90
+# Xana/Xdrop/dropimgood_sel.f90
 Xana/Xdrop/hist_adu_fss.f90
 Xana/Xdrop/hist_adu_rfs.f90
 Xana/Xdrop/hist_adu_rfs2.f90
