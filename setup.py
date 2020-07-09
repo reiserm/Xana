@@ -1,89 +1,60 @@
-#!/usr/bin/env python
-
-
-import os
-import sys
-import setuptools
-from setuptools import find_packages
+import logging
 from distutils.command.sdist import sdist
 
-
-def install_package():
-
-    try:
-        # load the description from the README.md file
-        with open("README.md", "r") as fh:
-            long_description = fh.read()
-    except FileNotFoundError:
-        print("Did not find README.md")
-        long_description = ""
+import setuptools
+from numpy.distutils.core import Extension, setup
 
 
-    cmdclass = {'sdist': sdist}
-    metadata = dict(
-        cmdclass = cmdclass,
-        name = 'Xana',
-        version = '0.0.12',
-        packages = setuptools.find_packages(),
-        license = 'MIT',
-        author = 'Mario Reiser',
-        author_email = 'mario.mkel@gmail.com',
-        url = 'https://github.com/reiserm/Xana',
-        download_url = "https://github.com/reiserm/Xana/archive/v0.0.12-alpha.tar.gz",
-        keywords = ['data analysis', 'XPCS', 'XSVS', 'SAXS',],
-        description="Analysis software for XPCS, XSVS and SAXS data.",
-        long_description = long_description,
-        long_description_content_type="text/markdown",
-        python_requires ='>= 3.6',
-        install_requires = [
-            'numpy',
-            'pandas',
-            'lmfit',
-            'pyfai',
-            'cbf',
-            'matplotlib',
-            'emcee',
-            'corner',
-            'h5py',
-            'seaborn',
-            'ipywidgets',
-        ],
-        classifiers=[
-            'Development Status :: 3 - Alpha',
-            'Intended Audience :: Science/Research',
-            'Topic :: Scientific/Engineering :: Physics',
-            'License :: OSI Approved :: MIT License',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
-        ],
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Xana.setup")
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+ext_modules = [
+    Extension(
+        name='Xana.XpcsAna.fecorrt3m',
+        sources=['Xana/XpcsAna/fecorrt3m.f90'],
+        f2py_options=['--verbose'],
     )
+]
 
-    args = sys.argv[1:]
-
-    build_ext = False
-    if 'build_ext' in args:
-        build_ext = True
-
-    if build_ext:
-
-        try:
-            from numpy.distutils.core import setup, Extension
-            # setup f2py
-            ext = [Extension(name='Xana.XpcsAna.fecorrt3m',
-                        sources=['Xana/XpcsAna/fecorrt3m.f90'],
-                        f2py_options=['--verbose'])]
-
-            metadata['ext_modules'] = ext
-        except ModuleNotFoundError:
-            print('Failed building fortran extensions.')
-            from setuptools import setup
-
-    else:
-        from setuptools import setup
-
-    setup(**metadata)
-
-
-if __name__ == "__main__":
-    install_package()
+setup(
+    name='Xana',
+    version='0.0.12',
+    packages=setuptools.find_packages(),
+    license='MIT',
+    author='Mario Reiser',
+    author_email='mario.mkel@gmail.com',
+    url='https://github.com/reiserm/Xana',
+    download_url='https://github.com/reiserm/Xana/archive/v0.0.12-alpha.tar.gz',
+    keywords=['data analysis', 'XPCS', 'XSVS', 'SAXS', ],
+    description='Analysis software for XPCS, XSVS and SAXS data.',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    python_requires='>= 3.6',
+    ext_modules=ext_modules,
+    cmdclass={'sdist': sdist},
+    install_requires=[
+        'cbf>=1.0',
+        'corner>=2.0',
+        'emcee>=3.0',
+        'h5py>=2.0',
+        'ipywidgets',
+        'lmfit>=1.0',
+        'matplotlib',
+        'numpy>=1.19',
+        'pandas>=1.0',
+        'pyfai>=0.19',
+        'seaborn'
+    ],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Physics',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+    ],
+)
