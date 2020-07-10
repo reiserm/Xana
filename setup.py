@@ -48,6 +48,13 @@ setup(
         'pyfai>=0.19',
         'seaborn'
     ],
+    extras_require={
+        "test": [
+            "pytest",
+            "pytest-cov",
+            "nbval",
+        ],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
