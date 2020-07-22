@@ -27,7 +27,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install gfortran for Linux
       if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get install gfortran
+      run: |
+        sudo apt-get install gfortran
+        echo "...?????"
     - name: Check gfortran version
       run: gfortran --version
     - name: Install package
