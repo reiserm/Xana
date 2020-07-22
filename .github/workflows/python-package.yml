@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-10.15.5]
+        os: [ubuntu-latest,]
         python-version: [3.7,]
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         python -c "import Xana.XpcsAna.fecorrt3m"
     - name: Test notebook execution
       run: |
-        pytest --nbval ./docs/source/XPCS_Example.ipynb
+        pytest --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
 #     - name: Lint with flake8
 #       run: |
 #         # stop the build if there are Python syntax errors or undefined names
