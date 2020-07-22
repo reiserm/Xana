@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-10.15.5]
         python-version: [3.7,]
 
     steps:
@@ -27,9 +27,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install gfortran for Linux
       if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get install gfortran
-        echo "...?????"
+      run: sudo apt-get install gfortran
     - name: Check gfortran version
       run: gfortran --version
     - name: Install package
