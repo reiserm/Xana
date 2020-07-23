@@ -33,6 +33,9 @@
 
 *.ipynb_checkpoints/
 
+# Ignore data file downloaded during testing/doc build
+docs/source/xpcs_data.tgz
+
 # Misc
 Xana/ProcData/agipdMetadata.py
 Xana/SaxsAna/defineqrois.py.orig
