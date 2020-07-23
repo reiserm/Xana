@@ -1,5 +1,6 @@
 from os.path import abspath
 import logging
+import numpy
 from distutils.command.sdist import sdist
 
 import setuptools
@@ -61,4 +62,5 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     ext_modules=ext_modules,
+    include_dirs=[numpy.get_include()],
 )
