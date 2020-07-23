@@ -1,3 +1,4 @@
+from os.path import abspath
 import logging
 from distutils.command.sdist import sdist
 
@@ -11,7 +12,8 @@ logger = logging.getLogger("Xana.setup")
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-ext_modules = cythonize("Xana/XpcsAna/cpy_ecorr.pyx", annotate=True)
+ext_modules = cythonize(abspath("Xana/XpcsAna/cpy_ecorr.pyx"),
+                        annotate=True)
 
 setup(
     name='Xana',
