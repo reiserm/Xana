@@ -1,9 +1,11 @@
+from os.path import abspath
 import logging
+import numpy
 from distutils.command.sdist import sdist
 
 import setuptools
-from numpy.distutils.core import Extension, setup
-
+from distutils.core import setup
+from Cython.Build import cythonize
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Xana.setup")
@@ -11,13 +13,8 @@ logger = logging.getLogger("Xana.setup")
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-ext_modules = [
-    Extension(
-        name='Xana.XpcsAna.fecorrt3m',
-        sources=['Xana/XpcsAna/fecorrt3m.f90'],
-        f2py_options=['--verbose'],
-    )
-]
+ext_modules = cythonize(abspath("Xana/XpcsAna/cpy_ecorr.pyx"),
+                        annotate=True)
 
 setup(
     name='Xana',
@@ -33,7 +30,6 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>= 3.6',
-    ext_modules=ext_modules,
     cmdclass={'sdist': sdist},
     install_requires=[
         'cbf>=1.0',
@@ -46,7 +42,8 @@ setup(
         'numpy>=1.19',
         'pandas>=1.0',
         'pyfai>=0.19',
-        'seaborn'
+        'seaborn',
+        'cython',
     ],
     extras_require={
         "test": [
@@ -64,4 +61,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
+    ext_modules=ext_modules,
+    include_dirs=[numpy.get_include()],
 )

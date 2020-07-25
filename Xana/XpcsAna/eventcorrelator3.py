@@ -6,14 +6,9 @@ from scipy.ndimage import gaussian_filter
 from ..misc.progressbar import progress
 from .xpcsmethods import cftomt, mat2evt
 
-try:
-    from .fecorrt3m import fecorrt3m
-except ImportError:
-    warnings.warn(
-        "Could not load fortran module fecorrt3m. "
-        "Probably not built."
-    )
+from .cpy_ecorr import fecorrt3m
 
+import pdb
 #---MAIN FUNCTION---
 def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
                     twotime_par=-1, **kwargs):
@@ -65,8 +60,9 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         pix = pix[indpi]
 
         lpi = len(pix)
-        cor = np.zeros((ntimes, ntimes))
+        cor = np.zeros((ntimes, ntimes), 'int32')
         print('starting fortran routine', flush=1)
+        cor = np.asfortranarray(cor)
         cor = fecorrt3m(pix, t, cor, lpi, ntimes)
         lens = len(s)
         s = s.astype(dtype=np.float32)
@@ -83,8 +79,9 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         for i in range(1,ntimes-1):
             dia = np.diag(cor,k=i)
             ind = np.where(np.isfinite(dia))
-            x[i-1,1] = np.mean(dia[ind])
-            x[i-1,2] = np.std(dia[ind])
+            if len(dia[ind]):
+                x[i-1,1] = np.mean(dia[ind])
+                x[i-1,2] = np.std(dia[ind])
         x[:,2] *= np.sqrt(1.0/(ntimes-1))
         x[:,0] *= dt
         cc[1:,roii+1] = x[:,1]

@@ -1,4 +1,5 @@
 import numpy as np
+import pdb
 
 def mat2evt(roi):
     '''Function to convert matrix of npix x ntimes
@@ -35,7 +36,8 @@ def cftomt(d, par=16, err2=None):
     if err2 is None:
         err2 = np.ones(d.shape[0], dtype=d.dtype)
 
-    err2 = np.ma.masked_array(err2)
+    # err2 = np.ma.masked_array(err2)
+    err2[err2==0] = np.nan
 
     for i in range(par):
         nt.append(d[i,0])
@@ -63,6 +65,6 @@ def cftomt(d, par=16, err2=None):
     #     nd.append(val[i])
     #     er.append(err2[i])
 
-    x = np.array([nt,nd,er]).T  
+    x = np.array([nt,nd,er]).T
     return x
 
