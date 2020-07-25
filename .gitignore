@@ -49,3 +49,22 @@ Xana/XpcsAna/.nfs0000000028103f1f000000a5
 Xana/XpcsAna/.nfs000000019107094f000000ae
 Xana/XpcsAna/CorrFunc_conflict-20181113-210123.py
 Xana/XsvsAna/CalcPhotonProbabilities.py.orig
+
+GPATH
+GRTAGS
+GTAGS
+MANIFEST
+Xana/GPATH
+Xana/GRTAGS
+Xana/GTAGS
+Xana/Xdrop/dropletizem.so
+Xana/XpcsAna/cpy_ecorr.c
+Xana/XpcsAna/cpy_ecorr.cpython-37m-darwin.so
+Xana/XpcsAna/cpy_ecorr.html
+Xana/misc/logind.py
+Xana/misc/toolbox.py
+docs/source/Testing.ipynb
+docs/source/Xana_example/
+docs/source/figures/
+docs/source/getting-started.rst
+magit: Xana
