@@ -27,3 +27,5 @@ def fecorrt3m(ndarray[int, ndim=1, mode='fortran'] pix,
         for j in range(nt - 1):
             cc[j, i] = cc[j, i] + cc[i, j]
             cc[i, j] = cc[j, i]
+
+    return cc

@@ -527,20 +527,24 @@ class CorrFunc(AnaList):
         i = 0
         for sid in db_id:
             d = self.Xana.get_item(sid)
-            if twotime_par is None:
-                twotime_par = d['twotime_par']
+            if twotime_par is None and d['twotime_par'] is not None:
+                twotime_par = d['twotime_par'][0]
+            if twotime_par not in d['twotime_par']:
+                raise KeyError("TTC of q-bin not available."
+                               f"Available q-bins are: {d['twotime_par']}")
             try:
                 self.twotime += d['twotime_corf'][twotime_par]
                 i += 1
             except ValueError as e:
-                print('Could not average %d error message was\n\t%s' % (int(sid), e))
+                print('Could not average %d error message was\n\t%s'
+                      % (int(sid), e))
         self.twotime /= i
 
 
     @Decorators.init_figure()
     @Decorators.input2list
-    def plot_twotime(self, db_id, clim=(None, None), ax=None, interpolation='gaussian', \
-                     twotime_par=None):
+    def plot_twotime(self, db_id, clim=(None, None), ax=None,
+                     interpolation='gaussian', twotime_par=None):
         """Plot two-time correlation functions read from database
         """
         self.get_twotime(db_id, twotime_par)
@@ -548,11 +552,12 @@ class CorrFunc(AnaList):
         vmin, vmax = clim
         corfd = self.Xana.get_item(db_id[0])
         ax.set_title(
-            r'q = {:.2g}$\mathrm{{nm}}^{{-1}}$'.format(corfd['qv'][corfd['twotime_par']]))
+            r'q = {:.2g}$\mathrm{{nm}}^{{-1}}$'.format(
+                corfd['qv'][twotime_par]))
         tt = corfd['twotime_xy']
-        im = ax.imshow(self.twotime, cmap=plt.get_cmap('magma'), origin='lower',
-                       interpolation=interpolation, extent=[
-                           tt[0], tt[-1], tt[0], tt[-1]],
+        im = ax.imshow(self.twotime, cmap=plt.get_cmap('magma'),
+                       origin='lower', interpolation=interpolation,
+                       extent=[tt[0], tt[-1], tt[0], tt[-1]],
                        vmin=vmin, vmax=vmax)
         ax.set_xlabel(r'$t_1$ [s]',)
         ax.set_ylabel(r'$t_2$ [s]',)
