@@ -530,7 +530,7 @@ class CorrFunc(AnaList):
             if twotime_par is None and d['twotime_par'] is not None:
                 twotime_par = d['twotime_par'][0]
             if twotime_par not in d['twotime_par']:
-                raise KeyError("TTC of q-bin not available."
+                raise KeyError("TTC of q-bin not available. "
                                f"Available q-bins are: {d['twotime_par']}")
             try:
                 self.twotime += d['twotime_corf'][twotime_par]
