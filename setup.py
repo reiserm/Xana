@@ -47,7 +47,7 @@ setup(
     ],
     extras_require={
         "test": [
-            "pytest<=5.4",
+            "pytest",
             "pytest-cov",
             "nbval",
         ],
