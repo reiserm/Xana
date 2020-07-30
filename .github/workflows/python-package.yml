@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest,]
+        os: [ubuntu-latest,macos-10.15]
         python-version: [3.7,]
 
     steps:
@@ -25,11 +25,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    # - name: Install gfortran for Linux
-    #   if: matrix.os == 'ubuntu-latest'
-    #   run: sudo apt-get install gfortran
-    # - name: Check gfortran version
-    #   run: gfortran --version
+    - name: Install gfortran for Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install gfortran
+    - name: Symlink gfortran for MacOS
+      if: matrix.os == 'macos-10.15'
+      run: ln -s /usr/local/bin/gfortran-9 /usr/local/bin/gfortran
+    - name: Check gfortran version
+      run: gfortran --version
     - name: Install package
       run: |
         python -m pip install --upgrade pip
