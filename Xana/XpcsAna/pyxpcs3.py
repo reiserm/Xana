@@ -282,7 +282,8 @@ def pyxpcs(data, qroi=None, dt=1., qv=None, saxs=None, mask=None, ctr=(0, 0),
             equally_spaced = False
         tvec = np.asarray(time_spacing)*dt
         nprocs = 1
-        print("Switching off multiprocessing due to unequally spaced lag times.")
+        print("Switching off multiprocessing due to "
+              "unequally spaced lag times.")
         assert nf == len(tvec), "Time vector does not match data shape"
     else:
         raise ValueError("Time axis variable `time_spacing` must not be of "
@@ -294,9 +295,9 @@ def pyxpcs(data, qroi=None, dt=1., qv=None, saxs=None, mask=None, ctr=(0, 0),
     if use_multitau is False:
         if twotime_par is None:
             twotime_par = np.arange(lqv)
-            print("With multitau being disabled, TTCs are required for the g2\n"
-                    "calculation; however, the twotime_par argument was not\n"
-                    "provided. Default is to calculate the TTC for each q-bin.")
+            print("With multitau being disabled, TTCs are required for the g2 "
+                  "calculation;\nhowever, the twotime_par argument was not "
+                  "provided.\nDefault is to calculate the TTC for each q-bin.")
     use_mp = True if nprocs > 1 and use_multitau else False
     if rebin_g2 == 'auto':
         rebin_g2 = True if equally_spaced and not use_multitau else False
