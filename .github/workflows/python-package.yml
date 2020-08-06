@@ -46,7 +46,9 @@ jobs:
         python -c "import Xana.XpcsAna.cpy_ecorr"
     - name: Test notebook execution
       run: |
-        pytest --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
+        pytest --cov=Xana --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
+    - name: Upload Codecov
+      uses: codecov/codecov-action@v1
 #     - name: Lint with flake8
 #       run: |
 #         # stop the build if there are Python syntax errors or undefined names

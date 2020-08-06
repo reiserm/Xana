@@ -1,3 +1,5 @@
+[![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
+
 # Install Xana
 
 A Fortran compiler and `f2py` (now part of `numpy`) are required build python
@@ -16,7 +18,7 @@ to a missing compiler see point 3.
    cd Xana
    pip install .
    ```
-   
+
    or use `pip install -e .` for editable installation. Then you can update Xana
    by executing `git pull` from within the Xana directory.
 
@@ -29,12 +31,12 @@ to a missing compiler see point 3.
      [link1](https://www.scivision.co/windows-gcc-gfortran-cmake-make-install/)
      or
      [link2](https://www.scivision.dev/f2py-running-fortran-code-in-python-on-windows/).
-     
-4. Additional remarks on the installation on OSX: 
+
+4. Additional remarks on the installation on OSX:
 
    * If installing Xana fails, it might help to unset the following environment
      variables: `unset LDFLAGS` and `unset SHELL` then `pip install Xana`.
-   
+
 # Example Data
 
 An example XPCS dataset can be downloaded from
@@ -44,10 +46,10 @@ in a glycerol-water mixture.
 * A mask of the detector, i.e., a 2D array where bad or broken pixels are 0 and
   others are 1.
 * A tutorial Jupyter notebook.
-  
+
 Use
 ```sh
 git clone https://github.com/reiserm/Xana_example.git
 tar xzf ./Xana_example/xpcs_data.tgz
 ```
-to download and unpack the data. 
+to download and unpack the data.
