@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from ..misc.progressbar import progress
 from .xpcsmethods import ttc_to_g2, bin_multitau
 
+import pdb
+
 
 def rebin(a, newshape):
     """Rebin an array to a new shape.
@@ -445,10 +447,11 @@ def pyxpcs(data, qroi=None, dt=1., qv=None, saxs=None, mask=None, ctr=(0, 0),
                     normfactor[normfactor == 0] = 1.
                     data_loop = chunk[:, q0, q1] / normfactor[:, None]
                 elif norm == 'symmetric_whole':
-                    data_loop = chunk[:, q0, q1] / np.mean(chunk[:,
-                                                                 lin_mask[0],
-                                                                 lin_mask[1]],
-                                                           axis=1)[:, None]
+                    data_loop = (chunk[:, q0, q1]
+                                / np.mean(chunk[:,
+                                                lin_mask[0],
+                                                lin_mask[1]],
+                                          axis=1)[:, None])
                 elif norm == 'none':
                     data_loop = chunk[:, q0, q1]
                 elif norm == 'corrcoef':
