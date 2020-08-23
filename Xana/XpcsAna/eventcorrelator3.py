@@ -35,18 +35,6 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
             npix = qroi[roii][0].size
             pix, t, s = data[roii]
             ntimes = s.size
-            # # old code
-            # ntimes = len(data)
-            # npix = qroi[roii][0].size
-            # pix, t, s = [], [], []
-            # for i, dati in enumerate(data):
-            #     lpix = len(dati[roii])
-            #     pix.append(dati[roii])
-            #     t.append(np.zeros(lpix)+i)
-            #     s.append(lpix)
-            # pix = np.concatenate(pix)
-            # t = np.concatenate(t)
-            # s = np.asarray(s)
 
         # initialize variables
         if roii == 0:
@@ -59,7 +47,7 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
             cc[1:, 0] = tt
             chi4 = cc.copy()
 
-        indpi = np.argsort(pix)
+        indpi = np.lexsort((t, pix))
         t = t[indpi]
         pix = pix[indpi]
 
