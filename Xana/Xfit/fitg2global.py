@@ -19,8 +19,8 @@ class G2:
 
         self.cf = np.ma.masked_invalid(cf[1:,1:]).T
         ind_sort = np.argsort(self.t)
-        self.t = self.t[ind_sort]
-        self.cf = self.cf[:,ind_sort]
+        self.t = self.t[ind_sort].astype(np.float64)
+        self.cf = self.cf[:,ind_sort].astype(np.float64)
 
         if isinstance(dcf, np.ndarray):
             self.dcf = np.ma.masked_invalid(dcf[1:,1:]).T
@@ -295,7 +295,7 @@ class G2:
         v = pars.valuesdict()
         model = self._calc_model(v)
 
-        resid = np.sqrt((self._fit_data - model)**2 * self._fit_weights**2)
+        resid = (self._fit_data - model) * self._fit_weights
 
         return np.squeeze(resid.flatten())
 
@@ -412,7 +412,7 @@ class G2:
             else:
                 raise ValueError(f'Error mode {mode} not understood.')
         else:
-            wgt = np.ma.masked_array(np.ones_like(self.cf))
+            wgt = 1 / cf.copy()
 
         excdat = ~np.isfinite(self.cf) | wgt.mask
         self.cf = np.ma.masked_where(excdat, self.cf)
