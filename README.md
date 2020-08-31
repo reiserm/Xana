@@ -1,4 +1,4 @@
-[![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
+![Python package](https://github.com/reiserm/Xana/workflows/Python%20package/badge.svg) [![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
 
 # Install Xana
 
