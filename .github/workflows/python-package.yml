@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-
     runs-on:  ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,28 +24,39 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install gfortran for Linux
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install gfortran
+
     - name: Symlink gfortran for MacOS
       if: matrix.os == 'macos-10.15'
       run: ln -s /usr/local/bin/gfortran-9 /usr/local/bin/gfortran
+
     - name: Check gfortran version
       run: gfortran --version
+
     - name: Install package
       run: |
         python -m pip install --upgrade pip
-        pip install .[test]
+        pip install -e .[test]
+
 #     - name: Test with pytest
 #       run: |
 #         pytest
+
     - name: Import test
       run: |
         cd `mktemp -d` # Otherwise import is relative instead of from installed
         python -c "import Xana.XpcsAna.cpy_ecorr"
+
     - name: Test notebook execution
       run: |
-        pytest --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
+        pytest --cov=Xana --nbval --sanitize-with ./docs/source/doc_sanitize.cfg --verbose
+
+    - name: Upload Codecov
+      uses: codecov/codecov-action@v1
+
 #     - name: Lint with flake8
 #       run: |
 #         # stop the build if there are Python syntax errors or undefined names
