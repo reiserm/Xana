@@ -52,12 +52,10 @@ jobs:
 
     - name: Test notebook execution
       run: |
-        pytest --cov=Xana --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
+        pytest --cov=./ --nbval ./docs/source/XPCS_Example.ipynb --verbose --sanitize-with ./docs/source/doc_sanitize.cfg
 
     - name: Upload Codecov
       uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage
 
 #     - name: Lint with flake8
 #       run: |
