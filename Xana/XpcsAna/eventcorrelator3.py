@@ -34,6 +34,9 @@ def eventcorrelator(data, qroi, qv=None, dt=1., method='matrix',
         elif method == 'events':
             npix = qroi[roii][0].size
             pix, t, s = data[roii]
+            pix = pix.astype('int32')
+            t = t.astype('int32')
+            s = s.astype('int32')
             ntimes = s.size
 
         # initialize variables
