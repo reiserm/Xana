@@ -80,7 +80,7 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
     else:
         dofit = True
 
-    qv = pars['q']
+    qv = np.array(pars['q'])
     qv = qv**alpha
 
     # values to be excluded
@@ -144,8 +144,8 @@ def plot_parameters(pars, parameter, R=250e-9, T=22, fit=None, modes=1, ax=None,
                 # ax[0].plot(x2,m_ls*x2+b_ls)
                 m, b = [(x[0], np.mean(x[1:])) for x in (m, b)]
             else:
-                res = fit_basic(qv[iif], y[iif], dy[iif],
-                                fit, dict(init), fix, emcee)
+                res = fit_basic(qv[iif], y[iif], dy[iif], fit, init=dict(init),
+                        fix=fix, emcee=emcee, **kwargs)
                 fitpar = res[0].astype(np.float32)
                 yf = res[4].eval(res[2].params, x=x)
 

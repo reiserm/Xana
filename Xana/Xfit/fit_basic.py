@@ -30,9 +30,9 @@ def residual(pars, x, func, data=None, eps=None):
     model = func.eval(pars, x=x)
 
     if eps is not None:
-        resid = np.sqrt((data - model)**2 * eps**2)
+        resid = (data - model)* eps
     else:
-        resid = np.abs(data - model)
+        resid = data - model
     return resid
 
 def lnlike(pars, x, func, data=None, eps=None):
@@ -96,8 +96,10 @@ def quadratic(x, a, b, c):
 def exponential(x, a, t, b, g):
     return a*np.exp(-(x/t)**g) + b
 
+
 # Main Fit Function
-def fit_basic( x, y, dy=None, model='line', init={}, fix=None, emcee=False, plot_corner=False):
+def fit_basic( x, y, dy=None, model='line', init={}, fix=None, method='leastsq',
+        emcee=False, plot_corner=False, **kwargs):
 
     if model in 'linear':
         func = linear
@@ -138,7 +140,8 @@ def fit_basic( x, y, dy=None, model='line', init={}, fix=None, emcee=False, plot
             corner.corner(out.flatchain, labels=out.var_names, truths=list(out.params.valuesdict().values()))
 
     else:
-        out = lmfit.minimize(residual, pars, args=(x, model), kws={'data':y, 'eps':wgt}, nan_policy='omit')
+        out = lmfit.minimize(residual, pars, args=(x, model), method=method,
+                kws={'data':y, 'eps':wgt}, nan_policy='omit', **kwargs)
         fit_report = lmfit.fit_report(out)
 
     pars_arr =  np.zeros((len(pars),2))

@@ -72,7 +72,7 @@ def flatten_init(inp):
         i += 1
     return rois
 
-def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)], 
+def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)],
                 plot=False, d=250, mirror=False, **kwargs):
 
     # check_dimension(setup, Isaxs)
@@ -97,7 +97,7 @@ def defineqrois(setup, Isaxs, qv_init=None, phiv_init=[(0,360)],
 
     setup.dqv = qv_init[:,1]
     setup.phiv = phiv_init
-    setup.qv = np.tile(qv_init[:,0],setup.phiv.shape[0])
+    setup.qv = np.repeat(qv_init[:,0],setup.phiv.shape[0])
     setup.radii = radii
 
     setup.gproi = np.array([len(x[0]) for x in qroi], dtype=int)

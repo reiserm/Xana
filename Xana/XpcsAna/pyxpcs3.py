@@ -389,7 +389,10 @@ def pyxpcs(data, qroi=None, dt=1., qv=None, saxs=None, mask=None, ctr=(0, 0),
 
     # time axis of twotime correlation function
     if equally_spaced:
-        tt_vec = np.linspace(0, nf, tt_max_images)*dt
+        if nf > tt_max_images:
+            tt_vec = np.linspace(0, nf, tt_max_images)*dt
+        else:
+            tt_vec = np.arange(nf) * dt
     else:
         tt_vec = tvec.copy()
 

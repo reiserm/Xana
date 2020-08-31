@@ -561,7 +561,7 @@ class CorrFunc(AnaList):
                        vmin=vmin, vmax=vmax)
         ax.set_xlabel(r'$t_1$ [s]',)
         ax.set_ylabel(r'$t_2$ [s]',)
-        cl = plt.colorbar(im, ax=ax)
+        cl = plt.colorbar(im, ax=ax, shrink=.5)
         cl.ax.set_ylabel('correlation', fontsize=12)
         # niceplot(ax, autoscale=False, grid=False)
 
@@ -596,7 +596,7 @@ class CorrFunc(AnaList):
         if 'y' in log:
             ax.set_yscale('log')
 
-        plt.legend()
+        # plt.legend()
 
         # ax.set_title('trace', fontweight='bold', fontsize=14, y=1.14)
 
