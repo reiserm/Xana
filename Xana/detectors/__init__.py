@@ -4,6 +4,9 @@ from pyFAI.detectors import Detector
 
 def grab(name, *args, **kwargs):
 
+    if isinstance(name, Detector):
+        return name
+
     try:
         if '.' in name:
             module_name, class_name = name.rsplit('.', 1)

@@ -21,15 +21,15 @@ class Xdb:
         self.savdir = None
 
     # Data Base
-    def load_db(self, dbfile=None, init=False, **kwargs):
+    def load_db(self, dbfile=None, init=True, **kwargs):
         path, fname = make_filename(self, 'dbfile', dbfile)
         dbfile = path + fname
         print('Try loading database:\n\t{}'.format(dbfile))
-        try:
+        if os.path.isfile(dbfile):
             self.db = pickle.load(open(dbfile, 'rb'))
             self.dbfile = dbfile
             print('Successfully loaded database')
-        except OSError:
+        else:
             print('\t...loading database failed.')
             if init:
                 self.dbfile = self.savdir + os.path.split(dbfile)[-1]

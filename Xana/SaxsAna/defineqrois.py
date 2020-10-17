@@ -12,7 +12,7 @@ def check_dimension(setup, img):
 def getqroi(saxs, setup, qr, phir=None, mirror=False):
 
     q = setup.ai.array_from_unit(unit='q_nm^-1')
-    radius = setup.ai.array_from_unit(unit='r_m')/75e-6
+    radius = setup.ai.array_from_unit(unit='r_m')/setup.detector.pixel1
     phi = setup.ai.chiArray()
 
     qv = qr[:,0]
