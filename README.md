@@ -1,5 +1,9 @@
 ![Python package](https://github.com/reiserm/Xana/workflows/Python%20package/badge.svg) [![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
 
+# Documentation 
+
+The documentation can be found on Read the Docs under this [link](https://xana.readthedocs.io/en/latest/index.html).
+
 # Install Xana
 
 A Fortran compiler and `f2py` (now part of `numpy`) are required build python
