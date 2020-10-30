@@ -11,16 +11,20 @@ to a missing compiler see point 3.
    pip install Xana
    ```
 
-
 2. Install most recent Xana version from GitHub:
+   Download (clone) the repository and install Xana.
    ```sh
    git clone https://github.com/reiserm/Xana.git
    cd Xana
    pip install .
    ```
-
    or use `pip install -e .` for editable installation. Then you can update Xana
    by executing `git pull` from within the Xana directory.
+   
+   Install the latest version from GitHub directly with pip (**Recommended at the moment**) 
+   ```sh
+   pip install git+https://github.com/reiserm/Xana.git
+   ```
 
 
 3. If a Fortran compiler is not already installed, try
