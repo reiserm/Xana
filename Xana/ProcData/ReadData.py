@@ -1,4 +1,5 @@
 import h5py
+import hdf5plugin
 import numpy as np
 import multiprocessing as mp
 from ..XpcsAna.xpcsmethods import mat2evt
@@ -12,7 +13,7 @@ def get_case(detector):
     """
     if detector in ['id10_eiger_single_edf', 'pilatus_single_cbf', 'id02_eiger_single_edf']:
         case = 0
-    elif detector in ['p10_eiger_h5', 'converted_h5', 'lambda_nxs']:
+    elif detector in ['p10_eiger_h5', 'converted_h5', 'lambda_nxs', 'ebs_id02_h5', 'ebs_id10_h5']:
         case = 1
     elif detector == 'xcs_cspad_h5':
         case = 2

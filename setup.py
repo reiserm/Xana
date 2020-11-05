@@ -36,6 +36,7 @@ setup(
         'corner>=2.0',
         'emcee>=3.0',
         'h5py>=2.0',
+        'hdf5plugin',
         'ipywidgets',
         'lmfit>=1.0',
         'matplotlib',

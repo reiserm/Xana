@@ -3,14 +3,14 @@ import numpy as np
 
 #######################################
 #--- get information on data series ---#
-#######################################    
+#######################################
 
 def get_attrs_from_dict(obj, meta):
-            
+
     def init_meta(p):
         for key, value in p.items():
             meta[key] = np.empty(nfiles, dtype=np.dtype(value[1]))
-            
+
     def get_attr(header, p):
         try:
             attr = p[1](header[p[0]])
@@ -26,16 +26,16 @@ def get_attrs_from_dict(obj, meta):
         header = obj.get_header(filename)
         for key, value in p.items():
             meta[key][i] = get_attr(header, value)
-                
+
 def get_header_h5(*args, **kwargs):
     return 0
 
-def get_attrs_h5(obj, meta,):
-            
+def get_attrs_h5(obj, meta):
+
     def init_meta(p):
         for key, value in p.items():
             meta[key] = np.empty(nfiles, dtype=np.dtype(value[1]))
-            
+
     def get_attr(f, p, key):
         if p[0] == obj.h5opt['data']:
             attr = f[p[0]].attrs[key]
