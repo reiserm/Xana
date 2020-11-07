@@ -12,19 +12,20 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 sys.setrecursionlimit(1500)
 
 import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'Xana'
-copyright = '2020, Mario Reiser'
-author = 'Mario Reiser'
+project = "Xana"
+copyright = "2020, Mario Reiser"
+author = "Mario Reiser"
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.0.8'
+release = "v0.0.8"
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,28 +34,28 @@ release = 'v0.0.8'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinxcontrib.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.todo',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.extlinks',
-    'sphinx.ext.intersphinx',
+    "sphinxcontrib.napoleon",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.intersphinx",
     # 'sphinx_rtd_theme',
-    'nbsphinx',
-    'm2r',
-    'IPython.sphinxext.ipython_console_highlighting',
+    "nbsphinx",
+    "m2r",
+    "IPython.sphinxext.ipython_console_highlighting",
 ]
 
-master_doc = 'index'
+master_doc = "index"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -62,7 +63,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -71,8 +72,8 @@ html_theme = 'sphinx_rtd_theme'
 
 
 latex_elements = {
-    'papersize': 'letterpaper',
-    'pointsize': '10pt',
-    'preamble': '',
-    'figure_align': 'htbp'
+    "papersize": "letterpaper",
+    "pointsize": "10pt",
+    "preamble": "",
+    "figure_align": "htbp",
 }
