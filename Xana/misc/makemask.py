@@ -214,9 +214,10 @@ def masker(data, mask1=[]):
 
         bounds = [0, 0.5, 1]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-        ax.imshow(data, interpolation="none", norm=mpl.colors.LogNorm(), aspect="auto")
+        ax.imshow(data, interpolation="nearest", norm=mpl.colors.LogNorm(),
+                  aspect="auto", vmin=np.nanmin(data[mask]), vmax=np.nanmax(data[mask]))
         mask = plt.imshow(
-            mask1.astype(int), interpolation="none", norm=norm, cmap=cmap, aspect="auto"
+            mask1.astype(int), interpolation="nearest", norm=norm, cmap=cmap, aspect="auto"
         )
         plt.axis("equal")
         (line,) = ax.plot([], [], ".-k")

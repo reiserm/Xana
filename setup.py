@@ -36,7 +36,7 @@ setup(
     python_requires=">= 3.6",
     cmdclass={"sdist": sdist},
     install_requires=[
-        "cbf>=1.0",
+        # "cbf>=1.0",
         "corner>=2.0",
         "emcee>=3.0",
         "h5py>=2.0",
