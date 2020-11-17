@@ -14,10 +14,11 @@ def make_filename(obj, attr=None, filename=None):
 
     p = obj.savdir
     if attr is not None:
-        orgname = obj.__dict__[attr]
+        orgname = getattr(obj, attr)
     if filename is None:
         p = Path(orgname)
-
+    else:
+        p = Path(filename).resolve()
     return p
 
 
@@ -71,8 +72,8 @@ def save_result(
     if savdir is None:
         savdir = mksavdir("")
     savdir = Path(savdir).resolve()
-    if not str(filename).startswith(restype):
-        filename = f"{restype}_{filename}"
+    # if not str(filename).startswith(restype):
+    #     filename = f"{restype}_{filename}"
     savname = savdir.joinpath(filename)
 
     save = True

@@ -59,6 +59,7 @@ class Xdb:
         tmp_db = pd.DataFrame(columns=names)
         self.db = tmp_db
         self.dbfile = make_filename(self, "dbfile", dbfile)
+        print(self.dbfile)
         self.save_db(handle_existing=handle_existing)
 
     def add_db_entry(self, series_id, savfile, method):
@@ -113,7 +114,7 @@ class Xdb:
             if save:
                 self.save_db(handle_existing="overwrite")
 
-    def save_db(self, filename="database", handle_existing="raise"):
+    def save_db(self, filename=None, handle_existing="raise"):
         dbfile = make_filename(self, "dbfile", filename)
 
         if dbfile.is_file():
