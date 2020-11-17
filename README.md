@@ -1,6 +1,7 @@
-![Python package](https://github.com/reiserm/Xana/workflows/Python%20package/badge.svg) [![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
+![Tests](https://github.com/reiserm/Xana/workflows/Tests/badge.svg)
+![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)(https://codecov.io/gh/reiserm/Xana)
 
-# Documentation 
+# Documentation
 
 The documentation can be found on Read the Docs under this [link](https://xana.readthedocs.io/en/latest/index.html).
 
@@ -24,8 +25,8 @@ to a missing compiler see point 3.
    ```
    or use `pip install -e .` for editable installation. Then you can update Xana
    by executing `git pull` from within the Xana directory.
-   
-   Install the latest version from GitHub directly with pip (**Recommended at the moment**) 
+
+   Install the latest version from GitHub directly with pip (**Recommended at the moment**)
    ```sh
    pip install git+https://github.com/reiserm/Xana.git
    ```
