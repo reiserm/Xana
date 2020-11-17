@@ -14,7 +14,7 @@ class Xdata(Xfmt):
 
     def __init__(self, datdir=None, fmtstr=None):
         super().__init__(fmtstr)
-        self.datdir = Path(os.path.abspath(datdir))
+        self.datdir = Path(os.path.abspath(datdir)) if bool(datdir) else None
         self._files = None
         self._masters = []
         self._headers = []
