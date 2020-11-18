@@ -59,7 +59,6 @@ class Xdb:
         tmp_db = pd.DataFrame(columns=names)
         self.db = tmp_db
         self.dbfile = make_filename(self, "dbfile", dbfile)
-        print(self.dbfile)
         self.save_db(handle_existing=handle_existing)
 
     def add_db_entry(self, series_id, savfile, method):
@@ -117,7 +116,7 @@ class Xdb:
     def save_db(self, filename=None, handle_existing="raise"):
         dbfile = make_filename(self, "dbfile", filename)
 
-        if dbfile.is_file():
+        if dbfile.is_file() or str(dbfile).endswith('.pkl'):
             folder, filen = dbfile.parent, dbfile.name
         else:
             folder, filen = dbfile, filename
