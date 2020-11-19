@@ -1,5 +1,5 @@
-![Tests](https://github.com/reiserm/Xana/workflows/Tests/badge.svg)
-![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)(https://codecov.io/gh/reiserm/Xana)
+[![Tests](https://github.com/reiserm/Xana/workflows/Tests/badge.svg)](https://github.com/reiserm/Xana//actions?query=workflow%3ATests)
+[![Codecov](https://codecov.io/gh/reiserm/Xana/branch/master/graph/badge.svg)](https://codecov.io/gh/reiserm/Xana)
 
 # Documentation
 
