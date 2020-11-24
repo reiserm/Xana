@@ -480,6 +480,14 @@ def pyxpcs(
                     data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
                         np.var(tmp_mat, -1)
                     )[:, None]
+                elif norm == "corrcoef_whole":
+                    tmp_mat = (
+                        chunk[:, q0, q1]
+                        / np.mean(chunk[:, lin_mask[0], lin_mask[1]], axis=1)[:, None]
+                    )
+                    data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
+                        np.var(tmp_mat, -1)
+                    )[:, None]
 
                 datal.append(data_loop)
 
@@ -544,7 +552,7 @@ def pyxpcs(
             tmp = nk[:rcrc, None] ** 2 / (sr[:rcrc] * sl[:rcrc])
             corf = corf[:rcrc] * tmp
             dcorf = np.abs(dcorf[:rcrc] * tmp ** 2 / (nk[:rcrc, None] ** 2))
-        elif norm == "corrcoef":
+        elif norm in ["corrcoef", "corrcoef_whole"]:
             corf = corf[:rcrc]
             dcorf = np.abs(dcorf[:rcrc])
 

@@ -116,7 +116,7 @@ class Xdb:
     def save_db(self, filename=None, handle_existing="raise"):
         dbfile = make_filename(self, "dbfile", filename)
 
-        if dbfile.is_file() or str(dbfile).endswith('.pkl'):
+        if dbfile.is_file() or str(dbfile).endswith(".pkl"):
             folder, filen = dbfile.parent, dbfile.name
         else:
             folder, filen = dbfile, filename

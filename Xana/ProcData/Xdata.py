@@ -48,7 +48,7 @@ class Xdata(Xfmt):
         self._get_meta(addfirstnlast, checksubseries, nframesfromfiles)
 
     def _refine_search_strings(self, files):
-        attrs = ["prefix", "suffix"] # "numfmt", "masterfmt", "seriesfmt"]
+        attrs = ["prefix", "suffix"]  # "numfmt", "masterfmt", "seriesfmt"]
         for attr in attrs:
             val = getattr(self, attr)
             parts = val.split("|")
