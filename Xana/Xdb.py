@@ -29,16 +29,12 @@ class Xdb:
             self.db = pickle.load(open(dbfile, "rb"))
             self.dbfile = dbfile
             print("Successfully loaded database")
+        elif init and Path(str(self.savdir)).is_dir():
+            self.dbfile = self.savdir.joinpath(dbfile.name)
+            print("Initialize database...".format(dbfile))
+            self.init_db(dbfile, **kwargs)
         else:
-            print("\t...loading database failed.")
-            if init:
-                self.dbfile = self.savdir.joinpath(dbfile.name)
-                print(
-                    "Analysis database not found.\nInitialize database...".format(
-                        dbfile
-                    )
-                )
-                self.init_db(dbfile, **kwargs)
+            raise ValueError("Loading database failed. Database file not specified or output directory does not exist.")
 
     def init_db(self, dbfile=None, handle_existing="raise"):
         if self.meta is not None:
@@ -98,9 +94,9 @@ class Xdb:
             sample = self.db.loc[i, "sample"]
             subset = self.db.loc[i].get("subset", np.nan)
             cond = (
-                (self.db["datdir"].str.match(datdir))
+                (self.db["datdir"].str.match(str(datdir)))
                 & (self.db["series"] == series)
-                & (self.db["sample"].str.match(sample))
+                & (self.db["sample"].str.match(str(sample)))
             )
             if not np.isnan(subset):
                 cond &= self.db["subset"] == subset
