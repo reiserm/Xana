@@ -65,7 +65,7 @@ jobs:
 
     - name: Test notebook execution
       run: |
-        pytest --cov=Xana --nbval ./docs/source/Tests.ipynb --sanitize-with ./docs/source/doc_sanitize.cfg --verbose
+        pytest --cov=Xana --nbval-lax ./docs/source/Tests.ipynb --sanitize-with ./docs/source/doc_sanitize.cfg --verbose
 
     - name: Upload Codecov
       uses: codecov/codecov-action@v1
