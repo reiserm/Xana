@@ -2,15 +2,15 @@ from os.path import isfile
 from .EdfFile3 import EdfFile, EdfGzipFile
 
 ####################################
-#--- Standard EDF w/r functions ---#
+# --- Standard EDF w/r functions ---#
 ####################################
 
 
 def loadedf(filename, imgn=0):
     if isfile(filename):
-        if filename.endswith('edf'):
+        if filename.endswith("edf"):
             f = EdfFile(filename)
-        elif filename.endswith('edf.gz'):
+        elif filename.endswith("edf.gz"):
             f = EdfGzipFile(filename)
         return f.GetData(imgn)
     else:
@@ -31,9 +31,9 @@ def saveedf(filename, data, imgn=0):
 
 def headeredf(filename, imgn=0):
     if isfile(filename):
-        if filename.endswith('edf'):
+        if filename.endswith("edf"):
             f = EdfFile(filename)
-        elif filename.endswith('edf.gz'):
+        elif filename.endswith("edf.gz"):
             f = EdfGzipFile(filename)
         return f.GetHeader(imgn)
     else:

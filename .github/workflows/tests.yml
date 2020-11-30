@@ -38,13 +38,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-
     - name: Install gfortran for Linux
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install gfortran
@@ -72,7 +65,7 @@ jobs:
 
     - name: Test notebook execution
       run: |
-        pytest --cov=Xana --nbval-lax --sanitize-with ./docs/source/doc_sanitize.cfg --verbose
+        pytest --cov=Xana --nbval-lax ./docs/source/Tests.ipynb --sanitize-with ./docs/source/doc_sanitize.cfg --verbose
 
     - name: Upload Codecov
       uses: codecov/codecov-action@v1

@@ -1,8 +1,8 @@
 from .pyxpcs3 import pyxpcs
 from .eventcorrelator3 import eventcorrelator
 
-class Xpcs:
 
+class Xpcs:
     def __init__():
 
         pass

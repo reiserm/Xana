@@ -1,13 +1,25 @@
 import numpy as np
 
-def azimuthalAverage(image, center=None, stddev=False, returnradii=False, return_nr=False, 
-        binsize=0.5, weights=None, steps=False, interpnan=False, left=None, right=None,
-        mask=None ):
+
+def azimuthalAverage(
+    image,
+    center=None,
+    stddev=False,
+    returnradii=False,
+    return_nr=False,
+    binsize=0.5,
+    weights=None,
+    steps=False,
+    interpnan=False,
+    left=None,
+    right=None,
+    mask=None,
+):
     """
     Calculate the azimuthally averaged radial profile.
     image - The 2D image
-    center - The [x,y] pixel coordinates used as the center. The default is 
-             None, which then uses the center of the image (including 
+    center - The [x,y] pixel coordinates used as the center. The default is
+             None, which then uses the center of the image (including
              fractional pixels).
     stddev - if specified, return the azimuthal standard deviation instead of the average
     returnradii - if specified, return (radii_array,radial_profile)
@@ -28,13 +40,13 @@ def azimuthalAverage(image, center=None, stddev=False, returnradii=False, return
     If a bin contains NO DATA, it will have a NAN value because of the
     divide-by-sum-of-weights component.  I think this is a useful way to denote
     lack of data, but users let me know if an alternative is prefered...
-    
+
     """
     # Calculate the indices from the image
     y, x = np.indices(image.shape)
 
     if center is None:
-        center = np.array([(x.max()-x.min())/2.0, (y.max()-y.min())/2.0])
+        center = np.array([(x.max() - x.min()) / 2.0, (y.max() - y.min()) / 2.0])
 
     r = np.hypot(x - center[0], y - center[1])
 
@@ -44,43 +56,57 @@ def azimuthalAverage(image, center=None, stddev=False, returnradii=False, return
         raise ValueError("Weighted standard deviation is not defined.")
 
     if mask is None:
-        mask = np.ones(image.shape,dtype='bool')
+        mask = np.ones(image.shape, dtype="bool")
     # obsolete elif len(mask.shape) > 1:
     # obsolete     mask = mask.ravel()
 
     # the 'bins' as initially defined are lower/upper bounds for each bin
-    # so that values will be in [lower,upper)  
-    nbins = int(np.round(r.max() / binsize)+1)
+    # so that values will be in [lower,upper)
+    nbins = int(np.round(r.max() / binsize) + 1)
     maxbin = nbins * binsize
-    bins = np.linspace(0,maxbin,nbins+1)
+    bins = np.linspace(0, maxbin, nbins + 1)
     # but we're probably more interested in the bin centers than their left or right sides...
-    bin_centers = (bins[1:]+bins[:-1])/2.0
+    bin_centers = (bins[1:] + bins[:-1]) / 2.0
 
     # how many per bin (i.e., histogram)?
     # there are never any in bin 0, because the lowest index returned by digitize is 1
-    #nr = np.bincount(whichbin)[1:]
-    nr = np.histogram(r, bins, weights=mask.astype('int'))[0]
+    # nr = np.bincount(whichbin)[1:]
+    nr = np.histogram(r, bins, weights=mask.astype("int"))[0]
 
     # recall that bins are from 1 to nbins (which is expressed in array terms by arange(nbins)+1 or xrange(1,nbins+1) )
     # radial_prof.shape = bin_centers.shape
     if stddev:
         # Find out which radial bin each point in the map belongs to
-        whichbin = np.digitize(r.flat,bins)
-        # This method is still very slow; is there a trick to do this with histograms? 
-        radial_prof = np.array([image.flat[mask.flat*(whichbin==b)].std() for b in xrange(1,nbins+1)])
-    else: 
-        radial_prof = np.histogram(r, bins, weights=(image*weights*mask))[0] / np.histogram(r, bins, weights=(mask*weights))[0]
+        whichbin = np.digitize(r.flat, bins)
+        # This method is still very slow; is there a trick to do this with histograms?
+        radial_prof = np.array(
+            [
+                image.flat[mask.flat * (whichbin == b)].std()
+                for b in xrange(1, nbins + 1)
+            ]
+        )
+    else:
+        radial_prof = (
+            np.histogram(r, bins, weights=(image * weights * mask))[0]
+            / np.histogram(r, bins, weights=(mask * weights))[0]
+        )
 
     if interpnan:
-        radial_prof = np.interp(bin_centers,bin_centers[radial_prof==radial_prof],radial_prof[radial_prof==radial_prof],left=left,right=right)
+        radial_prof = np.interp(
+            bin_centers,
+            bin_centers[radial_prof == radial_prof],
+            radial_prof[radial_prof == radial_prof],
+            left=left,
+            right=right,
+        )
 
     if steps:
-        xarr = np.array(zip(bins[:-1],bins[1:])).ravel() 
-        yarr = np.array(zip(radial_prof,radial_prof)).ravel() 
-        return xarr,yarr
-    elif returnradii: 
-        return bin_centers,radial_prof
+        xarr = np.array(zip(bins[:-1], bins[1:])).ravel()
+        yarr = np.array(zip(radial_prof, radial_prof)).ravel()
+        return xarr, yarr
+    elif returnradii:
+        return bin_centers, radial_prof
     elif return_nr:
-        return nr,bin_centers,radial_prof
+        return nr, bin_centers, radial_prof
     else:
         return radial_prof

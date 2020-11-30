@@ -1,32 +1,37 @@
 #! /usr/bin/env python
-from sys import argv,exit,stdout,path
+from sys import argv, exit, stdout, path
 import numpy as np
 import os
 import string
 import matplotlib
 from matplotlib import pyplot as plt
 
-def niceplot(ax, kind='default', autoscale=True, grid=True, lfs=10, labelsize=14, ticksize=12):
+
+def niceplot(
+    ax, kind="default", autoscale=True, grid=True, lfs=10, labelsize=14, ticksize=12
+):
     if autoscale:
-        ax.autoscale(enable=True, axis='both')
-    #plt.legend(bbox_to_anchor=(1, 1))#, bbox_transform=plt.gcf().transFigure)
+        ax.autoscale(enable=True, axis="both")
+    # plt.legend(bbox_to_anchor=(1, 1))#, bbox_transform=plt.gcf().transFigure)
     ax.tick_params(labelsize=ticksize)
     ax.xaxis.label.set_size(labelsize)
     ax.yaxis.label.set_size(labelsize)
     ax.minorticks_on()
     if grid:
         ax.grid(1)
-    ax.tick_params('both', length=6, width=1, which='major', direction='out')
-    ax.tick_params('both', length=3, width=.5, which='minor', direction='out')
+    ax.tick_params("both", length=6, width=1, which="major", direction="out")
+    ax.tick_params("both", length=3, width=0.5, which="minor", direction="out")
     plt.setp(ax.get_lines(), linewidth=1.5)
     for child in ax.get_children():
         if isinstance(child, matplotlib.spines.Spine):
-            child.set_color((.68,.68,.68))
+            child.set_color((0.68, 0.68, 0.68))
         if isinstance(child, matplotlib.legend.Legend):
             texts = child.get_texts()
             for t in texts:
                 t.set_fontsize(lfs)
-'''
+
+
+"""
 def get_color(i):
     colors = [(31,119,180),
               (255,127,14),
@@ -87,4 +92,4 @@ def niceplot(name):
     #  line.set_linewidth(2.0)
     #plt.autoscale(enable=True, axis='x', tight=True)
     #ax.set_ylim([1e-7,2.])
-'''  
+"""

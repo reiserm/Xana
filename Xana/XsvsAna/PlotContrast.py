@@ -13,145 +13,226 @@ from matplotlib import ticker
 
 
 def rebin_array(arr, maxlen=500):
-    """rebin array and reduce its length to maxlen for generating plots
-    """
+    """rebin array and reduce its length to maxlen for generating plots"""
     l = arr.shape
     if l[0] > maxlen:
-        arr = arr[:-(l[0]%maxlen)]
+        arr = arr[: -(l[0] % maxlen)]
         arr = arr.reshape(maxlen, -1, *l[1:])
         arr = arr.mean(1)
     return arr
 
-def plot_contrast_vs_images(x, y, ax, label=None, marker='o', color='b', ind_avr=False, alpha=0.5):
-    """
-    """
-    ax.plot(x, y, ms=3, label=label, linestyle='', marker=marker, color=color, alpha=alpha)
-    ax.set_xlabel('image number')
-    ax.set_ylabel(r'$\beta$')
+
+def plot_contrast_vs_images(
+    x, y, ax, label=None, marker="o", color="b", ind_avr=False, alpha=0.5
+):
+    """"""
+    ax.plot(
+        x, y, ms=3, label=label, linestyle="", marker=marker, color=color, alpha=alpha
+    )
+    ax.set_xlabel("image number")
+    ax.set_ylabel(r"$\beta$")
     if ind_avr:
         arrow(x.max(), y.mean(), ax, color)
     return True
 
-def plot_contrast_histogram(x, ax, label=None, color='b', ind_avr=False):
-    """
-    """
-    ax.hist(x, bins=100, density=True, histtype='step', label=label, color=color,)
-    ax.set_xlabel(r'$\beta$')    
-    ax.set_ylabel(r'$P(\beta)$')
+
+def plot_contrast_histogram(x, ax, label=None, color="b", ind_avr=False):
+    """"""
+    ax.hist(
+        x,
+        bins=100,
+        density=True,
+        histtype="step",
+        label=label,
+        color=color,
+    )
+    ax.set_xlabel(r"$\beta$")
+    ax.set_ylabel(r"$P(\beta)$")
     if ind_avr:
-        xx = np.ones(2)*x.mean()
+        xx = np.ones(2) * x.mean()
         h = np.histogram(x, bins=100, density=True)
-        de = np.diff(h[1][:2])/2
+        de = np.diff(h[1][:2]) / 2
         e = h[1][:-1] + de
-        ymax = h[0][np.argmin(np.abs(xx[0]-h[1]+0.5*np.mean(np.diff(h[1]))))]
-        yy = np.array([0,ymax])
-        ax.plot(xx,yy,'--', color=color)
+        ymax = h[0][np.argmin(np.abs(xx[0] - h[1] + 0.5 * np.mean(np.diff(h[1]))))]
+        yy = np.array([0, ymax])
+        ax.plot(xx, yy, "--", color=color)
     return True
 
-def plot_contrast_running_average(x, y, dy, ax, label=None, marker='o', color='b', ind_avr=False, alpha=0.5):
-    """
-    """
+
+def plot_contrast_running_average(
+    x, y, dy, ax, label=None, marker="o", color="b", ind_avr=False, alpha=0.5
+):
+    """"""
     ax.errorbar(x, y, dy, ms=3, label=label, fmt=marker, color=color, alpha=alpha)
-    ax.set_xlabel('image number')
-    ax.set_ylabel(r'$\beta$ (run. avr.)')
+    ax.set_xlabel("image number")
+    ax.set_ylabel(r"$\beta$ (run. avr.)")
     return True
 
-def plot_kbar_vs_images(x, y, ax, label=None, marker='o', color='b', npix=False, ind_avr=False, alpha=0.5):
-    """
-    """
+
+def plot_kbar_vs_images(
+    x, y, ax, label=None, marker="o", color="b", npix=False, ind_avr=False, alpha=0.5
+):
+    """"""
     if npix:
         y = y * npix
-        ylab = r'$k_{tot}$'
+        ylab = r"$k_{tot}$"
     else:
-        ylab = r'$\langle k\rangle$'
-    ax.plot(x, y, label=label, linestyle='', markersize=3, marker=marker, color=color, alpha=alpha)
-    ax.set_xlabel('image number')
+        ylab = r"$\langle k\rangle$"
+    ax.plot(
+        x,
+        y,
+        label=label,
+        linestyle="",
+        markersize=3,
+        marker=marker,
+        color=color,
+        alpha=alpha,
+    )
+    ax.set_xlabel("image number")
     ax.set_ylabel(ylab)
-    ax.set_yscale('log')
+    ax.set_yscale("log")
     if ind_avr:
         arrow(x.max(), y.mean(), ax, color)
     return True
 
-def plot_poisson_gamma(x, y, dy, ax, label=None, marker='o', color='b', ind_avr=False):
-    """
-    """
-    ax.errorbar(x, y, yerr=dy, label=label, ms=3, ls='', marker=marker, color=color)
-    ax.set_xlabel('k')
-    ax.set_ylabel(r'$P(k)$')
-    ax.set_yscale('log')
+
+def plot_poisson_gamma(x, y, dy, ax, label=None, marker="o", color="b", ind_avr=False):
+    """"""
+    ax.errorbar(x, y, yerr=dy, label=label, ms=3, ls="", marker=marker, color=color)
+    ax.set_xlabel("k")
+    ax.set_ylabel(r"$P(k)$")
+    ax.set_yscale("log")
     return True
 
-def plot_contrast_kbar_correlation(x, y, ax, label=None, cmap='inferno', npix=False, ind_avr=False, alpha=0.5):
-    """
-    """
+
+def plot_contrast_kbar_correlation(
+    x, y, ax, label=None, cmap="inferno", npix=False, ind_avr=False, alpha=0.5
+):
+    """"""
     if npix:
         x = x * npix
-        xlab = r'$k_{tot}$'
+        xlab = r"$k_{tot}$"
     else:
-        xlab = r'$\langle k\rangle$'
-    ax.hist2d(x, y, bins=50, density=True, norm=LogNorm(), cmap=cmap, label=label, alpha=alpha)
+        xlab = r"$\langle k\rangle$"
+    ax.hist2d(
+        x, y, bins=50, density=True, norm=LogNorm(), cmap=cmap, label=label, alpha=alpha
+    )
     ax.set_xlabel(xlab)
-    ax.set_ylabel(r'$\beta$')
+    ax.set_ylabel(r"$\beta$")
     return True
 
-def plot_contrast_vs_kbar(x, y, ax, label=None, marker='o', color='b', npix=False, ind_avr=False, alpha=0.5):
-    """
-    """
+
+def plot_contrast_vs_kbar(
+    x, y, ax, label=None, marker="o", color="b", npix=False, ind_avr=False, alpha=0.5
+):
+    """"""
     if npix:
         x = x * npix
-        xlab = r'$k_{tot}$'
+        xlab = r"$k_{tot}$"
     else:
-        xlab = r'$\langle k\rangle$'
-    ax.plot(x, y, linestyle='', marker=marker, markersize=2, color=color, label=label, alpha=alpha)
+        xlab = r"$\langle k\rangle$"
+    ax.plot(
+        x,
+        y,
+        linestyle="",
+        marker=marker,
+        markersize=2,
+        color=color,
+        label=label,
+        alpha=alpha,
+    )
     ax.set_xlabel(xlab)
-    ax.set_ylabel(r'$\beta$')
+    ax.set_ylabel(r"$\beta$")
     return True
 
-def plot_prob_vs_kbar(x, y, ax, probk, label=None, marker='o', color='b', npix=False, ind_avr=False, alpha=0.5):
-    """
-    """
+
+def plot_prob_vs_kbar(
+    x,
+    y,
+    ax,
+    probk,
+    label=None,
+    marker="o",
+    color="b",
+    npix=False,
+    ind_avr=False,
+    alpha=0.5,
+):
+    """"""
     if npix:
         x = x * npix
         y = y * npix
-        xlab = r'$k_{tot}$'
-        ylab = r'n(%d)' % probk
+        xlab = r"$k_{tot}$"
+        ylab = r"n(%d)" % probk
     else:
-        ylab = r'P(%d)' % probk
-        xlab = r'$\langle k\rangle$'
-    ax.plot(x, y, linestyle='', marker=marker, markersize=2, color=color, label=label, alpha=alpha)
+        ylab = r"P(%d)" % probk
+        xlab = r"$\langle k\rangle$"
+    ax.plot(
+        x,
+        y,
+        linestyle="",
+        marker=marker,
+        markersize=2,
+        color=color,
+        label=label,
+        alpha=alpha,
+    )
     ax.set_xlabel(xlab)
     ax.set_ylabel(ylab)
     return True
+
 
 def arrow(x, y, ax, color):
-    c1 = (x,y)
-    c2 = (x*1.1,y)
-    arprp = dict(arrowstyle="-|>", connectionstyle='arc3', color=color,)
-    ax.annotate("", xy=c1, xycoords='data', xytext=c2, textcoords='data', arrowprops=arprp)
-    
-def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, format_ticks=False,
-                   ind_avr=True, lfs=10, total_counts=False, return_respfnc=False, probk=2,
-                   fit_pg=True, alpha=0.5, **kwargs):
-    """Plot quick overview of speckle contrast, mean photon counts and Probability Distribution
-    """
-    contrast = obj.contrast[0][idx]
-    prob = obj.prob[0][idx][1:,1:]
+    c1 = (x, y)
+    c2 = (x * 1.1, y)
+    arprp = dict(
+        arrowstyle="-|>",
+        connectionstyle="arc3",
+        color=color,
+    )
+    ax.annotate(
+        "", xy=c1, xycoords="data", xytext=c2, textcoords="data", arrowprops=arprp
+    )
 
-    for i,j in enumerate(nq):
-        ci = i + c0*len(nq) # index for colors and markers
+
+def plot_quicklook(
+    obj,
+    plot,
+    idx,
+    nq,
+    ax=None,
+    c0=0,
+    ratio=0,
+    maxlen=500,
+    format_ticks=False,
+    ind_avr=True,
+    lfs=10,
+    total_counts=False,
+    return_respfnc=False,
+    probk=2,
+    fit_pg=True,
+    alpha=0.5,
+    **kwargs
+):
+    """Plot quick overview of speckle contrast, mean photon counts and Probability Distribution"""
+    contrast = obj.contrast[0][idx]
+    prob = obj.prob[0][idx][1:, 1:]
+
+    for i, j in enumerate(nq):
+        ci = i + c0 * len(nq)  # index for colors and markers
         color = obj.colors[ci]
-        marker = obj.markers[idx%len(obj.markers)]
+        marker = obj.markers[idx % len(obj.markers)]
         if total_counts:
-            npix = obj.Xana.setup['gproi'][j]
+            npix = obj.Xana.setup["gproi"][j]
         else:
             npix = False
-        
+
         if i == 0:
-            labstr = 't_exp: {:.2e}s'.format(obj.t_exposure[idx])
+            labstr = "t_exp: {:.2e}s".format(obj.t_exposure[idx])
         else:
             labstr = None
-            
-        b = contrast[j,ratio+1]
+
+        b = contrast[j, ratio + 1]
         xv_b = np.where(~b.mask)[0]
         x_b = rebin_array(xv_b, maxlen)
         br = rebin_array(b[xv_b], maxlen)
@@ -159,39 +240,44 @@ def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, forma
         bt = running_mean(b[xv_b])
         bt = rebin_array(bt, maxlen)
 
-        kb = contrast[j,0]
+        kb = contrast[j, 0]
         xv_kb = np.where(~kb.mask)[0]
         kb = rebin_array(kb[xv_b], maxlen)
-        p = prob[j,probk+1][xv_b]
+        p = prob[j, probk + 1][xv_b]
 
-        pp = np.mean(prob[j,1:],-1)
+        pp = np.mean(prob[j, 1:], -1)
         ind = np.where(pp)[0]
-        dpp = np.std(prob[j,1:],-1)
+        dpp = np.std(prob[j, 1:], -1)
         k = np.arange(pp.size)
 
-        if plot == 'bvi':
-            labmean = '%.2f' % br.mean()
+        if plot == "bvi":
+            labmean = "%.2f" % br.mean()
             plot_contrast_vs_images(x_b, br, ax, labmean, marker, color, ind_avr, alpha)
-        elif plot == 'pbb':
+        elif plot == "pbb":
             plot_contrast_histogram(b[~b.mask], ax, labstr, color, ind_avr)
-        elif plot == 'brvi':
-            plot_contrast_running_average(x_b, bt[:,0], bt[:,1], ax, labstr, marker, color, alpha)
-        elif plot == 'kbvi':
-            labmean = '%.3g' % kb.mean()
-            plot_kbar_vs_images(x_b, kb, ax, labmean, marker, color, npix, ind_avr, alpha)
-        elif plot == 'bvkb':
+        elif plot == "brvi":
+            plot_contrast_running_average(
+                x_b, bt[:, 0], bt[:, 1], ax, labstr, marker, color, alpha
+            )
+        elif plot == "kbvi":
+            labmean = "%.3g" % kb.mean()
+            plot_kbar_vs_images(
+                x_b, kb, ax, labmean, marker, color, npix, ind_avr, alpha
+            )
+        elif plot == "bvkb":
             plot_contrast_vs_kbar(kb, br, ax, labstr, marker, color, npix, alpha)
-        elif plot == 'pbk':
+        elif plot == "pbk":
             plot_poisson_gamma(k[ind], pp[ind], dpp[ind], ax, labstr, marker, color)
             # if fit_pg:
             #     pb_pg = np.hstack((np.zeros(k[ind].size)))
             #     fitpg()
-        elif plot == 'pkvkb':
+        elif plot == "pkvkb":
             plot_prob_vs_kbar(kb, p, ax, probk, labstr, marker, color, npix, alpha)
-   
+
     if ind_avr:
-        ax.legend(loc='best')
+        ax.legend(loc="best")
     # niceplot(ax, autoscale=True, grid=False, lfs=lfs)
+
 
 # def plot_poisson_gamma(obj, idx, nq, dofit=True):
 #     """Show the photon statistics by plotting the Poisson-Gamma distribution
@@ -237,7 +323,7 @@ def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, forma
 #                             modes=nmodes, **kwargs)
 #                 self.fit_result[j][i] = res[2:4]
 #                 self.g2plotl[j].append(list(itertools.chain.from_iterable(res[4])))
-#                 if dofit: 
+#                 if dofit:
 #                     if i == 0:
 #                         db_tmp = self.init_pars(list(res[2].params.keys()))
 #                     entry = [cfi[0,qi+1], *res[0].flatten(), *res[1]]
@@ -248,13 +334,13 @@ def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, forma
 #             self.pars[j] = db_tmp
 #         plt.tight_layout()
 
-        
+
 #     for j,ei in zip(tind,extf[tind]):
 #         nn = np.ceil(len(roi_list)/2)
 #         f, ax = plt.subplots(int(nn), 2, figsize=(9,nn*4))
 #         f.suptitle('exposure time = {:.2g}s'.format(ei))
 #         ax = ax.ravel()
-  
+
 #         for l,roii in enumerate(roi_list):
 #             kv, kb, dkb, pba, dpba = selectdata(xsvs, ei, t_int=ext, dxsvs=xsvs_err, roi_idx=roii, **psel)
 
@@ -268,4 +354,3 @@ def plot_quicklook(obj, plot, idx, nq, ax=None, c0=0, ratio=0, maxlen=500, forma
 
 #         if doplot:
 #             plt.tight_layout()
-

@@ -3,17 +3,18 @@ from time import time
 
 
 def mp_prob(method, nbins, nf, lind, nq, quc, quce):
-
     def xsvs_full(chunk):
         for qi in xnq:
             roi = chunk[qi]
-            for i,line in enumerate(roi):
-                tmp = np.append(np.sum(line), np.histogram(line, bins=np.arange(nbins+1)-0.5)[0])
-                prob[qi,:,t0+i] = tmp / lind[qi]
+            for i, line in enumerate(roi):
+                tmp = np.append(
+                    np.sum(line), np.histogram(line, bins=np.arange(nbins + 1) - 0.5)[0]
+                )
+                prob[qi, :, t0 + i] = tmp / lind[qi]
 
     tcalc = time()
     xnq = range(nq)
-    prob = np.zeros((nq,nbins+1,nf), dtype=np.float32)
+    prob = np.zeros((nq, nbins + 1, nf), dtype=np.float32)
 
     t0 = 0
     while t0 < nf:
