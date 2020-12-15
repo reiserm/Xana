@@ -36,7 +36,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_SKIP: "cp27-* pp27-*"  # skip Python 2.7 wheels
+          CIBW_SKIP: "cp27-* pp27-* cp35-* cp36-* pp36* cp37-* pp37-*"  # skip wheels
 
       - uses: actions/upload-artifact@v2
         with:
