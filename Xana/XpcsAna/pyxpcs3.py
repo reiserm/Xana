@@ -260,13 +260,12 @@ def pyxpcs(
 
     time0 = time()
 
-    # q-bins
-    lqv = len(qroi)
-    rlqv = range(lqv)
-    if qv is None:
-        qv = np.arange(lqv)
-
     if isinstance(data, np.ndarray):
+        if data.ndim == 1:
+            # handling 1D data
+            data = data.reshape(-1, 1, 1)
+            qroi = [(np.array([0]), np.array([0])),]
+
         nf, *dim = np.shape(data)
 
         def get_chunk():
@@ -282,6 +281,12 @@ def pyxpcs(
 
     else:
         raise ValueError(f"Cannot process data of type {type(data)}")
+
+    # q-bins
+    lqv = len(qroi)
+    rlqv = range(lqv)
+    if qv is None:
+        qv = np.arange(lqv)
 
     # check time spacing
     if isinstance(dt, (float, int)) and not isinstance(time_spacing, Iterable):
