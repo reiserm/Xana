@@ -11,6 +11,7 @@ def add_colorbar(
     discrete=False,
     tick_step=1,
     qscale=0,
+    qprec=2,
     location="right",
     show_offset=False,
     **kwargs
@@ -51,7 +52,7 @@ def add_colorbar(
     cb.set_label(label)
     if change_ticks:
         cb.set_ticks(tick_indices)
-        cb.set_ticklabels(list(map(lambda x: "$%.{}f$".format(3 - qscale) % x, vec)))
+        cb.set_ticklabels(list(map(lambda x: "$%.{}f$".format(qprec) % x, vec)))
         if qscale and show_offset:
             cb.ax.text(
                 1.0,
