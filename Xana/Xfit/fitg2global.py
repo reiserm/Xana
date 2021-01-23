@@ -167,10 +167,30 @@ class G2:
         data_label=None,
         confint=False,
         pars=None,
-        **kwargs,
+        data_kws=None,
+        fit_kws=None,
+        **kwargs
     ):
 
         sucfit = True if (self.pars is not None) else False
+
+        data_plot_kws = dict(
+            linestyle=linestyle,
+            marker=marker,
+            alpha=alpha,
+            markersize=markersize,
+            mec=markeredgecolor,
+            markeredgewidth=1,
+            )
+        fit_plot_kws = dict(
+            linestyle='-',
+            linewidth=1,
+            alpha=alpha,
+            )
+        if isinstance(data_kws, dict):
+            data_plot_kws.update(data_kws)
+        if isinstance(fit_kws, dict):
+            fit_plot_kws.update(fit_kws)
 
         if pars is not None:
             if len(pars):
@@ -266,10 +286,10 @@ class G2:
                     g2f = np.sqrt(
                         (g2f - out.params["a"].value) / out.params["b0"].value
                     )
-                pl.append(ax.plot(xf, g2f, "-", label=labstr_fit, linewidth=1))
+                pl.append(ax.plot(xf, g2f, "-", label=labstr_fit, **fit_plot_kws))
                 if confint:
                     for j in range(2):
-                        pl.append(ax.plot(xf, g2fci[j], ":", linewidth=1))
+                        pl.append(ax.plot(xf, g2fci[j], ":", **fit_plot_kws))
 
             if "data" in doplot:
                 if "g1" in doplot:
@@ -280,13 +300,8 @@ class G2:
                             self.t.filled(np.nan),
                             self.cf[iq].filled(np.nan),
                             yerr=self.dcf[iq].filled(np.nan),
-                            linestyle=linestyle,
-                            marker=marker,
                             label=labstr_data,
-                            alpha=alpha,
-                            markersize=markersize,
-                            mec=markeredgecolor,
-                            markeredgewidth=1,
+                            **data_plot_kws,
                         )
                     )
                 else:
@@ -294,13 +309,8 @@ class G2:
                         ax.plot(
                             self.t,
                             self.cf[iq],
-                            marker,
                             label=labstr_data,
-                            linestyle=linestyle,
-                            alpha=alpha,
-                            markersize=markersize,
-                            mec=markeredgecolor,
-                            markeredgewidth=1,
+                            **data_plot_kws,
                         )
                     )
 
