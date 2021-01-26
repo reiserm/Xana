@@ -18,9 +18,9 @@ class Xdata(Xfmt):
         self._files = None
         self._masters = []
         self._headers = []
-        self.meta = []
+        self.meta = None
         self._meta_save = None
-        self._series = []
+        self._series = {}
         self._series_ids = None
 
     def connect(
@@ -96,17 +96,18 @@ class Xdata(Xfmt):
         def find_seriesid(s):
             return int(re.search(self.seriesfmt, s).group())
 
-        series = []
+        series = {}
         series_id = []
         for i, m in enumerate(self._masters):
             m = str(m)
             id_ = find_seriesid(m)
             series_id.append(id_)
-            series.append(
-                list(filter(lambda x: find_seriesid(str(x)) == id_, self._files))
-            )
+            tmp = list(filter(lambda x: find_seriesid(str(x)) == id_ and m !=x, self._files))
+            tmp.sort()
+            tmp.insert(0, Path(m))
+            series[id_] = tmp
         self._series_ids = np.asarray(series_id, dtype="int32")
-        self._series = series
+        self._series.update(series)
 
     def _get_meta(
         self, addfirstnlast=True, checksubseries=True, nframesfromfiles=False
@@ -152,7 +153,7 @@ class Xdata(Xfmt):
                         idx_subset += 1
                         meta.loc[meta.shape[0]] = nrow
 
-        if not len(self.meta):
+        if self.meta is None:
             self.meta = meta
         else:
             self.meta = self.meta.append(meta, ignore_index=True)
@@ -170,16 +171,16 @@ class Xdata(Xfmt):
             np.ndarray: if method is :code:`full` or tuple of average images and variance
             if method is :code:`average`.
         """
-        if "subset" in self.meta:
-            nf = self.meta.loc[series_id, "nframes"]
-            first = self.meta.loc[series_id, "first"]
-            last = self.meta.loc[series_id, "last"]
-            kwargs["first"] = kwargs.get("first", first) % nf + first
-            kwargs["last"] = kwargs.get("last", last) % nf + first
-            series_id = self.meta[
-                (self.meta["series"] == self.meta.loc[series_id, "series"])
-                & (self.meta["subset"] == 0)
-            ].index.values[0]
+        if self.meta is None:
+            series_id = int(list(self._series.keys())[0])
+        else:
+            if "subset" in self.meta:
+                nf = self.meta.loc[series_id, "nframes"]
+                first = self.meta.loc[series_id, "first"]
+                last = self.meta.loc[series_id, "last"]
+                kwargs["first"] = kwargs.get("first", first) % nf + first
+                kwargs["last"] = kwargs.get("last", last) % nf + first
+            series_id = self.meta.loc[series_id, "series"]
         return self.load_data_func(self._series[series_id], xdata=self, **kwargs)
 
     def get_image(self, series_id, imgn=0, **kwargs):
