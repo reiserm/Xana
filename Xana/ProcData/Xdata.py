@@ -26,9 +26,6 @@ class Xdata(Xfmt):
     def connect(
         self,
         datdir,
-        addfirstnlast=True,
-        checksubseries=True,
-        nframesfromfiles=False,
     ):
         """Finds datasets in the directory given by :code:`datdir`.
 
@@ -45,7 +42,7 @@ class Xdata(Xfmt):
             self._get_masters()
             self._get_headers()
             self._files2series()
-        self._get_meta(addfirstnlast, checksubseries, nframesfromfiles)
+        self._get_meta()
 
     def _refine_search_strings(self, files):
         attrs = ["prefix", "suffix"]  # "numfmt", "masterfmt", "seriesfmt"]
@@ -109,9 +106,7 @@ class Xdata(Xfmt):
         self._series_ids = np.asarray(series_id, dtype="int32")
         self._series.update(series)
 
-    def _get_meta(
-        self, addfirstnlast=True, checksubseries=True, nframesfromfiles=False
-    ):
+    def _get_meta(self):
         meta = {
             "series": self._series_ids,
             "master": self._masters,
@@ -127,31 +122,30 @@ class Xdata(Xfmt):
             + list([a for a in meta.columns if a not in ["series", "master", "datdir"]])
             + ["master", "datdir"]
         )
-        if nframesfromfiles:
-            for idx, row in meta.iterrows():
-                row["nframes"] = len(self._series[idx])
-                meta.loc[idx] = row
 
-        if addfirstnlast:
-            meta.insert(5, "last", int(0))
-            meta.insert(5, "first", int(0))
-
+        if 'edf' in self.fmtstr:
             for idx, row in meta.iterrows():
-                row["first", "last"] = (0, int(row["nframes"] - 1))
-                meta.loc[idx] = row
-                if checksubseries:
-                    tot_img = self.get_series(idx, verbose=False, output="shape")[0]
-                    img_per_series = row["nframes"]
-                    nrow = row.copy()
-                    idx_subset = 1
-                    while nrow["last"] + 1 - tot_img < 0:
-                        if "subset" not in meta:
-                            meta.insert(1, "subset", int(0))
-                        nrow["first"] = img_per_series + nrow["first"]
-                        nrow["last"] = img_per_series + nrow["last"]
-                        nrow["subset"] = idx_subset
-                        idx_subset += 1
-                        meta.loc[meta.shape[0]] = nrow
+                meta.loc[idx, 'nframes'] = len(self._series[meta.loc[idx, 'series']])
+
+        meta.insert(5, "last", int(0))
+        meta.insert(5, "first", int(0))
+
+        for idx, row in meta.iterrows():
+            row["first", "last"] = (0, int(row["nframes"] - 1))
+            meta.loc[idx] = row
+            if 'p10' in self.fmtstr:
+                tot_img = self.get_series(idx, verbose=False, output="shape")[0]
+                img_per_series = row["nframes"]
+                nrow = row.copy()
+                idx_subset = 1
+                while nrow["last"] + 1 - tot_img < 0:
+                    if "subset" not in meta:
+                        meta.insert(1, "subset", int(0))
+                    nrow["first"] = img_per_series + nrow["first"]
+                    nrow["last"] = img_per_series + nrow["last"]
+                    nrow["subset"] = idx_subset
+                    idx_subset += 1
+                    meta.loc[meta.shape[0]] = nrow
 
         if self.meta is None:
             self.meta = meta
