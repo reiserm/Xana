@@ -21,6 +21,8 @@ def get_case(detector):
         "converted_h5",
         "lambda_nxs",
         "ebs_id02_h5",
+        "ebs_id02_eiger2",
+        "ebs_id02_eiger500k",
         "ebs_id10_h5",
     ]:
         case = 1

@@ -99,7 +99,7 @@ class Xdata(Xfmt):
             m = str(m)
             id_ = find_seriesid(m)
             series_id.append(id_)
-            tmp = list(filter(lambda x: find_seriesid(str(x)) == id_ and m !=x, self._files))
+            tmp = list(filter(lambda x: (find_seriesid(str(x)) == id_) and not (str(x) == str(m)), self._files))
             tmp.sort()
             tmp.insert(0, Path(m))
             series[id_] = tmp

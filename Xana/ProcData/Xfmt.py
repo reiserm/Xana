@@ -22,6 +22,8 @@ class Xfmt:
             "id02_eiger_multi_edf",
             "spb_agipd",
             "ebs_id02_h5",
+            "ebs_id02_eiger2",
+            "ebs_id02_eiger500k",
             "ebs_id10_h5",
         ]
 
@@ -52,6 +54,10 @@ class Xfmt:
                 kernel = self.__init_spb_agipd()
             elif fmtstr == "ebs_id02_h5":
                 kernel = self.__init_ebs_id02_h5()
+            elif fmtstr == "ebs_id02_eiger500k":
+                kernel = self.__init_ebs_id02_eiger500k()
+            elif fmtstr == "ebs_id02_eiger2":
+                kernel = self.__init_ebs_id02_eiger2()
             elif fmtstr == "ebs_id10_h5":
                 kernel = self.__init_ebs_id10_h5()
 
@@ -341,6 +347,74 @@ class Xfmt:
             "numfmt": "\d{5}",
             "masterfmt": ".*\d{5}_raw",
             "seriesfmt": "\d{5}(?=_raw)",
+            "get_header": get_header_h5,
+            "get_attributes": get_attrs_h5,
+            "attributes": {
+                "t_exposure": (
+                    "entry_0000/instrument/id02-eiger500k-saxs/acquisition/exposure_time",
+                    "float32",
+                ),
+                "t_readout": (
+                    "entry_0000/instrument/id02-eiger500k-saxs/acquisition/latency_time",
+                    "float32",
+                ),
+                "nframes": (
+                    "entry_0000/instrument/id02-eiger500k-saxs/acquisition/nb_frames",
+                    "int32",
+                ),
+            },
+            "h5opt": {
+                "driver": None,
+                "data": "entry_0000/instrument/id02-eiger500k-saxs/data",
+                "ExternalLinks": False,
+                "chunk_size": 200,
+                "images_per_file": 2_000_000,
+            },
+        }
+        return kernel
+
+    @staticmethod
+    def __init_ebs_id02_eiger2():
+        kernel = {
+            "prefix": "",
+            "suffix": "h5",
+            "numfmt": "\d{5}",
+            "masterfmt": "eiger2_\d{5}_raw",
+            "seriesfmt": "\d{5}(?=_raw)",
+            "get_header": get_header_h5,
+            "get_attributes": get_attrs_h5,
+            "attributes": {
+                "t_exposure": (
+                    "entry_0000/instrument/id02-eiger2-saxs/acquisition/exposure_time",
+                    "float32",
+                ),
+                "t_readout": (
+                    "entry_0000/instrument/id02-eiger2-saxs/acquisition/latency_time",
+                    "float32",
+                ),
+                "nframes": (
+                    "entry_0000/instrument/id02-eiger2-saxs/acquisition/nb_frames",
+                    "int32",
+                ),
+            },
+            "h5opt": {
+                "driver": None,
+                "data": "entry_0000/instrument/id02-eiger2-saxs/data",
+                "ExternalLinks": False,
+                "chunk_size": 200,
+                "images_per_file": 2_000_000,
+            },
+        }
+        return kernel
+
+    @staticmethod
+    def __init_ebs_id02_eiger500k():
+        kernel = {
+            "prefix": "",
+            "suffix": "h5",
+            "numfmt": "\d{5}",
+            "masterfmt": "eiger500k_\d{5}_\d{5}",
+            "seriesfmt": "(?<=eiger500k_)\d{5}",
             "get_header": get_header_h5,
             "get_attributes": get_attrs_h5,
             "attributes": {
