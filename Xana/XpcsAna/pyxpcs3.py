@@ -170,7 +170,7 @@ def calc_twotime_cf(ttdata, crossttdata=None, tt_max_images=5000):
             l[ll + 1] += 1
         l[ll] = 0
 
-    crossdata_avail = False if crossdata is None else True
+    crossdata_avail = False if crossttdata is None else True
     nbins = len(ttdata)
     output_ttc = []
     output_z = []
@@ -178,7 +178,7 @@ def calc_twotime_cf(ttdata, crossttdata=None, tt_max_images=5000):
         data = ttdata[ibin]
 
         if crossdata_avail:
-            cdata = crossdata[ibin]
+            cdata = crossttdata[ibin]
 
         nf, lind = data.shape
         if nf > tt_max_images:
