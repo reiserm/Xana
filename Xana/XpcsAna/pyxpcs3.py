@@ -542,7 +542,7 @@ def pyxpcs(
                         ttdata[index][idx, :] = data_loop.copy()
                         if crossdata_avail:
                             crosstrace_slice = crossdata[:, q0, q1].mean(-1)
-                            crossdata_loop = norm_qdata(crossdata, trace, q0, q1, lin_mask, norm)
+                            crossdata_loop = norm_qdata(crossdata, crosstrace_slice, q0, q1, lin_mask, norm)
                             crossttdata[index][idx, :] = crossdata_loop.copy()
 
             if use_mp:
@@ -629,7 +629,7 @@ def pyxpcs(
 
         if crossdata_avail:
             print("Start calculating Cross TRC and Chi4...")
-            crossttcf, crosschi4 = calc_twotime_cf(ttdata, crossdata, tt_max_images)
+            crossttcf, crosschi4 = calc_twotime_cf(ttdata, crossttdata, tt_max_images)
             crossttcf = {par: data for par, data in zip(twotime_par, crossttcf)}
             crosschi4 = {par: data for par, data in zip(twotime_par, crosschi4)}
     else:
