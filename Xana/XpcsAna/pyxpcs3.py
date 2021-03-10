@@ -117,7 +117,7 @@ def get_norm_saxs(saxs, qroi, qsec, ctr, mask, verbose=False):
     return saxs_imgc
 
 
-def calc_twotime_cf(ttdata, crossttdata=None, tt_max_images=5000):
+def calc_twotime_cf(ttdata, tt_max_images=5000, crossttdata=None):
     """Calculate two-time correlation function of a large data set.
 
     Args:
@@ -629,7 +629,7 @@ def pyxpcs(
 
         if crossdata_avail:
             print("Start calculating Cross TRC and Chi4...")
-            crossttcf, crosschi4 = calc_twotime_cf(ttdata, crossttdata, tt_max_images)
+            crossttcf, crosschi4 = calc_twotime_cf(ttdata, tt_max_images, crossttdata)
             crossttcf = {par: data for par, data in zip(twotime_par, crossttcf)}
             crosschi4 = {par: data for par, data in zip(twotime_par, crosschi4)}
     else:
