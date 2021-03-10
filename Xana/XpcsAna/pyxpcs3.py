@@ -531,7 +531,7 @@ def pyxpcs(
                 q1 = qroi[qi][1] - qsec[1]
                 trace_slice = chunk[:, q0, q1].mean(-1)
                 trace[idx, qi] = trace_slice
-                data_loop = norm_qdata(chunk, trace_slice, q0, q1, lin_mask, norm):
+                data_loop = norm_qdata(chunk, trace_slice, q0, q1, lin_mask, norm)
 
                 datal.append(data_loop)
 
