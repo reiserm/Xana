@@ -57,7 +57,7 @@ def add_colorbar(
             cb.ax.text(
                 1.0,
                 1.04,
-                r"$\times 10^{{-{}}}$".format(qscale),
+                r"$\times 10^{{{}}}$".format(-1*qscale),
                 transform=cb.ax.transAxes,
             )
     cb.ax.invert_yaxis()
