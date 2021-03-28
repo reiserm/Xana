@@ -4,7 +4,6 @@ Data Loading and Processing
 .. currentmodule:: Xana
 
 .. autosummary::
-   :recursive:
 
    analyze
 
