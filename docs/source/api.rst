@@ -4,11 +4,11 @@ Data Loading and Processing
 .. currentmodule:: Xana
 
 .. autosummary::
+   :recursive:
 
    analyze
 
 .. autoclass:: Xana
-   :show-inheritance:
    :members:
    :inherited-members:
 
@@ -24,7 +24,6 @@ Data Interpretation
 .. currentmodule:: Xana.SaxsAna
 
 .. autoclass:: Soq
-   :show-inheritance:
    :members:
 
 
@@ -35,7 +34,6 @@ Data Interpretation
 .. currentmodule:: Xana.XpcsAna
 
 .. autoclass:: CorrFunc
-   :show-inheritance:
    :members:
 
 
