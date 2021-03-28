@@ -5,6 +5,10 @@ Data Loading and Processing
 
 .. autosummary::
    :recursive:
+   
+   Xana
+   loadsetup
+   savesetup
 
 .. autoclass:: Xana
    :members:
