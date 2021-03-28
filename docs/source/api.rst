@@ -6,9 +6,7 @@ Data Loading and Processing
 .. autosummary::
    :toctree: _autosummary   
    
-   Xana.Xana
-   Xana.loadsetup
-   Xana.savesetup
+   Xana
 
 .. autoclass:: Xana
    :members:
