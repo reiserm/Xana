@@ -120,6 +120,7 @@ class CorrFunc(AnaList):
         data="rescaled",
         cmap="magma",
         change_marker=False,
+        marker='o',
         color_mode=0,
         color="b",
         dofit=False,
@@ -189,8 +190,8 @@ class CorrFunc(AnaList):
         elif color_mode == "from func" or color_mode == 3:
             self.colors = [cmap(x) for x in self.qv]
         elif color_mode == "from vec" or color_mode == 4:
-            self.colors = [cmap(x) for x in self.qv]
-        self.update_markers(ncf, change_marker)
+            self.colors = [cmap[x] for x in range(len(self.qv))]
+        self.update_markers(ncf, marker, change_marker)
 
         if self.fit_config is None:
             self.fit_config = [
@@ -358,9 +359,10 @@ class CorrFunc(AnaList):
                         weights = 1 / corrFunc[1][interval[1] :, nq[iq] + 1] ** 2
                     else:
                         weights = None
-                    norm_b[iq] = np.ma.average(
-                        corrFunc[0][interval[1] :, nq[iq] + 1], weights=weights
-                    )
+                    if norm_baseline:
+                        norm_b[iq] = np.ma.average(
+                            corrFunc[0][interval[1] :, nq[iq] + 1], weights=weights
+                        )
                     if norm_contrast:
                         if weighted:
                             weights = (
@@ -379,11 +381,18 @@ class CorrFunc(AnaList):
                 initial_contrast = norm_c - norm_b
             else:
                 initial_contrast = contrast
+            if not norm_baseline:
+                baseline = norm_b
+            if not norm_baseline and norm_contrast:
+                lower = norm_b
+            else:
+                lower = 1.
+            upper = initial_contrast + 1
             corrFunc[0][1:, nq + 1], p = rescale(
                 corrFunc[0][1:, nq + 1],
                 norm_b,
                 norm_c,
-                (baseline, initial_contrast + baseline),
+                rng=(lower, upper),
             )
             corrFunc[1][1:, nq + 1] *= p
 
