@@ -7,7 +7,7 @@ Data Loading and Processing
    :toctree: _autosummary   
    
    Xana
-   analyze
+   Xana.analyze
 
 .. autoclass:: Xana
    :members:
