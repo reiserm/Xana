@@ -1,5 +1,6 @@
 #requirements-docs.txt file 
 numpy
+cython
 matplotlib
 pandas
 emcee
