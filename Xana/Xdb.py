@@ -12,6 +12,15 @@ from .misc.xsave import save_result, make_filename
 class Xdb:
     """Data base class for handling analysis results and making them accessible through the
     data interpretation modules.
+
+
+    Args:
+        dbfile (str, optional): Filename of the .pkl file to load the database from.
+
+    Attributes:
+        dbfile (str): Database file (pickle).
+        savdir (str): Directory for saving results.
+
     """
 
     def __init__(self, dbfile=None):

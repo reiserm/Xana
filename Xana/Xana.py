@@ -42,7 +42,7 @@ class Xana(Xdb, Analysis):
             +-----------------------+----------+------------+
 
         detector (str, optional): detector used for the measurement. Options are:
-            :code:`'eiger500k'`, :code:`'eiger1m'`, :code:`'agipd1m'`.
+            :code:`'eiger500k'`, :code:`'eiger1m'`.
 
         savdir (str, optional): directory to save results.
         dbfile (str, optional): database file.
@@ -84,7 +84,7 @@ class Xana(Xdb, Analysis):
         return self.__str__()
 
     def mksavdir(self, name, basepath="./"):
-        """Create directory for saving output.
+        """Create directory for saving files.
 
         Args:
             name (str): name of the directory for saving the results.
@@ -97,6 +97,11 @@ class Xana(Xdb, Analysis):
         self.load_db(handle_existing="overwrite")
 
     def loadsetup(self, filename=None):
+        """Load setup parameters from file.
+
+        Args:
+            filename (str, optional): Name of the pickle file to load. Default: `None`.
+        """
 
         if filename is None:
             print("No setup defined.")
@@ -111,6 +116,11 @@ class Xana(Xdb, Analysis):
                 print("No setup defined.")
 
     def savesetup(self, filename=None, **kwargs):
+        """Saves setup parameters to .pkl file.
+
+        Args:
+            filename (str, optional): Name of the file to save the setup.
+        """
         if filename is None:
             filename = input("Enter filename for setupfile.\t")
         #        savd = copy.deepcopy(vars(self))
