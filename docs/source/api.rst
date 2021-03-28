@@ -6,8 +6,6 @@ Data Loading and Processing
 .. autosummary::
    :recursive:
 
-   analyze
-
 .. autoclass:: Xana
    :members:
    :inherited-members:
