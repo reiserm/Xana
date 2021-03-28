@@ -4,11 +4,11 @@ Data Loading and Processing
 .. currentmodule:: Xana
 
 .. autosummary::
-   :recursive:
+   :toctree: _autosummary   
    
-   Xana
-   loadsetup
-   savesetup
+   Xana.Xana
+   Xana.loadsetup
+   Xana.savesetup
 
 .. autoclass:: Xana
    :members:
