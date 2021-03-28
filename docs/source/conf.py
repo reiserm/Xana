@@ -13,7 +13,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath(".."))
 sys.setrecursionlimit(1500)
 
 import sphinx_rtd_theme
@@ -47,6 +47,7 @@ extensions = [
     "IPython.sphinxext.ipython_console_highlighting",
 ]
 
+autosummary_generate = True
 master_doc = "index"
 
 # Add any paths that contain templates here, relative to this directory.

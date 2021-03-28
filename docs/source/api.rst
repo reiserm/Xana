@@ -4,12 +4,13 @@ Data Loading and Processing
 .. currentmodule:: Xana
 
 .. autosummary::
-   :recursive:
-
-   analyze
+   :toctree: _autosummary   
+   
+   Xana.Xana
+   Xana.loadsetup
+   Xana.savesetup
 
 .. autoclass:: Xana
-   :show-inheritance:
    :members:
    :inherited-members:
 
@@ -25,7 +26,6 @@ Data Interpretation
 .. currentmodule:: Xana.SaxsAna
 
 .. autoclass:: Soq
-   :show-inheritance:
    :members:
 
 
@@ -36,7 +36,6 @@ Data Interpretation
 .. currentmodule:: Xana.XpcsAna
 
 .. autoclass:: CorrFunc
-   :show-inheritance:
    :members:
 
 
