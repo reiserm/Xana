@@ -205,7 +205,9 @@ def calc_twotime_cf(ttdata, tt_max_images=5000, crossttdata=None):
             if not crossdata_avail:
                 y[0].append(trc(data[:, ib:ie]))
             else:
-                y[0].append(crosstrc(data[:, ib:ie], cdata[:, ib:ie]))
+                c1 = crosstrc(data[:, ib:ie], cdata[:, ib:ie])
+                c2 = crosstrc(cdata[:, ib:ie], data[:, ib:ie])
+                y[0].append((c1+c2)/2.)
 
             v[0].append(vartrc(y[0][-1]))
             if l[0] == 1:
