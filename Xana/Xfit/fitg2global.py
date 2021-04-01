@@ -8,6 +8,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import re
 from scipy.special import gamma
+from collections.abc import Iterable
 
 
 class G2:
@@ -73,8 +74,8 @@ class G2:
         if dofitglobal:
             self.ndat = len(self.nq)
         else:
-            self.ndat = 1
-            fitglobal = []
+            self.ndat = len(self.nq)  # used to be 1
+            fitglobal = [0]  # always use fitglobal
         self.__fitglobal = fitglobal
 
     @staticmethod
@@ -397,62 +398,73 @@ class G2:
             if vn in self.fitqdep:
                 pars.add(vn)
             else:
-                pars.add(vn, value=vinit[0], min=vinit[1], max=vinit[2], vary=1)
-        pars.add("a", value=init["a"][0], min=init["a"][1], max=init["a"][2], vary=1)
+                pars.add(vn, value=vinit[0], min=vinit[1], max=vinit[2], vary=True)
+        pars.add("a", value=init["a"][0], min=init["a"][1], max=init["a"][2], vary=True)
         pars.add(
             "beta",
             value=init["beta"][0],
             min=init["beta"][1],
             max=init["beta"][2],
-            vary=1,
+            vary=True,
         )
 
         self._init_pars_dataframe(init)
         self._make_varnames()
 
         # setting contrast constraint
-        beta_constraint = self._get_beta_constraint(ndat=-1)
-        pars["b0"].set(expr=beta_constraint)
+        if not "b0" in fix:
+            beta_constraint = self._get_beta_constraint(ndat=-1)
+            pars["b0"].set(expr=beta_constraint)
 
         # setting parameters fixed
+        fixed_values = {}
         for vn in fix.keys():
             if vn in pars.keys():
-                pars[vn].set(value=fix[vn], min=-np.inf, max=np.inf, vary=0)
+                val = fix[vn]
+                if isinstance(val, Iterable):
+                    fixed_values[vn] = val
+                else:
+                    pars[vn].set(value=val, min=-np.inf, max=np.inf, vary=False)
 
         # modifying pars for global fitting if not globalfit then ndat=1
-        lpars = list(pars.items())[::-1]
+        lpars = list(pars.items())
+        newpars = []
         for j in range(self.ndat - 1):
-            for pk, pv in sorted(lpars):
-                if (pk not in self.fitglobal) or (pk in self.fitqdep):
+            for pk, pv in reversed(sorted(lpars)):
+                if (pk not in self.fitglobal) or (pk in self.fitqdep) or (pk in fixed_values):
+                    if pk in fixed_values and j==0:
+                        pv.set(value=fixed_values[pk][j], vary=False)
                     pt = copy(pv)
                     pt.name += f"_{j}"
-                    if pk == "b0":
-                        pb0 = pt
+                    if pk == "b0" and pk not in fixed_values:
                         beta_constraint = self._get_beta_constraint(ndat=j)
-                        pb0.set(expr=beta_constraint)
-                        continue
+                        pt.set(expr=beta_constraint)
+                    if pk in fixed_values:
+                        pt.set(value=fixed_values[pk][j+1], vary=False)
                     # print(pars)
                     # print(pt)
                     pars.add(pt)
 
-            # add the constraint for b0
-            pars.add(pb0)
-
-        re_par = re.compile("[tgb]\d{1}(?=_)")
+        re_par = re.compile("([tgb]\d{1})|(beta)")
         for p in self.fitqdep:
             for new_par, par_kw in self.fitqdep[p]["pars"].items():
                 pars.add(new_par, **par_kw)
             for j in range(self.ndat):
-                vn = p + f"_{j-1}" * bool(j)
+                counter_str = f"_{j-1}" * bool(j)
+                vn = p + counter_str
                 q = self.qv[self.nq[j]]
                 expr = copy(self.fitqdep[p]["expr"])
-                cpars = re_par.findall(expr)
-                for c in cpars:
-                    expr = expr.replace(f"{c}_", self._varnames[c[0]][j][int(c[1])])
+                cpars_groups = re_par.findall(expr)
+                for cpars in set(cpars_groups):
+                    for c in cpars:
+                        if not len(c) or c in self.fitglobal:
+                            continue
+                        expr = expr.replace(f"{c}", str(c) + counter_str)  #self._varnames[c[0]][j][int(c[1])])
+
                 expr = expr.replace("q", f"{q:.5f}")
                 pars[vn].set(expr=expr)
 
-        if sum([x.startswith("t") for x in self.fitglobal]) == 0:
+        if sum([x.startswith("t") for x in self.fitglobal if not isinstance(x, int)]) == 0:
             for j in range(self.ndat):
                 for i in range(1, self.nmodes):
                     vc = f"t{i}" + f"_{j-1}" * bool(j)
@@ -460,7 +472,6 @@ class G2:
                     pars.add(vs + "_dtmp", value=pars[vc].value - pars[vs].value, min=0)
                     pars[vc].set(expr=f"{vs} + {vs}" + "_dtmp")
 
-        # print(pars)
         pars._asteval.symtable["gamma"] = gamma
         self._lmpars = pars
 
@@ -552,7 +563,7 @@ class G2:
 
     def _get_beta_constraint(self, ndat=-1):
         dc = f"_{ndat}" * bool(ndat + 1)  # counter for fit_global
-        dcb = "" if ("beta" in self.fitglobal) or ("beta" in self.fix) else dc
+        dcb = "" if ("beta" in self.fitglobal) or ("beta" in self.fix and not isinstance(self.fix.get('beta', None), Iterable)) else dc
         dca = "" if ("a" in self.fitglobal) or ("a" in self.fix) else dc
         if self.nmodes > 1:
             beta_constraint = (
