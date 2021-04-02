@@ -89,6 +89,14 @@ class G2:
         else:
             pass
 
+    def __getstate__(self):
+        d = dict(vars(self))
+        del d['plot_handles']
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def fit(
         self,
         mode="sig",
@@ -287,7 +295,7 @@ class G2:
                     g2f = np.sqrt(
                         (g2f - out.params["a"].value) / out.params["b0"].value
                     )
-                pl.append(ax.plot(xf, g2f, "-", label=labstr_fit, **fit_plot_kws))
+                pl.append(ax.plot(xf, g2f, label=labstr_fit, **fit_plot_kws))
                 if confint:
                     for j in range(2):
                         pl.append(ax.plot(xf, g2fci[j], ":", **fit_plot_kws))
