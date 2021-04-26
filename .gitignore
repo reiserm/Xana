@@ -27,7 +27,9 @@
 *.pkl
 *~
 .DS_Store
-# *.so
+\#*
+.\#*
+*cpython-*
 
 /.vscode/
 
@@ -59,7 +61,6 @@ Xana/GRTAGS
 Xana/GTAGS
 Xana/Xdrop/dropletizem.so
 Xana/XpcsAna/cpy_ecorr.c
-Xana/XpcsAna/cpy_ecorr.cpython-37m-darwin.so
 Xana/XpcsAna/cpy_ecorr.html
 Xana/misc/logind.py
 Xana/misc/toolbox.py

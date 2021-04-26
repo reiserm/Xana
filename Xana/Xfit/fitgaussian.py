@@ -31,7 +31,7 @@ def fitgaussian(
     ylim=None,
     color=None,
 ):
-    """ Fit data with Gaussian peak."""
+    """Fit data with Gaussian peak."""
 
     # initialize parameters
     pars = lmfit.Parameters()

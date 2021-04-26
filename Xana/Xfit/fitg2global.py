@@ -91,7 +91,7 @@ class G2:
 
     def __getstate__(self):
         d = dict(vars(self))
-        del d['plot_handles']
+        del d["plot_handles"]
         return d
 
     def __setstate__(self, d):
@@ -178,7 +178,7 @@ class G2:
         pars=None,
         data_kws=None,
         fit_kws=None,
-        **kwargs
+        **kwargs,
     ):
 
         sucfit = True if (self.pars is not None) else False
@@ -190,12 +190,12 @@ class G2:
             markersize=markersize,
             mec=markeredgecolor,
             markeredgewidth=1,
-            )
+        )
         fit_plot_kws = dict(
-            linestyle='-',
+            linestyle="-",
             linewidth=1,
             alpha=alpha,
-            )
+        )
         if isinstance(data_kws, dict):
             data_plot_kws.update(data_kws)
         if isinstance(fit_kws, dict):
@@ -439,8 +439,12 @@ class G2:
         newpars = []
         for j in range(self.ndat - 1):
             for pk, pv in reversed(sorted(lpars)):
-                if (pk not in self.fitglobal) or (pk in self.fitqdep) or (pk in fixed_values):
-                    if pk in fixed_values and j==0:
+                if (
+                    (pk not in self.fitglobal)
+                    or (pk in self.fitqdep)
+                    or (pk in fixed_values)
+                ):
+                    if pk in fixed_values and j == 0:
                         pv.set(value=fixed_values[pk][j], vary=False)
                     pt = copy(pv)
                     pt.name += f"_{j}"
@@ -448,7 +452,7 @@ class G2:
                         beta_constraint = self._get_beta_constraint(ndat=j)
                         pt.set(expr=beta_constraint)
                     if pk in fixed_values:
-                        pt.set(value=fixed_values[pk][j+1], vary=False)
+                        pt.set(value=fixed_values[pk][j + 1], vary=False)
                     # print(pars)
                     # print(pt)
                     pars.add(pt)
@@ -467,12 +471,17 @@ class G2:
                     for c in cpars:
                         if not len(c) or c in self.fitglobal:
                             continue
-                        expr = expr.replace(f"{c}", str(c) + counter_str)  #self._varnames[c[0]][j][int(c[1])])
+                        expr = expr.replace(
+                            f"{c}", str(c) + counter_str
+                        )  # self._varnames[c[0]][j][int(c[1])])
 
                 expr = expr.replace("q", f"{q:.5f}")
                 pars[vn].set(expr=expr)
 
-        if sum([x.startswith("t") for x in self.fitglobal if not isinstance(x, int)]) == 0:
+        if (
+            sum([x.startswith("t") for x in self.fitglobal if not isinstance(x, int)])
+            == 0
+        ):
             for j in range(self.ndat):
                 for i in range(1, self.nmodes):
                     vc = f"t{i}" + f"_{j-1}" * bool(j)
@@ -571,7 +580,15 @@ class G2:
 
     def _get_beta_constraint(self, ndat=-1):
         dc = f"_{ndat}" * bool(ndat + 1)  # counter for fit_global
-        dcb = "" if ("beta" in self.fitglobal) or ("beta" in self.fix and not isinstance(self.fix.get('beta', None), Iterable)) else dc
+        dcb = (
+            ""
+            if ("beta" in self.fitglobal)
+            or (
+                "beta" in self.fix
+                and not isinstance(self.fix.get("beta", None), Iterable)
+            )
+            else dc
+        )
         dca = "" if ("a" in self.fitglobal) or ("a" in self.fix) else dc
         if self.nmodes > 1:
             beta_constraint = (

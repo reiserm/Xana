@@ -43,7 +43,9 @@ class Xdb:
             print("Initialize database...".format(dbfile))
             self.init_db(dbfile, **kwargs)
         else:
-            raise ValueError("Loading database failed. Database file not specified or output directory does not exist.")
+            raise ValueError(
+                "Loading database failed. Database file not specified or output directory does not exist."
+            )
 
     def init_db(self, dbfile=None, handle_existing="raise"):
         if self.meta is not None:
@@ -132,10 +134,9 @@ class Xdb:
 
     def append_db(self, dbfile, check_duplicates=True):
         if isinstance(dbfile, str):
-            path, fname = make_filename(self, filename=dbfile)
-            dbfile = path.joinpath(fname)
+            dbfile = make_filename(self, "dbfile", dbfile)
             if os.path.isfile(dbfile):
-                db = pickle.load(open(dbfile, "r+b"))
+                db = pickle.load(open(dbfile, "rb"))
             else:
                 print("File %s does not exist." % dbfile)
                 return None

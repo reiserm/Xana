@@ -1,10 +1,10 @@
 from .pyxpcs3 import pyxpcs
-from .eventcorrelator3 import eventcorrelator
+
+# from .eventcorrelator3 import eventcorrelator
 
 
 class Xpcs:
     def __init__():
-
         pass
 
     def pyxpcs(*args, **kwargs):
