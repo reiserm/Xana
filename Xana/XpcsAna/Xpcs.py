@@ -1,6 +1,6 @@
 from .pyxpcs3 import pyxpcs
 
-# from .eventcorrelator3 import eventcorrelator
+from .eventcorrelator3 import eventcorrelator
 
 
 class Xpcs:

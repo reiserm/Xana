@@ -294,7 +294,7 @@ def pyxpcs(
     ctr=(0, 0),
     twotime_par=None,
     qsec=(0, 0),
-    norm="symmetric_whole",
+    norm="symmetric",
     nprocs=1,
     time_spacing=None,
     verbose=True,
