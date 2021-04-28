@@ -40,7 +40,7 @@ class AnaList:
             self.colors.append(cm(i))
         self.colors = np.tile(self.colors, (repeat, 1))
 
-    def update_markers(self, nmarkers, marker='o', change_marker=0):
+    def update_markers(self, nmarkers, marker="o", change_marker=0):
         """Return vector of markers for plots"""
         self.markers = [
             marker,

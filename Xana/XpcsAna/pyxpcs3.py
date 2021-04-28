@@ -207,7 +207,7 @@ def calc_twotime_cf(ttdata, tt_max_images=5000, crossttdata=None):
             else:
                 c1 = crosstrc(data[:, ib:ie], cdata[:, ib:ie])
                 c2 = crosstrc(cdata[:, ib:ie], data[:, ib:ie])
-                y[0].append((c1+c2)/2.)
+                y[0].append((c1 + c2) / 2.0)
 
             v[0].append(vartrc(y[0][-1]))
             if l[0] == 1:
@@ -249,31 +249,34 @@ def calc_twotime_cf(ttdata, tt_max_images=5000, crossttdata=None):
 
 def norm_qdata(chunk, trace_slice, q0, q1, lin_mask, norm):
 
-        if norm == "symmetric":
-            normfactor = trace_slice
-            normfactor[normfactor == 0] = 1.0
-            data_loop = chunk[:, q0, q1] / normfactor[:, None]
-        elif norm == "symmetric_whole":
-            data_loop = (
-                chunk[:, q0, q1]
-                / np.mean(chunk[:, lin_mask[0], lin_mask[1]], axis=1)[:, None]
-            )
-        elif norm == "none":
-            data_loop = chunk[:, q0, q1]
-        elif norm == "corrcoef":
-            tmp_mat = chunk[:, q0, q1] / trace_slice[:, None]
-            data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
-                np.var(tmp_mat, -1)
-            )[:, None]
-        elif norm == "corrcoef_whole":
-            tmp_mat = (
-                chunk[:, q0, q1]
-                / np.mean(chunk[:, lin_mask[0], lin_mask[1]], axis=1)[:, None]
-            )
-            data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
-                np.var(tmp_mat, -1)
-            )[:, None]
-        return data_loop
+    if norm == "symmetric_bins":
+        normfactor = trace_slice
+        normfactor[normfactor == 0] = 1.0
+        data_loop = chunk[:, q0, q1] / normfactor[:, None]
+    elif norm == "symmetric_frame":
+        data_loop = (
+            chunk[:, q0, q1]
+            / np.mean(chunk[:, lin_mask[0], lin_mask[1]], axis=1)[:, None]
+        )
+    elif norm == "symmetric":
+        data_loop = chunk[:, q0, q1]
+    elif norm == "corrcoef":
+        tmp_mat = chunk[:, q0, q1] / trace_slice[:, None]
+        data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
+            np.var(tmp_mat, -1)
+        )[:, None]
+    elif norm == "corrcoef_frame":
+        tmp_mat = (
+            chunk[:, q0, q1]
+            / np.mean(chunk[:, lin_mask[0], lin_mask[1]], axis=1)[:, None]
+        )
+        data_loop = (tmp_mat - tmp_mat.mean(-1)[:, None]) / np.sqrt(
+            np.var(tmp_mat, -1)
+        )[:, None]
+    else:
+        raise ValueError(f"{norm} is not a valid normalization method.")
+    return data_loop
+
 
 #######################
 # ---MAIN FUNCTION--- #
@@ -291,7 +294,7 @@ def pyxpcs(
     ctr=(0, 0),
     twotime_par=None,
     qsec=(0, 0),
-    norm="symmetric_whole",
+    norm="symmetric",
     nprocs=1,
     time_spacing=None,
     verbose=True,
@@ -318,7 +321,9 @@ def pyxpcs(
         if data.ndim == 1:
             # handling 1D data
             data = data.reshape(-1, 1, 1)
-            qroi = [(np.array([0]), np.array([0])),]
+            qroi = [
+                (np.array([0]), np.array([0])),
+            ]
 
         nf, *dim = np.shape(data)
 
@@ -450,7 +455,6 @@ def pyxpcs(
                 lag[sl] = 2 ** ir * np.arange(1 + chn2, chn + 1)
 
         rcrc = rcr - np.where(lag[sl] > nf)[0].size - 1
-        lag *= dt  # scale lag-vector with time step
 
     # ----TwoTime Correlation Function----
     if twotime_par is not None:
@@ -492,8 +496,8 @@ def pyxpcs(
             pcorr.append(
                 Process(
                     target=mp_corr,
-                    args=(nf - 1, chn, srch, rcr, lind[q_beg:q_end], q_end - q_beg),
-                    kwargs={"quc": qur[i], "quce": qure[i]},
+                    args=(nf - 1, chn, srch, lag, lind[q_beg:q_end], q_end - q_beg),
+                    kwargs={"queue_in": qur[i], "queue_out": qure[i]},
                 )
             )
 
@@ -544,7 +548,9 @@ def pyxpcs(
                         ttdata[index][idx, :] = data_loop.copy()
                         if crossdata_avail:
                             crosstrace_slice = crossdata[:, q0, q1].mean(-1)
-                            crossdata_loop = norm_qdata(crossdata, crosstrace_slice, q0, q1, lin_mask, norm)
+                            crossdata_loop = norm_qdata(
+                                crossdata, crosstrace_slice, q0, q1, lin_mask, norm
+                            )
                             crossttdata[index][idx, :] = crossdata_loop.copy()
 
             if use_mp:
@@ -558,7 +564,7 @@ def pyxpcs(
                         nf - 1,
                         chn,
                         srch,
-                        rcr,
+                        lag,
                         lind[i:j],
                         j - i,
                         data=datal,
@@ -587,32 +593,22 @@ def pyxpcs(
         # get correlation functions and normalization from processes
         corf = from_proc[0][0]
         dcorf = from_proc[0][1]
-        nk = from_proc[0][2]
-        sr = from_proc[0][3]
-        sl = from_proc[0][4]
-        tcalc_cum = from_proc[0][5]
+        tcalc_cum = from_proc[0][2]
         for i in range(1, nprocs):
-            corf = np.concatenate((corf, from_proc[i][0]), axis=1)
-            dcorf = np.concatenate((dcorf, from_proc[i][1]), axis=1)
-            sr = np.concatenate((sr, from_proc[i][3]), axis=1)
-            sl = np.concatenate((sl, from_proc[i][4]), axis=1)
-            tcalc_cum = max(tcalc_cum, from_proc[i][5])
+            corf = np.concatenate((corf, from_proc[i][0]), axis=0)
+            dcorf = np.concatenate((dcorf, from_proc[i][1]), axis=0)
+            tcalc_cum = max(tcalc_cum, from_proc[i][2])
 
-        if norm in ["symmetric", "sym_!trace", "symmetric_whole", "none"]:
-            tmp = nk[:rcrc, None] ** 2 / (sr[:rcrc] * sl[:rcrc])
-            corf = corf[:rcrc] * tmp
-            dcorf = np.abs(dcorf[:rcrc] * tmp ** 2 / (nk[:rcrc, None] ** 2))
-        elif norm in ["corrcoef", "corrcoef_whole"]:
-            corf = corf[:rcrc]
-            dcorf = np.abs(dcorf[:rcrc])
+        corf = corf.T[:rcrc]
+        dcorf = dcorf.T[:rcrc]
 
         # initialize correlation array 'cc'
         cc = np.zeros((rcrc + 1, lqv + 1), dtype=np.float32)
         cc[0, 1:] = qv
-        cc[1:, 0] = lag[:rcrc]
+        cc[1:, 0] = lag[:rcrc] * dt
         dcc = cc.copy()
         cc[1:, 1:] = corf
-        dcc[1:, 1:] = np.sqrt(dcorf)
+        dcc[1:, 1:] = dcorf
 
         if verbose:
             print("\rFinished calculating correlation functions.")
@@ -620,14 +616,14 @@ def pyxpcs(
         del corf, dcorf, rcr, srch, lag, from_proc
 
     # ----twotime and chi4----
+    crossttcf = None
+    crosschi4 = None
     if twotime_par is not None:
         if verbose:
             print("Start calculating TRC and Chi4...")
         ttcf, chi4 = calc_twotime_cf(ttdata, tt_max_images)
         ttcf = {par: data for par, data in zip(twotime_par, ttcf)}
         chi4 = {par: data for par, data in zip(twotime_par, chi4)}
-        crossttcf = None
-        crosschi4 = None
 
         if crossdata_avail:
             print("Start calculating Cross TRC and Chi4...")

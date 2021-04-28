@@ -25,7 +25,7 @@ def rebin_array(arr, maxlen=500):
 def plot_contrast_vs_images(
     x, y, ax, label=None, marker="o", color="b", ind_avr=False, alpha=0.5
 ):
-    """"""
+    """ """
     ax.plot(
         x, y, ms=3, label=label, linestyle="", marker=marker, color=color, alpha=alpha
     )
@@ -37,7 +37,7 @@ def plot_contrast_vs_images(
 
 
 def plot_contrast_histogram(x, ax, label=None, color="b", ind_avr=False):
-    """"""
+    """ """
     ax.hist(
         x,
         bins=100,
@@ -62,7 +62,7 @@ def plot_contrast_histogram(x, ax, label=None, color="b", ind_avr=False):
 def plot_contrast_running_average(
     x, y, dy, ax, label=None, marker="o", color="b", ind_avr=False, alpha=0.5
 ):
-    """"""
+    """ """
     ax.errorbar(x, y, dy, ms=3, label=label, fmt=marker, color=color, alpha=alpha)
     ax.set_xlabel("image number")
     ax.set_ylabel(r"$\beta$ (run. avr.)")
@@ -72,7 +72,7 @@ def plot_contrast_running_average(
 def plot_kbar_vs_images(
     x, y, ax, label=None, marker="o", color="b", npix=False, ind_avr=False, alpha=0.5
 ):
-    """"""
+    """ """
     if npix:
         y = y * npix
         ylab = r"$k_{tot}$"
@@ -97,7 +97,7 @@ def plot_kbar_vs_images(
 
 
 def plot_poisson_gamma(x, y, dy, ax, label=None, marker="o", color="b", ind_avr=False):
-    """"""
+    """ """
     ax.errorbar(x, y, yerr=dy, label=label, ms=3, ls="", marker=marker, color=color)
     ax.set_xlabel("k")
     ax.set_ylabel(r"$P(k)$")
@@ -108,7 +108,7 @@ def plot_poisson_gamma(x, y, dy, ax, label=None, marker="o", color="b", ind_avr=
 def plot_contrast_kbar_correlation(
     x, y, ax, label=None, cmap="inferno", npix=False, ind_avr=False, alpha=0.5
 ):
-    """"""
+    """ """
     if npix:
         x = x * npix
         xlab = r"$k_{tot}$"
@@ -125,7 +125,7 @@ def plot_contrast_kbar_correlation(
 def plot_contrast_vs_kbar(
     x, y, ax, label=None, marker="o", color="b", npix=False, ind_avr=False, alpha=0.5
 ):
-    """"""
+    """ """
     if npix:
         x = x * npix
         xlab = r"$k_{tot}$"
@@ -158,7 +158,7 @@ def plot_prob_vs_kbar(
     ind_avr=False,
     alpha=0.5,
 ):
-    """"""
+    """ """
     if npix:
         x = x * npix
         y = y * npix

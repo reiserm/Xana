@@ -684,19 +684,22 @@ def read_data(
     if method == "full":
         # process full data set
         for i in range(nargin):
-            progress(i, max([nargin, 1]))
+            if verbose:
+                progress(i, max([nargin, 1]))
 
             dcls.load_chunk(chunks[i])
             dcls.process_chunk()
             dcls.dstream[chunks[i] - first[0]] = dcls.chunk
 
         dcls.prepare_output()
-        progress(1, 1)
+        if verbose:
+            progress(1, 1)
 
     elif method == "events":
         # process full data set
         for i in range(nargin):
-            progress(i, max([nargin, 1]))
+            if verbose:
+                progress(i, max([nargin, 1]))
 
             dcls.load_chunk(chunks[i])
             dcls.process_chunk()
@@ -714,13 +717,14 @@ def read_data(
                             dcls.dstream[qi][j] = np.append(
                                 dcls.dstream[qi][j], dcls.chunk[qi][j]
                             )
-
-        progress(1, 1)
+        if verbose:
+            progress(1, 1)
 
     elif method == "average":
         # average data in time dimension
         for i in range(nargin):
-            progress(i, max([nargin, 1]))
+            if verbose:
+                progress(i, max([nargin, 1]))
 
             dcls.load_chunk(chunks[i])
             dcls.process_chunk()
@@ -734,7 +738,8 @@ def read_data(
 
         dcls.calc_mean(weighted=var_weight)
         dcls.prepare_output()
-        progress(1, 1)
+        if verbose:
+            progress(1, 1)
 
     elif method == "queue_chunk":
         # pushing chunks to a queue for external analysis classes

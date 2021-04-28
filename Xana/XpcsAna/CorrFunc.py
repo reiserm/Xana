@@ -120,7 +120,7 @@ class CorrFunc(AnaList):
         data="rescaled",
         cmap="magma",
         change_marker=False,
-        marker='o',
+        marker="o",
         color_mode=0,
         color="b",
         dofit=False,
@@ -386,7 +386,7 @@ class CorrFunc(AnaList):
             if not norm_baseline and norm_contrast:
                 lower = norm_b
             else:
-                lower = 1.
+                lower = 1.0
             upper = initial_contrast + 1
             corrFunc[0][1:, nq + 1], p = rescale(
                 corrFunc[0][1:, nq + 1],
@@ -425,7 +425,7 @@ class CorrFunc(AnaList):
             corrFunc[1][1:, nq + 1] *= f
             corrFunc[0][1:, nq + 1] += o
 
-    def merge_g2(self, in_list, limit=0.0, chi2sig=3, cutoff=0):
+    def merge_g2(self, in_list, limit=-np.inf, chi2sig=3, cutoff=0):
         self.corrFuncChi2 = []
 
         t_exp = np.zeros(len(in_list))
@@ -439,11 +439,9 @@ class CorrFunc(AnaList):
         nframes = nframes[ind]
         in_list = np.array(in_list)[ind]
 
-        (
-            uq_et,
-            uq_inv,
-            uq_cnt,
-        ) = np.unique(t_exp, return_inverse=True, return_counts=True)
+        uq_et, uq_inv, uq_cnt = np.unique(
+            t_exp, return_inverse=True, return_counts=True
+        )
 
         counter = np.zeros(uq_et.size, dtype=np.int32)
         for i, cnti in enumerate(uq_cnt):
@@ -477,9 +475,8 @@ class CorrFunc(AnaList):
                     raise ValueError(v)
 
             cf = np.ma.masked_array(cf, mask=np.isnan(cf))
-            cf = np.ma.masked_less_equal(cf.filled(-1), limit, copy=False)
-            dcf = np.ma.masked_array(dcf, mask=np.isnan(dcf))
-            dcf = np.ma.masked_where(dcf.filled(-1) <= 0, dcf, copy=False)
+            cf = np.ma.masked_less_equal(cf.filled(-1_000), limit, copy=False)
+            dcf = np.ma.masked_invalid(dcf)
             cf = np.ma.masked_where(dcf.mask, cf, copy=False)
             dcf = np.ma.masked_where(cf.mask, dcf, copy=False)
 

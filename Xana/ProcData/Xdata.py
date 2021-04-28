@@ -99,7 +99,12 @@ class Xdata(Xfmt):
             m = str(m)
             id_ = find_seriesid(m)
             series_id.append(id_)
-            tmp = list(filter(lambda x: (find_seriesid(str(x)) == id_) and not (str(x) == str(m)), self._files))
+            tmp = list(
+                filter(
+                    lambda x: (find_seriesid(str(x)) == id_) and not (str(x) == str(m)),
+                    self._files,
+                )
+            )
             tmp.sort()
             tmp.insert(0, Path(m))
             series[id_] = tmp
@@ -123,9 +128,9 @@ class Xdata(Xfmt):
             + ["master", "datdir"]
         )
 
-        if 'edf' in self.fmtstr:
+        if "edf" in self.fmtstr:
             for idx, row in meta.iterrows():
-                meta.loc[idx, 'nframes'] = len(self._series[meta.loc[idx, 'series']])
+                meta.loc[idx, "nframes"] = len(self._series[meta.loc[idx, "series"]])
 
         meta.insert(5, "last", int(0))
         meta.insert(5, "first", int(0))
@@ -133,7 +138,7 @@ class Xdata(Xfmt):
         for idx, row in meta.iterrows():
             row["first", "last"] = (0, int(row["nframes"] - 1))
             meta.loc[idx] = row
-            if 'p10' in self.fmtstr:
+            if "p10" in self.fmtstr:
                 tot_img = self.get_series(idx, verbose=False, output="shape")[0]
                 img_per_series = row["nframes"]
                 nrow = row.copy()
