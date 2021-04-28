@@ -179,7 +179,7 @@ class Analysis(Xdata):
                     time.sleep(2)
 
             if method == "xpcs":
-                saxs = kwargs.pop("saxs", "compute")
+                saxs = kwargs.pop("saxs", None)
                 Isaxs = self._get_xpcs_args(sid, saxs, saxs_dict)
                 dt = self._get_delay_time(sid)
 

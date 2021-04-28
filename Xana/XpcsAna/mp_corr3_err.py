@@ -144,12 +144,12 @@ def mp_corr(
         sll[qi] /= g2c[:, None]
         # if qi == 0:
         #     print(srr[qi], sll[qi])
-        srr[qi] = np.ma.masked_where((srr[qi] <= 0) | np.isnan(srr[qi]), srr[qi])
-        sll[qi] = np.ma.masked_where((sll[qi] <= 0) | np.isnan(sll[qi]), sll[qi])
-        srr[qi] = np.ma.filled(srr[qi], 1e-12)
-        sll[qi] = np.ma.filled(sll[qi], 1e-12)
+        srr[qi] = np.ma.masked_invalid(srr[qi])
+        sll[qi] = np.ma.masked_invalid(sll[qi])
+        srr[qi] = np.mean(srr[qi], axis=1)  # / npix[qi]
+        sll[qi] = np.mean(sll[qi], axis=1)  # / npix[qi]
         # print(corf[qi].shape, npix[qi], srr)
-        corf[qi] = corf[qi] / (srr[qi] * sll[qi])
+        corf[qi] = corf[qi] / (srr[qi][:,None] * sll[qi][:,None])
         dcorf.append(1 / np.sqrt(npix[qi]) * np.std(corf[qi], axis=1))
         corf[qi] = np.mean(corf[qi], axis=1)
 

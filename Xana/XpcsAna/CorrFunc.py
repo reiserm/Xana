@@ -476,8 +476,7 @@ class CorrFunc(AnaList):
 
             cf = np.ma.masked_array(cf, mask=np.isnan(cf))
             cf = np.ma.masked_less_equal(cf.filled(-1_000), limit, copy=False)
-            dcf = np.ma.masked_array(dcf, mask=np.isnan(dcf))
-            dcf = np.ma.masked_where(dcf.filled(-1) <= 0, dcf, copy=False)
+            dcf = np.ma.masked_invalid(dcf)
             cf = np.ma.masked_where(dcf.mask, cf, copy=False)
             dcf = np.ma.masked_where(cf.mask, dcf, copy=False)
 
