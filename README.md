@@ -7,10 +7,6 @@ The documentation can be found on Read the Docs under this [link](https://xana.r
 
 # Install Xana
 
-A Fortran compiler and `f2py` (now part of `numpy`) are required build python
-modules from fortran routines during installation. If the installation fails due
-to a missing compiler see point 3.
-
 1. Install Xana using pip:
    ```sh
    pip install Xana
