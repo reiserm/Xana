@@ -32,20 +32,6 @@ to a missing compiler see point 3.
    ```
 
 
-3. If a Fortran compiler is not already installed, try
-   * Linux: `apt install gfortran`
-   * MacOSX: `brew install gcc`
-   * On Windows it is a little more complicated. A possible way to install a
-     FORTRAN compiler is shown
-     [link1](https://www.scivision.co/windows-gcc-gfortran-cmake-make-install/)
-     or
-     [link2](https://www.scivision.dev/f2py-running-fortran-code-in-python-on-windows/).
-
-4. Additional remarks on the installation on OSX:
-
-   * If installing Xana fails, it might help to unset the following environment
-     variables: `unset LDFLAGS` and `unset SHELL` then `pip install Xana`.
-
 # Example Data
 
 An example XPCS dataset can be downloaded from
