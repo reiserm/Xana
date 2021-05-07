@@ -13,7 +13,7 @@ class Xfmt:
         "id10_eiger_single_edf",
         "pilatus_single_cbf",
         "p10_eiger_h5",
-        "xcs_cspad_h5",
+        # "xcs_cspad_h5",
         "converted_h5",
         "lambda_nxs",
         "id02_eiger_single_edf",
