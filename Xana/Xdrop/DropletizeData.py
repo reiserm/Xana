@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.ma as ma
-from Xdrop.dropletizem import dropimgood_sel
+from .dropletizem import dropimgood_sel
 import time
 import pickle
 import re
