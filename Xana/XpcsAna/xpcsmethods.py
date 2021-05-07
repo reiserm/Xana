@@ -25,7 +25,7 @@ def mat2evt(roi):
     return pix, t, s
 
 
-def bin_multitau(d, par=16, variance=None):
+def bin_multitau(d, par=8, variance=None):
     """Function to bin the correlation function. Returns correlation
     functions similar to the multi tau approach.
     """

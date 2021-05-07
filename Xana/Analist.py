@@ -9,6 +9,7 @@ class AnaList:
         self.Xana = Xana
         self.colors = None
         self.cmap = cmap
+        self.verbose = True
         self.update_colors()
         self.markers = [
             "o",

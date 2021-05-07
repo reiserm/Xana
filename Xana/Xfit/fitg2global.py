@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import re
 from scipy.special import gamma
 from collections.abc import Iterable
+import pdb
 
 
 class G2:
@@ -106,6 +107,7 @@ class G2:
         fix={},
         lmfit_pars={},
         fitqdep={},
+        verbose=False,
     ):
         """
         Function that computes the fits using lmfit's minimizer
@@ -129,7 +131,7 @@ class G2:
             self._residuals,
             params=self._lmpars,
             reduce_fcn=self._reduce_func,
-            iter_cb=self._iter_cb,
+            iter_cb=self._iter_cb if verbose else None,
             nan_policy="omit",
         )
 
@@ -193,7 +195,7 @@ class G2:
         )
         fit_plot_kws = dict(
             linestyle="-",
-            linewidth=1,
+            linewidth=2,
             alpha=alpha,
         )
         if isinstance(data_kws, dict):
@@ -222,6 +224,7 @@ class G2:
         for ii, iq in enumerate(self.nq):
             pl = []
             if sucfit:
+                # pdb.set_trace()
                 ipars = np.abs(self.pars["q"] - self.qv[iq]).idxmin()
                 v = self.pars.iloc[ipars]
                 g2f = 0

@@ -135,22 +135,22 @@ class Xdata(Xfmt):
         meta.insert(5, "last", int(0))
         meta.insert(5, "first", int(0))
 
-        for idx, row in meta.iterrows():
+        for idx, row in meta.copy().iterrows():
             row["first", "last"] = (0, int(row["nframes"] - 1))
             meta.loc[idx] = row
             if "p10" in self.fmtstr:
                 tot_img = self.get_series(idx, verbose=False, output="shape")[0]
                 img_per_series = row["nframes"]
-                nrow = row.copy()
                 idx_subset = 1
-                while nrow["last"] + 1 - tot_img < 0:
+                for i in range(tot_img // img_per_series):
+                    nrow = row.copy()
                     if "subset" not in meta:
                         meta.insert(1, "subset", int(0))
-                    nrow["first"] = img_per_series + nrow["first"]
-                    nrow["last"] = img_per_series + nrow["last"]
-                    nrow["subset"] = idx_subset
-                    idx_subset += 1
-                    meta.loc[meta.shape[0]] = nrow
+                    nrow["first"] = img_per_series*i  # + nrow["first"]
+                    nrow["last"] = img_per_series* (i+1)-1  # + nrow["last"]
+                    nrow["subset"] = i
+                    meta.loc[meta.shape[0]-(not i)] = nrow
+                    nrow = nrow.copy()
 
         if self.meta is None:
             self.meta = meta
