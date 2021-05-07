@@ -109,7 +109,8 @@ class CorrFunc(AnaList):
                     )
                 except KeyError:
                     print("Could not load item {}".format(sid))
-            print("Loaded {} correlation functions.".format(len(db_id)))
+            if self.verbose:
+                print("Loaded {} correlation functions.".format(len(db_id)))
         self.corrFuncRescaled = copy.deepcopy(self.corrFunc)
 
     @Decorators.init_figure()
@@ -128,6 +129,7 @@ class CorrFunc(AnaList):
         exclude=None,
         add_colorbar=False,
         cb_kws={},
+        verbose=False,
         **kwargs,
     ):
 
@@ -139,6 +141,7 @@ class CorrFunc(AnaList):
             "fitglobal",
             "lmfit_pars",
             "fitqdep",
+            "verbose",
         ]
         fit_kwargs = {k: i for k, i in kwargs.items() if k in fit_keys}
 
@@ -224,7 +227,8 @@ class CorrFunc(AnaList):
                 res = g2.fit(**self.fit_config[j])
                 self.pars[j] = res[0]
                 self.fit_result[j] = res[1]
-                print(f"Fit successful: {res[1][0][0].errorbars}")
+                if self.verbose:
+                    print(f"Fit successful: {res[1][0][0].errorbars}")
             if "doplot" in kwargs:
                 g2.plot(
                     marker=self.markers[j % len(self.markers)],
@@ -502,9 +506,10 @@ class CorrFunc(AnaList):
             )
 
         tmp = "Merged g2 functions: "
-        print("{:<22}{} (exposure times)".format(tmp, np.round(uq_et, 6)))
-        print("{:<22}{} (number of correlation functions)".format("", uq_cnt))
-        print("{:<22}{} (total number of images)".format("", counter))
+        if self.verbose:
+            print("{:<22}{} (exposure times)".format(tmp, np.round(uq_et, 6)))
+            print("{:<22}{} (number of correlation functions)".format("", uq_cnt))
+            print("{:<22}{} (total number of images)".format("", counter))
 
     def merge_g2list(self, resample=False, cutoff=-1, **kwargs):
         self.db_id = [
