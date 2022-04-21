@@ -3,11 +3,11 @@
 
 name: Upload Python Package to PyPi
 
-on:
-  release:
-    types: [created]
+# on:
+#   release:
+#     types: [created]
     
-# on: [push, pull_request] # for testing
+on: [push, pull_request] # for testing
 
 jobs:
   build_wheels:
