@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.ma as ma
-from Xdrop.dropletizem import dropimgood_sel
+from .dropletizem import dropimgood_sel
 import time
 import pickle
 import re
@@ -79,7 +79,13 @@ def testDropletizing(data, pars, dark=None, mask=None):
             imd1,
         ]
     ):
-        pl = ax[i].imshow(imp, interpolation="nearest", cmap="Blues")
+        if i == 0:
+            cmap = 'inferno'
+        if i == 1:
+            imp = imp * 1.
+            imp[imp==0] = np.nan
+            cmap = 'Set1'
+        pl = ax[i].imshow(imp, interpolation="nearest", cmap=cmap)
         ind_x = np.arange(xl[1] - xl[0])
         ind_y = np.arange(yl[1] - yl[0])
         x, y = np.meshgrid(ind_x, ind_y)

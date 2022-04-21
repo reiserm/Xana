@@ -190,7 +190,6 @@ def plot_parameters(
                     "\neta = {0[0]:.4g} +/- {0[1]:.2g} [cP]".format(
                         np.array(geteta(*fitpar[0])) * 1e3
                     )
-                    ** power
                 )
         elif parameter == "f0" and dofit and "t" in res[2].params.keys():
             msd = 1 / (2 * res[2].params["t"].value)

@@ -1,6 +1,7 @@
 import numpy as np
 import lmfit
-from .g2function import g2 as g2func
+from .relaxationfunctions import g2 as g2func
+from .relaxationfunctions import algebraic, logarithmic
 from copy import copy
 import sys
 import pandas as pd
@@ -13,28 +14,43 @@ import pdb
 
 
 class G2:
-    def __init__(self, cf, nq, dcf=None):
 
-        self.t = np.ma.masked_invalid(cf[1:, 0])
-        self.qv = cf[0, 1:].copy()
+
+    def __init__(self, cf, nq, dcf=None, t=None, qv=None):
+
         self.nq = np.asarray(nq)
+        if t is None:
+            self.t = np.ma.masked_invalid(cf[1:, 0])
+            self.qv = cf[0, 1:].copy()
+            self.cf = np.ma.masked_invalid(cf[1:, 1:]).T
+        elif t is not None and qv is not None:
+            self.t = np.ma.masked_array(t)
+            self.qv = qv
+            self.cf = np.ma.masked_invalid(cf).T
+        else:
+            raise ValueError('Provide qv together with t.')
 
-        self.cf = np.ma.masked_invalid(cf[1:, 1:]).T
         ind_sort = np.argsort(self.t)
         self.t = self.t[ind_sort].astype(np.float64)
         self.cf = self.cf[:, ind_sort].astype(np.float64)
 
         if isinstance(dcf, np.ndarray):
-            self.dcf = np.ma.masked_invalid(dcf[1:, 1:]).T
+            self.dcf = dcf.T
+            if not self.dcf.shape == self.cf.shape:
+                self.dcf = self.dcf[1:, 1:]
+
+            self.dcf = np.ma.masked_invalid(self.dcf)
             self.dcf = self.dcf[:, ind_sort]
         else:
             self.dcf = None
 
         # properties
         self.nmodes = 1
+        self.models = ['exp']
         self.fitglobal = []
         self.fitqdep = None
         self.fix = None
+        self.constrain_beta = True
 
         # attributes defined in private methods
         self._lmpars = None
@@ -108,6 +124,8 @@ class G2:
         lmfit_pars={},
         fitqdep={},
         verbose=False,
+        models=None,
+        constrain_beta=True,
     ):
         """
         Function that computes the fits using lmfit's minimizer
@@ -117,6 +135,13 @@ class G2:
         self.nmodes = nmodes
         self.fitqdep = fitqdep
         self.fix = fix
+        self.constrain_beta = constrain_beta
+
+        if models is None:
+            models = self.models * self.nmodes
+        self.models = models
+
+        assert len(models) == self.nmodes, "provide as many models as modes"
 
         # make the parameters
         if not lmfit_pars.get("is_weighted", True):
@@ -126,6 +151,9 @@ class G2:
 
         # setting the weights of the data
         self._get_weights(mode)
+
+        # for p in self._lmpars:
+        #     print(p, self._lmpars[p].expr)
 
         self._minimizer = lmfit.Minimizer(
             self._residuals,
@@ -221,38 +249,32 @@ class G2:
 
         xf = np.logspace(np.log10(xl[0]), np.log10(xl[1]), 50)
 
+        if sucfit:
+            # pdb.set_trace()
+            v = self.fit_result[0][0].params.valuesdict()
+            g2f_q = self._calc_model(v, t=xf)
+
         for ii, iq in enumerate(self.nq):
             pl = []
+            # if confint:
+            #     g2fci = np.zeros((2, len(xf)))
+            #     for i in range(self.nmodes):
+            #         ve = f"{i}"
+            #         for j in range(2):
+            #             g2fci[j] += g2func(
+            #                 xf,
+            #                 t=v["t" + ve]
+            #                 * (1 + (-1) ** j * 0.01 * confint.get("t" + ve, 0)),
+            #                 b=v["b" + ve]
+            #                 * (1 + (-1) ** j * 0.01 * confint.get("b" + ve, 0)),
+            #                 g=v["g" + ve]
+            #                 * (1 + (-1) ** j * 0.01 * confint.get("g" + ve, 0)),
+            #                 a=v["a"] * 1.0 * (not bool(i)),
+            #             )
             if sucfit:
-                # pdb.set_trace()
                 ipars = np.abs(self.pars["q"] - self.qv[iq]).idxmin()
                 v = self.pars.iloc[ipars]
-                g2f = 0
-                for i in range(self.nmodes):
-                    ve = f"{i}"
-                    g2f += g2func(
-                        xf,
-                        t=v["t" + ve],
-                        b=v["b" + ve],
-                        g=v["g" + ve],
-                        a=v["a"] * 1.0 * (not bool(i)),
-                    )
-                if confint:
-                    g2fci = np.zeros((2, len(xf)))
-                    for i in range(self.nmodes):
-                        ve = f"{i}"
-                        for j in range(2):
-                            g2fci[j] += g2func(
-                                xf,
-                                t=v["t" + ve]
-                                * (1 + (-1) ** j * 0.01 * confint.get("t" + ve, 0)),
-                                b=v["b" + ve]
-                                * (1 + (-1) ** j * 0.01 * confint.get("b" + ve, 0)),
-                                g=v["g" + ve]
-                                * (1 + (-1) ** j * 0.01 * confint.get("g" + ve, 0)),
-                                a=v["a"] * 1.0 * (not bool(i)),
-                            )
-
+                g2f = g2f_q[ii]
                 labstr_fit = None
                 if "legf" in doplot and sucfit:
                     pard = {
@@ -328,7 +350,10 @@ class G2:
 
             if colors is None:
                 if "data" in doplot:
-                    color = pl[-1].get_color()
+                    if isinstance(pl[-1], matplotlib.lines.Line2D):
+                        color = pl[-1].get_color()
+                    else:
+                        color = pl[-1].get_children()[0].get_color()
                 else:
                     color = "gray"
             else:
@@ -368,17 +393,30 @@ class G2:
     def _calc_model(
         self,
         v,
+        t=None,
     ):
         """Calculate multi mode g2 funktion"""
-        # v = pars.valuesdict()
+        if t is None:
+            t = self.t
+
         vn = self._varnames
-        model = np.zeros((self.ndat, self.t.size), dtype=np.float64)
+        model = np.zeros((self.ndat, t.size), dtype=np.float64)
 
         for j in range(self.ndat):
-            for i in range(self.nmodes):
+            for i, funcname in enumerate(self.models):
                 a = v[vn["a"][j][i]] if (i == 0) else 0
-                model[j] += g2func(
-                    self.t,
+
+                if funcname.startswith('exp'):
+                    func = g2func
+                elif funcname.startswith('log'):
+                    func = logarithmic
+                elif funcname.startswith('alg'):
+                    func = algebraic
+                else:
+                    raise ValueError(f"Method {funcname} not supported")
+
+                model[j] += func(
+                    t,
                     t=v[vn["t"][j][i]],
                     b=v[vn["b"][j][i]],
                     g=v[vn["g"][j][i]],
@@ -395,6 +433,8 @@ class G2:
         model = self._calc_model(v)
 
         resid = (self._fit_data - model) * self._fit_weights
+        if np.isnan(resid).any():
+            print(pars)
 
         return np.squeeze(resid.flatten())
 
@@ -440,6 +480,7 @@ class G2:
         # modifying pars for global fitting if not globalfit then ndat=1
         lpars = list(pars.items())
         newpars = []
+        constraints = []
         for j in range(self.ndat - 1):
             for pk, pv in reversed(sorted(lpars)):
                 if (
@@ -451,14 +492,17 @@ class G2:
                         pv.set(value=fixed_values[pk][j], vary=False)
                     pt = copy(pv)
                     pt.name += f"_{j}"
-                    if pk == "b0" and pk not in fixed_values:
+                    if bool(re.search('b0', pk)) and pk not in fixed_values:
                         beta_constraint = self._get_beta_constraint(ndat=j)
-                        pt.set(expr=beta_constraint)
+                        constraints.append((pt.name, beta_constraint))
                     if pk in fixed_values:
                         pt.set(value=fixed_values[pk][j + 1], vary=False)
                     # print(pars)
                     # print(pt)
                     pars.add(pt)
+
+        for pk, constraint in constraints:
+            pars[pk].set(expr=constraint)
 
         re_par = re.compile("([tgb]\d{1})|(beta)")
         for p in self.fitqdep:
@@ -557,6 +601,7 @@ class G2:
         """
         make initial guess for parameters if not provided by init
         """
+        parnames = ['a', 'beta', '__lnsigma']
         for i in range(self.nmodes):
             for s in "tgb":
                 vn = s + "{}".format(i)
@@ -572,6 +617,7 @@ class G2:
                         init[vn] = (1, 0.2, 1.8)
                     elif s == "b":
                         init[vn] = (0.1, 0, 1)
+                parnames.append(vn)
 
         if "a" not in init:
             init["a"] = (1, 0, 2)
@@ -580,6 +626,11 @@ class G2:
         if bool(init.get("__lnsigma", False)):
             if not isinstance(init["__lnsigma"], tuple):
                 init["__lnsigma"] = (np.log(0.1), None, None)
+
+        for key in list(init.keys()):
+            if not key in parnames:
+                init.pop(key)
+
 
     def _get_beta_constraint(self, ndat=-1):
         dc = f"_{ndat}" * bool(ndat + 1)  # counter for fit_global
@@ -593,7 +644,7 @@ class G2:
             else dc
         )
         dca = "" if ("a" in self.fitglobal) or ("a" in self.fix) else dc
-        if self.nmodes > 1:
+        if (self.nmodes > 1) and self.constrain_beta:
             beta_constraint = (
                 "a"
                 + dca

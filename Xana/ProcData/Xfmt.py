@@ -9,29 +9,28 @@ class Xfmt:
     dfferent data types.
     """
 
-    def __init__(self, fmtstr=None):
+    SUPPORTED = [
+        "id10_eiger_single_edf",
+        "pilatus_single_cbf",
+        "p10_eiger_h5",
+        # "xcs_cspad_h5",
+        "converted_h5",
+        "lambda_nxs",
+        "id02_eiger_single_edf",
+        "id02_eiger_multi_edf",
+        "ebs_id02_h5",
+        "ebs_id02_eiger2",
+        "ebs_id02_eiger500k",
+        "ebs_id10_h5",
+    ]
 
-        supported = [
-            "id10_eiger_single_edf",
-            "pilatus_single_cbf",
-            "p10_eiger_h5",
-            "xcs_cspad_h5",
-            "converted_h5",
-            "lambda_nxs",
-            "id02_eiger_single_edf",
-            "id02_eiger_multi_edf",
-            "spb_agipd",
-            "ebs_id02_h5",
-            "ebs_id02_eiger2",
-            "ebs_id02_eiger500k",
-            "ebs_id10_h5",
-        ]
+    def __init__(self, fmtstr=None):
 
         self.fmtstr = fmtstr
         kernel = {}
         if fmtstr == "" or fmtstr is None:
             pass
-        elif isinstance(fmtstr, str) and fmtstr not in supported:
+        elif isinstance(fmtstr, str) and fmtstr not in self.SUPPORTED:
             warnings.warn(f"Format {fmtstr} is not supported. Cannot load data.")
         else:
             if fmtstr == "id10_eiger_single_edf":
@@ -183,7 +182,7 @@ class Xfmt:
                 "data": "/entry/data/",
                 "ExternalLinks": True,
                 "chunk_size": 200,
-                "images_per_file": 2000,
+                "images_per_file": 10000,
             },
         }
         return kernel
