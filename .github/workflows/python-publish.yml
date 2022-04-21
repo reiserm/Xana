@@ -36,7 +36,8 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_SKIP: "cp27-* pp27-* cp35-*"  # skip wheels
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_SKIP: "cp27-* pp27-* cp35-* pp35-*"  # skip wheels
 
       - uses: actions/upload-artifact@v3
         with:
