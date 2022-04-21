@@ -182,7 +182,7 @@ class Xfmt:
                 "data": "/entry/data/",
                 "ExternalLinks": True,
                 "chunk_size": 200,
-                "images_per_file": 2000,
+                "images_per_file": 10000,
             },
         }
         return kernel
