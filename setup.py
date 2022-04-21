@@ -17,13 +17,13 @@ ext_modules = cythonize(abspath("Xana/XpcsAna/cpy_ecorr.pyx"), annotate=True)
 
 setup(
     name="Xana",
-    version="0.6.6",
+    version="0.7.3",
     packages=setuptools.find_packages(),
     license="MIT",
     author="Mario Reiser",
     author_email="mario.mkel@gmail.com",
     url="https://github.com/reiserm/Xana",
-    download_url="https://github.com/reiserm/Xana/archive/v0.6.6.tar.gz",
+    download_url="https://github.com/reiserm/Xana/archive/v0.7.3.tar.gz",
     keywords=[
         "data analysis",
         "XPCS",
