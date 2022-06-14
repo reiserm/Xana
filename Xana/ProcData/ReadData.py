@@ -24,6 +24,7 @@ def get_case(detector):
         "ebs_id02_eiger2",
         "ebs_id02_eiger500k",
         "ebs_id10_h5",
+        "ebs_id10_eiger500k",
     ]:
         case = 1
     elif detector == "xcs_cspad_h5":
