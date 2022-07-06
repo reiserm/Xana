@@ -22,6 +22,7 @@ class Xfmt:
         "ebs_id02_eiger2",
         "ebs_id02_eiger500k",
         "ebs_id10_h5",
+        "ebs_id10_eiger500k",
     ]
 
     def __init__(self, fmtstr=None):
@@ -59,6 +60,8 @@ class Xfmt:
                 kernel = self.__init_ebs_id02_eiger2()
             elif fmtstr == "ebs_id10_h5":
                 kernel = self.__init_ebs_id10_h5()
+            elif fmtstr == "ebs_id10_eiger500k":
+                kernel = self.__init_ebs_id10_eiger500k()
 
             self.suffix = None
             self.numfmt = None
@@ -467,6 +470,40 @@ class Xfmt:
             "h5opt": {
                 "driver": None,
                 "data": "entry_0000/instrument/mpx_si_22/data",
+                "ExternalLinks": False,
+                "chunk_size": 200,
+                "images_per_file": 2_000_000,
+            },
+        }
+        return kernel
+    
+    @staticmethod
+    def __init_ebs_id10_eiger500k():
+        kernel = {
+            "prefix": "",
+            "suffix": "h5",
+            "numfmt": "\d{4}",
+            "masterfmt": "eiger1_\d{4}",
+            "seriesfmt": "(?<=scan)\d{4}",
+            "get_header": get_header_h5,
+            "get_attributes": get_attrs_h5,
+            "attributes": {
+                "t_exposure": (
+                    "entry_0000/ESRF-ID10/eiger1/acquisition/exposure_time",
+                    "float32",
+                ),
+                "t_readout": (
+                    "entry_0000/ESRF-ID10/eiger1/acquisition/latency_time",
+                    "float32",
+                ),
+                "nframes": (
+                    "entry_0000/ESRF-ID10/eiger1/acquisition/nb_frames",
+                    "int32",
+                ),
+            },
+            "h5opt": {
+                "driver": None,
+                "data": "entry_0000/ESRF-ID10/eiger1/data",
                 "ExternalLinks": False,
                 "chunk_size": 200,
                 "images_per_file": 2_000_000,
